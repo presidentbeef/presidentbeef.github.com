@@ -90,4 +90,4 @@ With this code in place, call indexing does not even show up under perftools. Sp
 
 Some quick profiling led me to performance improvements where I really did not expect to find them. Sadly, this is one of the cleanest, simplest parts of Brakeman, so I know there are many other instances where Brakeman can be improved. Prior to the introduction of the call index in Brakeman 1.0, I was trying to keep Brakeman scans under 20 minutes (on large applications). Now I worry when scans take longer than a few minutes.
 
-97% of the open source Rails applications I use as test cases can be scanned in less than 30 seconds. Unfortunately, this probably does not reflect scan times for large, commercial applications. Please report any long-running scans! It may lead to more speed improvements like the ones above. 
+97% of the open source Rails applications I use as test cases can be scanned in less than 30 seconds. Unfortunately, this probably does not reflect scan times for large, commercial applications. Please [report](https://github.com/presidentbeef/brakeman/issues) any long-running scans! It may lead to more speed improvements like the ones above. 
