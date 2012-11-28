@@ -1,102 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
 
-<!DOCTYPE html>
-<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
-<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
-<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<head>
-  <meta charset="utf-8">
-  <title>Justin Collins' Blugh</title>
-  <meta name="author" content="Justin Collins">
-
-  
-  <meta name="description" content="Background About a month ago, an issue was reported where Brakeman taking a ridiculously long time on the &#8220;call indexing&#8221; step. At the &hellip;">
-  
-
-  <!-- http://t.co/dKP3o1e -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  
-  <link rel="canonical" href="http://presidentbeef.github.com">
-  <link href="/favicon.ico" rel="icon">
-  
-  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="/javascripts/ender.js"></script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
-  <link href="/atom.xml" rel="alternate" title="Justin Collins' Blugh" type="application/atom+xml">
-  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
-<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-
-  
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-20920647-3']);
-    _gaq.push(['_trackPageview']);
-
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
-
-
-</head>
-
-<body   class="no-sidebar"  >
-  <header role="banner"><hgroup>
-  
-    <h2><a href="/">*.blog</a></h2>
-  
-  <em>by <a style="text-decoration: none" href="http://presidentbeef.com">Justin Collins</a></em>
-</hgroup>
-
-</header>
-  <nav role="navigation">
-  
-<ul class="main-navigation">
-  <li><a href="/">Recent</a></li>
-  <li><a href="/blog/archives">All</a></li>
-</ul>
-
-</nav>
-  <div id="main">
-    <div id="content">
-      <div class="blog-index">
-  
-  
-  
-    <article>
-      
-  <header>
+  <title><![CDATA[Justin Collins' Blugh]]></title>
+  <link href="http://presidentbeef.github.com/atom.xml" rel="self"/>
+  <link href="http://presidentbeef.github.com/"/>
+  <updated>2012-11-27T22:22:54-08:00</updated>
+  <id>http://presidentbeef.github.com/</id>
+  <author>
+    <name><![CDATA[Justin Collins]]></name>
     
-      <h1 class="entry-title"><a href="/blog/2012/11/29/faster-call-indexing-in-brakeman-1-dot-8-3/">Faster Call Indexing in Brakeman</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
 
   
-
-
-<time datetime="2012-11-29T11:49:00-08:00" pubdate data-updated="true">Nov 29<span>th</span>, 2012</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>Background</h2>
+  <entry>
+    <title type="html"><![CDATA[Faster Call Indexing in Brakeman]]></title>
+    <link href="http://presidentbeef.github.com/blog/2012/11/29/faster-call-indexing-in-brakeman-1-dot-8-3/"/>
+    <updated>2012-11-29T11:49:00-08:00</updated>
+    <id>http://presidentbeef.github.com/blog/2012/11/29/faster-call-indexing-in-brakeman-1-dot-8-3</id>
+    <content type="html"><![CDATA[<h2>Background</h2>
 
 <p>About a month ago, an <a href="https://github.com/presidentbeef/brakeman/issues/171">issue</a> was reported where <a href="http://brakemanscanner.org">Brakeman</a> taking a ridiculously long time on the &#8220;call indexing&#8221; step. At the time, I was pessimistic about opportunities to improve the performance of call indexing, since it is a pretty simple operation.</p>
 
@@ -112,11 +34,11 @@
 
 <p>This is the result:</p>
 
-<p><a href="/images/blog/brakeman-scan-1.8.2.pdf"><img src="/images/blog/brakeman-scan-1.8.2.png" alt="Brakeman 1.8.2 scan" /></a></p>
+<p><a href="http://presidentbeef.github.com/images/blog/brakeman-scan-1.8.2.pdf"><img src="http://presidentbeef.github.com/images/blog/brakeman-scan-1.8.2.png" alt="Brakeman 1.8.2 scan" /></a></p>
 
 <p>The large amount of time spent in the garbage collector (60%) was high even for Brakeman. But then something else caught my eye:</p>
 
-<p><img src="/images/blog/call-indexing-1.8.2.png" alt="Call indexing in 1.8.2" /></p>
+<p><img src="http://presidentbeef.github.com/images/blog/call-indexing-1.8.2.png" alt="Call indexing in 1.8.2" /></p>
 
 <p>This scan spent 4.7% of its time converting <code>Sexp</code>s to strings while indexing calls. This seemed excessive.</p>
 
@@ -151,7 +73,7 @@
 
 <p>Scanning the same application with Brakeman 1.8.3 has this result:</p>
 
-<p><a href="/images/blog/brakeman-scan-1.8.3.pdf"><img src="/images/blog/brakeman-scan-1.8.3.png" alt="Brakeman 1.8.3 scan" /></a></p>
+<p><a href="http://presidentbeef.github.com/images/blog/brakeman-scan-1.8.3.pdf"><img src="http://presidentbeef.github.com/images/blog/brakeman-scan-1.8.3.png" alt="Brakeman 1.8.3 scan" /></a></p>
 
 <p>Garbage collection time dropped from 60% to 42%. While still very high, this is a good sign. Time spent indexing calls has dropped from 5.4% to 1.8% and the calls to <code>Sexp#to_s</code> have vanished.</p>
 
@@ -163,7 +85,7 @@
 
 <p>Going even further, nowhere does Brakeman search for targets by any values other than symbols. Note in the graph below that <code>Array#eql?</code> was sampled 1,330 times during call indexing:</p>
 
-<p><img src="/images/blog/call-indexing-hashing-sexp.png" alt="Call indexing hashing" /></p>
+<p><img src="http://presidentbeef.github.com/images/blog/call-indexing-hashing-sexp.png" alt="Call indexing hashing" /></p>
 
 <p>Since <code>Sexp</code>s are subclassed from <code>Array</code>, it is clear that these calls are generated when using the <code>call[:target]</code> as a hash key (line 6 above). Again, the current Brakeman code only searches for call targets by symbol, never by a full <code>Sexp</code>. There is no reason to the call targets that are <code>Sexp</code>s.</p>
 
@@ -197,63 +119,7 @@
 <p>Some quick profiling led me to performance improvements where I really did not expect to find them. Sadly, this is one of the cleanest, simplest parts of Brakeman, so I know there are many other instances where Brakeman can be improved. Prior to the introduction of the call index in Brakeman 1.0, I was trying to keep Brakeman scans under 20 minutes (on large applications). Now I worry when scans take longer than a few minutes.</p>
 
 <p>97% of the open source Rails applications I use as test cases can be scanned in less than 30 seconds. Unfortunately, this probably does not reflect scan times for large, commercial applications. Please report any long-running scans! It may lead to more speed improvements like the ones above.</p>
-</div>
+]]></content>
+  </entry>
   
-  
-
-
-    </article>
-  
-  <div class="pagination">
-    
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
-</div>
-
-    </div>
-  </div>
-  <footer role="contentinfo"><p>
-  Copyright &copy; 2012 - Justin Collins -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -
-  <span class="credit">Theme by <a href="http://aron.cedercrantz.com/">Aron Cedercrantz</a></span>
-</p>
-
-</footer>
-  
-
-<script type="text/javascript">
-      var disqus_shortname = 'presidentbeefblog';
-      
-        
-        var disqus_script = 'count.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
-
-
-
-
-
-
-
-  <script type="text/javascript">
-    (function(){
-      var twitterWidgets = document.createElement('script');
-      twitterWidgets.type = 'text/javascript';
-      twitterWidgets.async = true;
-      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
-      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
-    })();
-  </script>
-
-
-
-
-
-</body>
-</html>
+</feed>

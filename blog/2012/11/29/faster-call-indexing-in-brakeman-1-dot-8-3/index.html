@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Justin Collins' Blugh</title>
+  <title>Faster Call Indexing in Brakeman - Justin Collins' Blugh</title>
   <meta name="author" content="Justin Collins">
 
   
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://presidentbeef.github.com">
+  <link rel="canonical" href="http://presidentbeef.github.com/blog/2012/11/29/faster-call-indexing-in-brakeman-1-dot-8-3">
   <link href="/favicon.ico" rel="icon">
   
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
@@ -65,15 +65,12 @@
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article class="hentry" role="article">
   
-  
-  
-    <article>
-      
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2012/11/29/faster-call-indexing-in-brakeman-1-dot-8-3/">Faster Call Indexing in Brakeman</a></h1>
+      <h1 class="entry-title">Faster Call Indexing in Brakeman</h1>
     
     
       <p class="meta">
@@ -96,7 +93,7 @@
   </header>
 
 
-  <div class="entry-content"><h2>Background</h2>
+<div class="entry-content"><h2>Background</h2>
 
 <p>About a month ago, an <a href="https://github.com/presidentbeef/brakeman/issues/171">issue</a> was reported where <a href="http://brakemanscanner.org">Brakeman</a> taking a ridiculously long time on the &#8220;call indexing&#8221; step. At the time, I was pessimistic about opportunities to improve the performance of call indexing, since it is a pretty simple operation.</p>
 
@@ -198,18 +195,57 @@
 
 <p>97% of the open source Rails applications I use as test cases can be scanned in less than 30 seconds. Unfortunately, this probably does not reflect scan times for large, commercial applications. Please report any long-running scans! It may lead to more speed improvements like the ones above.</p>
 </div>
+
+
+  <footer>
+    <p class="meta">
+      
   
+
+<span class="byline author vcard">Posted by <span class="fn"><a href="/about" title="About the author (Justin Collins)" rel="author">Justin Collins</a></span></span>
+
+      
+
+
+
+
+
+
+
+
   
 
 
-    </article>
+<time datetime="2012-11-29T11:49:00-08:00" pubdate data-updated="true">Nov 29<span>th</span>, 2012</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
   
-  <div class="pagination">
-    
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://presidentbeef.github.com/blog/2012/11/29/faster-call-indexing-in-brakeman-1-dot-8-3/" data-via="presidentbeef" data-counturl="http://presidentbeef.github.com/blog/2012/11/29/faster-call-indexing-in-brakeman-1-dot-8-3/" >Tweet</a>
+  
+  
+  
 </div>
+
+    
+    <p class="meta">
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
 
     </div>
   </div>
@@ -226,7 +262,10 @@
       var disqus_shortname = 'presidentbeefblog';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://presidentbeef.github.com/blog/2012/11/29/faster-call-indexing-in-brakeman-1-dot-8-3/';
+        var disqus_url = 'http://presidentbeef.github.com/blog/2012/11/29/faster-call-indexing-in-brakeman-1-dot-8-3/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
