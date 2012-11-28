@@ -73,7 +73,7 @@
       
   <header>
     
-      <h1 class="entry-title"><a href="/blog/2012/11/29/faster-call-indexing-in-brakeman-1-dot-8-3/">Faster Call Indexing in Brakeman</a></h1>
+      <h1 class="entry-title"><a href="/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3/">Faster Call Indexing in Brakeman</a></h1>
     
     
       <p class="meta">
@@ -89,7 +89,7 @@
   
 
 
-<time datetime="2012-11-29T11:49:00-08:00" pubdate data-updated="true">Nov 29<span>th</span>, 2012</time>
+<time datetime="2012-11-28T11:49:00-08:00" pubdate data-updated="true">Nov 28<span>th</span>, 2012</time>
         
       </p>
     
@@ -196,7 +196,7 @@
 
 <p>Some quick profiling led me to performance improvements where I really did not expect to find them. Sadly, this is one of the cleanest, simplest parts of Brakeman, so I know there are many other instances where Brakeman can be improved. Prior to the introduction of the call index in Brakeman 1.0, I was trying to keep Brakeman scans under 20 minutes (on large applications). Now I worry when scans take longer than a few minutes.</p>
 
-<p>97% of the open source Rails applications I use as test cases can be scanned in less than 30 seconds. Unfortunately, this probably does not reflect scan times for large, commercial applications. Please report any long-running scans! It may lead to more speed improvements like the ones above.</p>
+<p>97% of the open source Rails applications I use as test cases can be scanned in less than 30 seconds. Unfortunately, this probably does not reflect scan times for large, commercial applications. Please <a href="https://github.com/presidentbeef/brakeman/issues">report</a> any long-running scans! It may lead to more speed improvements like the ones above.</p>
 </div>
   
   
