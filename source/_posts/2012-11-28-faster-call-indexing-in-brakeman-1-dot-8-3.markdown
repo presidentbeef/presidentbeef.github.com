@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Faster Call Indexing in Brakeman"
-date: 2012-11-29 11:49
+date: 2012-11-28 11:49
 comments: true
 categories: 
 ---
