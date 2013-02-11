@@ -139,9 +139,11 @@ results = DB.execute(query)
 
 <p>While working on <a href="http://brakemanscanner.org/">Brakeman</a>, I thought it would be useful to put together a list of all the unsafe ways one can use ActiveRecord.</p>
 
-<p>To make it easier on myself, I built the list into a Rails application so I could easily test, verify, and record any findings. The source is <a href="https://github.com/presidentbeef/inject-some-sql">available here</a> for those who would like try out the examples. It is by no means complete, so please feel free to contribute or make suggestions. It is still a little rough at the moment.</p>
+<p>To make it easier on myself, I built the list into a Rails application so I could easily test, verify, and record any findings. The source is <a href="https://github.com/presidentbeef/inject-some-sql">available here</a> for those who would like try out the examples. The application is a single page of all the queries and example injections. From there one can submit queries and see the results:</p>
 
-<p>The resulting information is available at <a href="http://rails-sqli.org">rails-sqli.org</a>, including examples of how SQL injection can occur and the resulting queries.</p>
+<p><img src="/images/blog/inject-some-sql.png" alt="Query Example" /></p>
+
+<p>The resulting information is available at <a href="http://rails-sqli.org">rails-sqli.org</a>, including examples of how SQL injection can occur and the resulting queries. This is basically a big list of what <em>not</em> to do when using ActiveRecord. Again, please feel free to <a href="https://github.com/presidentbeef/inject-some-sql">contribute</a> so that the list can be as authoritative as possible and help everyone avoid SQL injection in Rails.</p>
 </div>
 
 
