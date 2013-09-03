@@ -19,7 +19,7 @@ One method to determine membership is to AND the bit set with a mask with only t
 In Ruby, this looks like
 
 ```ruby
-bitset & (1 << mask) != 0
+bitset & (1 << num) != 0
 ```
 
 For example, to check if the value 4 is in the set, we use the mask `00010000` (the 5th bit from the right is set to 1) which is the decimal value `8`:
