@@ -12,7 +12,11 @@
     </url>
     <url>
         <loc>http://presidentbeef.github.com/blog/2013/09/02/fast-compact-sparse-bitsets/</loc>
-        <lastmod>2013-09-02T18:01:43-07:00</lastmod>
+        <lastmod>2013-09-02T18:17:25-07:00</lastmod>
+    </url>
+    <url>
+        <loc>http://presidentbeef.github.com/blog/2013/11/01/testing-brakeman/</loc>
+        <lastmod>2013-11-01T09:10:11-07:00</lastmod>
     </url>
     <url>
         <loc>http://presidentbeef.github.com/about/</loc>
@@ -20,7 +24,7 @@
     </url>
     <url>
         <loc>http://presidentbeef.github.com/blog/archives/</loc>
-        <lastmod>2013-09-02T18:01:43-07:00</lastmod>
+        <lastmod>2013-11-01T09:10:11-07:00</lastmod>
     </url>
     <url>
         <loc>http://presidentbeef.github.com/404.html</loc>
@@ -28,6 +32,6 @@
     </url>
     <url>
         <loc>http://presidentbeef.github.com/</loc>
-        <lastmod>2013-09-02T18:01:43-07:00</lastmod>
+        <lastmod>2013-11-01T09:10:11-07:00</lastmod>
     </url>
 </urlset>

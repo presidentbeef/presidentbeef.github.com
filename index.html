@@ -9,7 +9,7 @@
   <meta name="author" content="Justin Collins">
 
   
-  <meta name="description" content="Imagine you need a relatively compact data structure for quickly checking membership of mostly-consecutive non-negative integers. (If this sounds &hellip;">
+  <meta name="description" content="Here is some information about how Brakeman is tested! Basic Testing and Continuous Integration Brakeman does have a few unit tests&#8230;pitifully &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -74,6 +74,398 @@
       
   <header>
     
+      <h1 class="entry-title"><a href="/blog/2013/11/01/testing-brakeman/">Testing Brakeman Against 253 Rails Apps</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-11-01T07:54:00-07:00" pubdate data-updated="true">Nov 1<span>st</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Here is some information about how <a href="http://brakemanscanner.org/">Brakeman</a> is tested!</p>
+
+<h3>Basic Testing and Continuous Integration</h3>
+
+<p>Brakeman does have a few unit tests&#8230;pitifully few. In fact, Brakeman had no tests at all until version <a href="https://github.com/presidentbeef/brakeman/blob/master/CHANGES#L490">0.5.2</a>, nearly a year after Brakeman&#8217;s initial public release. Unit testing Brakeman remains difficult, since much of the code relies on data built up from scanning an entire Rails application.</p>
+
+<p>As such, the majority of tests in Brakeman rely on scanning <a href="https://github.com/presidentbeef/brakeman/tree/master/test/apps">sample applications</a> and checking the resulting reports for an expected set of warnings. There are tests for the presence and absence of specific warnings, as well as checking for the specific number of warnings and an absence of reported errors. Since writing tests is pretty tedious, there is <a href="https://github.com/presidentbeef/brakeman/blob/master/test/to_test.rb">a script</a> which generates the Ruby code to asserts the presence of reported warnings. This script takes the same arguments as Brakeman, so it&#8217;s simple to generate a set of tests for a specific scenario.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">test_information_disclosure_local_request_config</span>
+</span><span class='line'>  <span class="n">assert_warning</span> <span class="ss">:type</span> <span class="o">=&gt;</span> <span class="ss">:warning</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">:warning_code</span> <span class="o">=&gt;</span> <span class="mi">61</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">:fingerprint</span> <span class="o">=&gt;</span> <span class="s2">&quot;081f5d87a244b41d3cf1d5994cb792d2cec639cd70e4e306ffe1eb8abf0f32f7&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">:warning_type</span> <span class="o">=&gt;</span> <span class="s2">&quot;Information Disclosure&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">:message</span> <span class="o">=&gt;</span> <span class="sr">/^Detailed\ exceptions\ are\ enabled\ in\ produ/</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">:confidence</span> <span class="o">=&gt;</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">:relative_path</span> <span class="o">=&gt;</span> <span class="s2">&quot;config/environments/production.rb&quot;</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The tests run on <a href="https://travis-ci.org/presidentbeef/brakeman">Travis CI</a> which is integrated with GitHub. This is especially helpful for testing compatibility with Ruby 1.8.7, which many Rails applications still run on and Brakeman will probably continue supporting for a long time.</p>
+
+<h3>Regression Testing with a Wide Net</h3>
+
+<p>Unfortunately, the sample applications Brakeman uses for tests are quite limited, not real, and generally just test very specific warnings or previous bugs. To gain higher confidence that Brakeman is not too broken, Brakeman is run against a set of 253 open source Rails applications I have managed to scrape together. (If you have an open source application to add to this test set, please let me know!)</p>
+
+<p>The scans are run on my personal machine - six jobs in parallel, which takes about nine minutes total. After puttering around with a few different approaches, I ended up simply using the <a href="http://rdoc.info/stdlib/thread/Queue">Queue</a> class from Ruby&#8217;s standard library as the job queue. In a Frankenstein combination, a shell script starts up a JRuby process, which builds the Brakeman gem and then runs six threads for scan jobs. Each job launches Brakeman as an external process running under MRI 1.9.3 and, if successful, produces a JSON report. The JSON report is then augmented with some information about the Brakeman commit and the app that was scanned.</p>
+
+<p>When all the apps have been scanned, the JSON reports are tarred up and sent to a server. I use <a href="https://www.digitalocean.com/?refcode=35d9e7aec070">DigitalOcean</a> (referral link!) because I needed an Ubuntu setup and their API lets me use some handy <a href="https://github.com/presidentbeef/my_ocean">scripts</a> to spin the server up and down whenever I need it (and only pay for when it&#8217;s up).</p>
+
+<p>On the server, the reports are unpacked and imported into a <a href="http://rethinkdb.com/">RethinkDB</a> database. Since RethinkDB stores JSON documents, it&#8217;s simple to dump the JSON reports from Brakeman in there. I just have two tables: one just contains commit SHAs and their timestamps, and the other contains the actual reports. I have secondary indexes on the reports to efficiently look them up by the name of the Rails app or the Brakeman SHA.</p>
+
+<p>A small <a href="http://www.sinatrarb.com/">Sinatra</a> app serves up some basic graphs and allows two commits to be compared:</p>
+
+<p><img src="/images/blog/brakeman-graphs.png" title="Ugly, I know" alt="Brakeman Graphs" /></p>
+
+<p>This &#8220;system&#8221; is not open source at the moment, but probably will be in the future when I&#8217;ve removed hard-coded stuff.</p>
+
+<p>Anyhow, since I have all these reports, I can share some data&#8230;but just be forewarned you can&#8217;t really draw any conclusions from it!</p>
+
+<h3>Numbers!</h3>
+
+<p>This is the RethinkDB query for warnings per category, in JavaScript since I ran it in the web UI:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='javascript'><span class='line'><span class="nx">r</span><span class="p">.</span><span class="nx">db</span><span class="p">(</span><span class="s2">&quot;brakeman&quot;</span><span class="p">).</span>
+</span><span class='line'>  <span class="nx">table</span><span class="p">(</span><span class="s2">&quot;reports&quot;</span><span class="p">).</span>
+</span><span class='line'>  <span class="nx">getAll</span><span class="p">(</span><span class="s2">&quot;25a41dfcd9171695e731533c50de573c71c63deb&quot;</span><span class="p">,</span> <span class="p">{</span><span class="nx">index</span><span class="o">:</span> <span class="s2">&quot;brakeman_sha&quot;</span><span class="p">}).</span>
+</span><span class='line'>  <span class="nx">concatMap</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">rep</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="nx">rep</span><span class="p">(</span><span class="s2">&quot;brakeman_report&quot;</span><span class="p">)(</span><span class="s2">&quot;warnings&quot;</span><span class="p">)</span> <span class="p">}).</span>
+</span><span class='line'>  <span class="nx">groupBy</span><span class="p">(</span><span class="s2">&quot;warning_type&quot;</span><span class="p">,</span> <span class="nx">r</span><span class="p">.</span><span class="nx">count</span><span class="p">).</span>
+</span><span class='line'>  <span class="nx">orderBy</span><span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nx">desc</span><span class="p">(</span><span class="s2">&quot;reduction&quot;</span><span class="p">))</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<table>
+  <tr>
+    <th>
+      <strong>Warning Category</strong>
+    </th>
+    <th>
+      <strong>Count</strong>
+    </th>
+  </tr>
+  <tr>
+    <td>
+      Cross Site Scripting
+    </td>
+    <td>
+      6669
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Mass Assignment
+    </td>
+    <td>
+      3385
+    </td>
+  </tr>
+  <tr>
+    <td>
+      SQL Injection
+    </td>
+    <td>
+      1353
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Remote Code Execution
+    </td>
+    <td>
+      458
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Denial of Service
+    </td>
+    <td>
+      440
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Redirect
+    </td>
+    <td>
+      232
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Format Validation
+    </td>
+    <td>
+      230
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Attribute Restriction
+    </td>
+    <td>
+      205
+    </td>
+  </tr>
+  <tr>
+    <td>
+      File Access
+    </td>
+    <td>
+      200
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Session Setting
+    </td>
+    <td>
+      169
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Dynamic Render Path
+    </td>
+    <td>
+      140
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Command Injection
+    </td>
+    <td>
+      116
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Cross-Site Request Forgery
+    </td>
+    <td>
+      96
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Default Routes
+    </td>
+    <td>
+      67
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Response Splitting
+    </td>
+    <td>
+      44
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Dangerous Eval
+    </td>
+    <td>
+      43
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Dangerous Send
+    </td>
+    <td>
+      33
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Nested Attributes
+    </td>
+    <td>
+      5
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Information Disclosure
+    </td>
+    <td>
+      2
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Authentication
+    </td>
+    <td>
+      2
+    </td>
+  </tr>
+</table>
+
+
+<br>
+
+
+<p>Some educated guesses about these numbers:</p>
+
+<ul>
+<li>Mass assignment numbers are likely high because they include warnings about dangerous attributes that are whitelisted.</li>
+<li>Remote code injection is mostly uses of <code>constantize</code> and similar methods.</li>
+<li>Most denial of service warnings are calls to <code>to_sym</code> on parameters</li>
+<li>Response splitting is interesting because it is only reported in regards to <a href="https://groups.google.com/d/msg/rubyonrails-security/b_yTveAph2g/jKe6OuRC47sJ">CVE-2011-3186</a> which was fixed in Rails 2.3.13.</li>
+</ul>
+
+
+<p>This last point made me curious about the Rails versions in use by the applications. Keeping in mind these apps are not necessarily up-to-date, they represent at least 37 different versions! Some were reported as unknown versions.</p>
+
+<p>Here are the top ten:</p>
+
+<table>
+  <tr>
+    <th>
+      <strong>Rails Version</strong>
+    </th>
+    <th>
+      <strong>Count</strong>
+    </th>
+  </tr>
+  <tr>
+    <td>
+      3.2.13
+    </td>
+    <td>
+      26
+    </td>
+  </tr>
+  <tr>
+    <td>
+      2.3.5
+    </td>
+    <td>
+      19
+    </td>
+  </tr>
+  <tr>
+    <td>
+      3.0.3
+    </td>
+    <td>
+      18
+    </td>
+  </tr>
+  <tr>
+    <td>
+      3.2.14
+    </td>
+    <td>
+      14
+    </td>
+  </tr>
+  <tr>
+    <td>
+      4.0.0
+    </td>
+    <td>
+      11
+    </td>
+  </tr>
+  <tr>
+    <td>
+      3.2.12
+    </td>
+    <td>
+      9
+    </td>
+  </tr>
+  <tr>
+    <td>
+      2.3.8
+    </td>
+    <td>
+      8
+    </td>
+  </tr>
+  <tr>
+    <td>
+      3.2.11
+    </td>
+    <td>
+      8
+    </td>
+  </tr>
+  <tr>
+    <td>
+      3.0.0
+    </td>
+    <td>
+      7
+    </td>
+  </tr>
+  <tr>
+    <td>
+      3.1.0
+    </td>
+    <td>
+      6
+    </td>
+  </tr>
+</table>
+
+
+<br>
+
+
+<p>With so many applications and nearly 14,000 warnings, there is a lot more information to go through here.</p>
+
+<p>For now this process is used to help test new Brakeman code and avoid regressions. It&#8217;s stopped quite a few bugs from going out!</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
       <h1 class="entry-title"><a href="/blog/2013/09/02/fast-compact-sparse-bitsets/">Fast Compact Sparse Bit Sets</a></h1>
     
     
@@ -110,7 +502,7 @@
 <p>In Ruby, this looks like</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">bitset</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">mask</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">bitset</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">num</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
