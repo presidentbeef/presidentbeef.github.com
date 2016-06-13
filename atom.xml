@@ -4,7 +4,7 @@
   <title><![CDATA[Justin Collins' Blugh]]></title>
   <link href="http://presidentbeef.github.com/atom.xml" rel="self"/>
   <link href="http://presidentbeef.github.com/"/>
-  <updated>2013-11-01T09:10:13-07:00</updated>
+  <updated>2016-06-12T22:43:20-07:00</updated>
   <id>http://presidentbeef.github.com/</id>
   <author>
     <name><![CDATA[Justin Collins]]></name>
@@ -12,6 +12,153 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Automatically Lock Old Closed GitHub Issues]]></title>
+    <link href="http://presidentbeef.github.com/blog/2016/06/12/automatically-lock-old-closed-github-issues/"/>
+    <updated>2016-06-12T22:27:00-07:00</updated>
+    <id>http://presidentbeef.github.com/blog/2016/06/12/automatically-lock-old-closed-github-issues</id>
+    <content type="html"><![CDATA[<p>I am not sure this is a problem everyone has, but I grew tired of people commenting on old, resolved GitHub issues.
+Almost every time someone would comment &#8220;I have this problem, too&#8221; it would actually be a different issue. Then I&#8217;d
+go through the routine of asking them to open a new issue with details about their specific problem.</p>
+
+<p>Fortunately, right around the time I decided I should do something about this annoyance, <a href="https://developer.github.com/changes/2016-02-11-issue-locking-api/">GitHub released an API</a>
+to lock issues. (<a href="https://github.com/blog/1847-locking-conversations">Locking issues or pull requests</a> prevents any new comments except from repo collaborators.)</p>
+
+<p>So I put together a little gem called <a href="https://github.com/presidentbeef/github-auto-locker">github-auto-locker</a> to fetch and lock old, closed issues.</p>
+
+<p>To install it (requires Ruby):</p>
+
+<pre><code>gem install github-auto-locker
+</code></pre>
+
+<p>Then run:</p>
+
+<pre><code>github-auto-locker USER REPO TOKEN [age in days]
+</code></pre>
+
+<p>For example, I run this to lock resolved issues over 60 days old:</p>
+
+<pre><code>github-auto-locker presidentbeef brakeman N0TM1R34L70K3N 60
+</code></pre>
+
+<p>The default is 120 days.</p>
+
+<p>I&#8217;ve been running it periodically myself since February without any complaints.
+Perhaps it will be useful to you!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Simple Readers-Writer Lock Gem]]></title>
+    <link href="http://presidentbeef.github.com/blog/2014/02/28/simple-readers-writer-lock-gem/"/>
+    <updated>2014-02-28T08:53:00-08:00</updated>
+    <id>http://presidentbeef.github.com/blog/2014/02/28/simple-readers-writer-lock-gem</id>
+    <content type="html"><![CDATA[<p>A <a href="http://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock">readers-writer lock</a> can be used to allow many concurrent read-only operations on a resource but ensure exclusive access for modifying operations performed by &#8220;writers&#8221;. For my purposes, I needed a readers-writer lock at the thread level, basically to control access to a shared array. In my scenario, the array is accessed through a server which may server many clients at once. Some requests will be to read elements from the array, while other requests might be adding elements to the array. There is no reason to restrict reads to one client at a time, but elements need to be added while no other client is reading or writing to the array.</p>
+
+<p><a href="https://github.com/presidentbeef/rwlock">My implementation</a> is very simple (the entire <code>RWLock</code> class is 25 lines of code) because it relies on Ruby&#8217;s <a href="http://rdoc.info/stdlib/thread/SizedQueue">SizedQueue</a> class. <code>SizedQueue</code> provides a thread-safe queue with a maximum size. If a thread attempts to add elements to a queue that is full, it will be blocked until an element is removed from the queue to make room. This is a key piece of funtionality used for the readers-writer lock implementation.</p>
+
+<p>The <code>RWLock</code> class only really needs to provide two methods: one to provide read access, and one to provide write access. Since this is Ruby, the methods will take a block to execute the reading/writing code:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">RWLock</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">read_sync</span>
+</span><span class='line'>    <span class="c1">#lock magic</span>
+</span><span class='line'>    <span class="k">yield</span>
+</span><span class='line'>    <span class="c1">#lock magic</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">write_sync</span>
+</span><span class='line'>    <span class="c1">#lock magic</span>
+</span><span class='line'>    <span class="k">yield</span>
+</span><span class='line'>    <span class="c1">#lock magic</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The internal state of the lock will be a <code>SizedQueue</code> and a <code>Mutex</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span> <span class="n">max_size</span> <span class="o">=</span> <span class="mi">10</span>
+</span><span class='line'>    <span class="vi">@write_lock</span> <span class="o">=</span> <span class="no">Mutex</span><span class="o">.</span><span class="n">new</span>
+</span><span class='line'>    <span class="vi">@q</span> <span class="o">=</span> <span class="no">SizedQueue</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">max_size</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>SizedQueue</code> will essentially be used as a counting semaphore. Each time a reader enters <code>read_sync</code>, the lock will push an element onto the queue. What the element actually is doesn&#8217;t matter, but I used <code>true</code> because it&#8217;s cheap. If the queue is full, the reader will block until a space has opened up.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="k">def</span> <span class="nf">read_sync</span>
+</span><span class='line'>    <span class="vi">@q</span><span class="o">.</span><span class="n">push</span> <span class="kp">true</span>
+</span><span class='line'>    <span class="k">yield</span>
+</span><span class='line'>  <span class="k">ensure</span>
+</span><span class='line'>    <span class="vi">@q</span><span class="o">.</span><span class="n">pop</span>
+</span><span class='line'>  <span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>When a writer calls <code>write_sync</code>, it synchronizes on the mutex to prevent multiple concurrent writers. Then it adds <em>n</em> elements to the queue, where <em>n</em> is equal to the maximum size of the queue.</p>
+
+<p>This has two effects: first, the writer is forced to wait for all current readers to finish. Second, it essentially prevents any new readers from gaining access (there is a small chance one will sneak in, but the writer will still have to wait for it).</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="k">def</span> <span class="nf">write_sync</span>
+</span><span class='line'>    <span class="vi">@write_lock</span><span class="o">.</span><span class="n">synchronize</span> <span class="k">do</span>
+</span><span class='line'>      <span class="vi">@q</span><span class="o">.</span><span class="n">max</span><span class="o">.</span><span class="n">times</span> <span class="p">{</span> <span class="vi">@q</span><span class="o">.</span><span class="n">push</span> <span class="kp">true</span> <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="k">begin</span>
+</span><span class='line'>        <span class="k">yield</span>
+</span><span class='line'>      <span class="k">ensure</span>
+</span><span class='line'>        <span class="vi">@q</span><span class="o">.</span><span class="n">clear</span>
+</span><span class='line'>      <span class="k">end</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Once the writer is finished, the queue is cleared, allowing all waiting readers to jump in. It is most likely waiting readers will get in before waiting writers, since the write mutex is held while the queue is emptied, but no effort is made to guarantee that one way or another. In practice, though, this seems to balance well between readers and writers.</p>
+
+<p>One obvious downside of this overall approach is the <code>SizedQueue</code> limits the number of concurrent readers. A larger queue will cause writers to wait longer (assuming many readers) while a smaller queue may cause readers to wait on other readers. The upside is readers cannot monopolize the resource and cause writer starvation.</p>
+
+<p>Unfortunately, <code>SizedQueue#clear</code> has been broken forever, since it was simply inherited from <code>Queue</code> and didn&#8217;t actually notify waiting threads that the queue is empty. For some reason, this does not appear to matter in Ruby 1.8, but in Ruby 1.9 and 2.0 it caused a deadlock.</p>
+
+<p>This has been fixed in Ruby 1.9.3p545 and 2.1.1. For broken versions, the <code>RWLock</code> gem monkey-patches <code>SizedQueue</code> to fix the behavior. Unfortunately, Ruby 2.0 also had a bug in <code>SizedQueue#push</code>, so it is completely incompatible. The code does work under JRuby, but there are faster implementations using Java primitives.</p>
+
+<p>RWLock is available as <a href="https://rubygems.org/gems/rwlock">a gem</a> and of course the <a href="https://github.com/presidentbeef/rwlock">code is on GitHub</a>.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Testing Brakeman Against 253 Rails Apps]]></title>
