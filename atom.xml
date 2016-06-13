@@ -4,7 +4,7 @@
   <title><![CDATA[Justin Collins' Blugh]]></title>
   <link href="http://presidentbeef.github.com/atom.xml" rel="self"/>
   <link href="http://presidentbeef.github.com/"/>
-  <updated>2016-06-12T22:43:20-07:00</updated>
+  <updated>2016-06-12T22:47:00-07:00</updated>
   <id>http://presidentbeef.github.com/</id>
   <author>
     <name><![CDATA[Justin Collins]]></name>
@@ -20,7 +20,8 @@
     <id>http://presidentbeef.github.com/blog/2016/06/12/automatically-lock-old-closed-github-issues</id>
     <content type="html"><![CDATA[<p>I am not sure this is a problem everyone has, but I grew tired of people commenting on old, resolved GitHub issues.
 Almost every time someone would comment &#8220;I have this problem, too&#8221; it would actually be a different issue. Then I&#8217;d
-go through the routine of asking them to open a new issue with details about their specific problem.</p>
+go through the routine of asking them to open a new issue with details about their specific problem.
+Sometimes they would, and sometimes they&#8217;d never come back.</p>
 
 <p>Fortunately, right around the time I decided I should do something about this annoyance, <a href="https://developer.github.com/changes/2016-02-11-issue-locking-api/">GitHub released an API</a>
 to lock issues. (<a href="https://github.com/blog/1847-locking-conversations">Locking issues or pull requests</a> prevents any new comments except from repo collaborators.)</p>
