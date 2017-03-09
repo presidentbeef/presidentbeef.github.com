@@ -1,0 +1,255 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Challenges When Building Commercial Versions of Open Source - Justin Collins' Blugh</title>
+  <meta name="author" content="Justin Collins">
+
+  
+  <meta name="description" content="It has been roughly three years since the ball began rolling on Brakeman Pro (the commercial version of the Brakeman security tool for Ruby on Rails &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://presidentbeef.github.com/blog/2017/03/08/challenges-when-building-commercial-versions-of-oss">
+  <link href="/favicon.ico" rel="icon">
+  
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Justin Collins' Blugh" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-20920647-3']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   class="no-sidebar"  >
+  <header role="banner"><hgroup>
+  
+    <h2><a href="/">*.blog</a></h2>
+  
+  <em>by <a style="text-decoration: none" href="http://presidentbeef.com">Justin Collins</a></em>
+</hgroup>
+
+</header>
+  <nav role="navigation">
+  
+<ul class="main-navigation">
+  <li><a href="/">Recent</a></li>
+  <li><a href="/blog/archives">All</a></li>
+  <li><a href="https://twitter.com/presidentbeef">Twitter</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Challenges When Building Commercial Versions of Open Source</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2017-03-08T21:53:00-08:00" pubdate data-updated="true">Mar 8<span>th</span>, 2017</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>It has been roughly three years since the ball began rolling on <a href="https://brakemanpro.com/">Brakeman Pro</a> (the commercial version of the <a href="http://brakemanscanner.org/">Brakeman</a> security tool for Ruby on Rails), and it has been a little over a year since Brakeman Pro actually <a href="https://brakemanpro.com/blog/announcement/2015/11/18/brakeman-pro-is-available">went on sale</a>. I have learned a ton in that time (and I am still having lessons beaten into me). There have been a ton of challenges going from an OSS project that was never meant to be a paid product to one people are actually buying. Here are just a couple I have much time thinking about:</p>
+
+<h2>The &#8220;Free&#8221; Version</h2>
+
+<p>Clearly, what makes building a commercial product on top of an OSS project different from just selling some software is the existing OSS project itself.</p>
+
+<p>With an OSS project, there is an opportunity to acquire a large number of people testing the software in many different environments. For a static analysis tool like Brakeman, testing on a wide variety of codebases is incredibly valuable. OSS with easy bug reporting and contributing (e.g. a GitHub repo) is not only very likely to receive bug reports and patches, but also suggestions for features and improvements. Brakeman does not receive a large number of code contributions, but bug reports and suggestions for new rules have driven a large chunk of Brakeman’s development.</p>
+
+<p>Being free and open source also makes it easier to advertise your project. People are more willing to promote free software and you can share it around social media with little fear of backlash. Not to mention it is vastly easier to give  conference talks about open source tools!</p>
+
+<p>Personally, I will forever be grateful to the OSS community. Being the main author of widely-used (within a small niche) software has propelled most of my career, led to me speaking all over the world, and has brought me acquaintances and friends I would not have otherwise. I am very glad Brakeman is open source and I would never want to change that.</p>
+
+<p>However, the existence of a &#8220;free&#8221; version, especially a successful one, has a serious drawback for a business. In particular, <strong>the &#8220;paid&#8221; version must now not only justify its utility, but also the <em>incremental</em> advantage over the free version.</strong> It has become abundantly clear the biggest competitor to Brakeman Pro is Brakeman OSS!</p>
+
+<p>The number one question I receive regarding Brakeman Pro is &#8220;What is the difference between Pro and the open source version?&#8221; Among other things, one very simple, easy-to-explain difference is the existence of a <a href="https://brakemanpro.com/features#dt">GUI</a>. However, most people want to know if it will &#8220;find more things.&#8221; This leads to considerable hedging from me because Pro probably will find <em>different</em> vulnerabilities while also reducing <em>some</em> false positives - the net outcome of which may be more or fewer overall warnings. Explaining why Pro may report different vulnerabilities quickly gets me lost in fine details of how the two tools work - at which point people&#8217;s eyes tend to glaze over.</p>
+
+<p>Trying to quantify the differences between the OSS and Pro versions is a losing battle for me. Potential customers try to add up all these little details and see if it comes out to enough of a difference to begin paying for software they are used to having for free. But, as a technical person, papering over the differences with hyperbolic qualitative statements can seem dishonest. I have yet to arrive at a good solution for this problem.</p>
+
+<h2>Existing User Base</h2>
+
+<p>With a well-established OSS project comes another big advantage: the existing user base. These users already like the project and have found it useful! In a way, they have validated a market exists for the product. In the case of Brakeman, I have also felt a tremendous amount of goodwill from the community (for which, again, I am incredibly thankful).</p>
+
+<p>These users are going to be the <em>very first</em> people in line to try the commercial product.* They will already be familiar with the OSS version - therefore communicating and justifying the <em>additional</em> value of the commercial version will be critical. The good news is they already know what the product does and have found it valuable. In some cases (but not very many, I’ve found) they may even purchase the product just to support the OSS version. In most cases, though, people need to justify why they are spending budget on this particular software instead of using the free version.</p>
+
+<p><strong>If you are like me, you may also find this existing user base to be a source of stress.</strong> Marketing to OSS users often feels scummy, but it also makes no sense not to promote the commercial tool to the people already using the free version! For quite a while I did not want to take advantage of the existing audience at all. I have only made very small steps in that direction, preceded by a lot of thought. The last thing I want to do is alienate the community or burn any of the goodwill Brakeman has.</p>
+
+<p>One way to push customers towards the commercial version is to make the OSS version obviously <em>worse</em>. But while it would make selling the commercial version easier, not working on or supporting the OSS version is unthinkable. Even the appearance of doing so could turn a community against you. When your potential customers are mostly developers the support of the developer community has extreme value. Besides the business aspect, I personally would have a hard time dealing with loss of the community when the community has done so much for me.</p>
+
+<p>That leaves making the commercial version <em>so much better</em> than the OSS version the additional value is ridiculously obvious and people happily pay for it. Sadly (gladly?), many people have let me know &#8220;the free version of Brakeman is really good and already does all I need.&#8221; Making the Pro version <em>extra awesome</em> without hurting the OSS version is an ongoing struggle which I continue to hope will resolve itself over time as we continue to improve Pro.</p>
+
+<p>Like many things, the existing user base for an OSS project has both advantages and disadvantages which need to be considered and kept in mind if one is going to turn the project into a commercial product.</p>
+
+<h2>As a Security Tool&#8230;</h2>
+
+<p>This probably does not apply to very many projects, but as a security tool Brakeman has additional issues related to those above. With every feature that might be exclusive to Pro, I must consider - <strong>&#8220;Am I making the world <em>less safe</em> by not adding this feature to the OSS version?&#8221;</strong> The answers to this question likely lead me to make terrible business decisions. In the end I can live without Brakeman Pro being a successful business, but consciously compromising my integrity and potentially the security of applications is not something I could personally handle.</p>
+
+<p>As a result, the features that tend to go into Pro but not the OSS version are noisier, slower, or focused on ease of use and not actual vulnerability discovery. I believe more false positives (but potentially more true positives) are acceptable in the Pro version because we make it easy to triage and ignore them. Slower features are also much more acceptable in the Pro version - the OSS version needs to be fast and lean. (Sometimes these features also end up in OSS, just off by default. &#8220;Off by default&#8221; means they might as well not exist for most users.)</p>
+
+<h2>Conclusions</h2>
+
+<p>If you are considering taking an open source project and building a commercial tool on top of it, I hope this little post has given you some (perhaps less obvious?) issues to ponder. For Brakeman users, I hope this explains a little bit of the thinking I have done while trying to balance between OSS and Pro.</p>
+
+<p>Note that this blog post is actually an example of the first two issues above: I had to tell you about the &#8220;free&#8221; version to talk about the Pro version and at the same time you probably feel like this is a bit of an advertisement for the Pro version!</p>
+
+<p>(I think I have to plug my product here now? <a href="https://brakemanpro.com/">Brakeman Pro is a static analysis security tool for Ruby on Rails applications</a>. <a href="https://brakemanpro.com/purchase/pricing">Try it out for free</a>.)</p>
+
+<hr />
+
+<p>* <em>One of the early mistakes I made with Brakeman Pro was not realizing who the first customers would be. I thought the people most willing to <em>buy</em> a tool would be security auditors, and so the tool and pricing were targeted at <em>security professionals</em>. Unfortunately, the much larger market and initial user base for Brakeman are developers. Brakeman Pro should have made developers our top priority from the beginning just like Brakeman OSS does.</em></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn"><a href="/about" title="About the author (Justin Collins)" rel="author">Justin Collins</a></span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2017-03-08T21:53:00-08:00" pubdate data-updated="true">Mar 8<span>th</span>, 2017</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/brakeman/'>brakeman</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://presidentbeef.github.com/blog/2017/03/08/challenges-when-building-commercial-versions-of-oss/" data-via="presidentbeef" data-counturl="http://presidentbeef.github.com/blog/2017/03/08/challenges-when-building-commercial-versions-of-oss/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2016/08/09/bundling-gem-dependencies-inside-ruby-gems/" title="Previous Post: Bundling Dependencies inside Ruby Gems">&laquo; Bundling Dependencies inside Ruby Gems</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2017 - Justin Collins -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -
+  <span class="credit">Theme by <a href="http://aron.cedercrantz.com/">Aron Cedercrantz</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'presidentbeefblog';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://presidentbeef.github.com/blog/2017/03/08/challenges-when-building-commercial-versions-of-oss/';
+        var disqus_url = 'http://presidentbeef.github.com/blog/2017/03/08/challenges-when-building-commercial-versions-of-oss/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'http://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
