@@ -4,7 +4,7 @@
   <title><![CDATA[Justin Collins' Blugh]]></title>
   <link href="http://presidentbeef.github.com/atom.xml" rel="self"/>
   <link href="http://presidentbeef.github.com/"/>
-  <updated>2017-03-08T22:35:43-08:00</updated>
+  <updated>2017-12-21T20:10:50-08:00</updated>
   <id>http://presidentbeef.github.com/</id>
   <author>
     <name><![CDATA[Justin Collins]]></name>
@@ -12,6 +12,34 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Price Transparency with Brakeman Pro]]></title>
+    <link href="http://presidentbeef.github.com/blog/2017/12/21/price-transparency-with-brakeman-pro/"/>
+    <updated>2017-12-21T19:39:00-08:00</updated>
+    <id>http://presidentbeef.github.com/blog/2017/12/21/price-transparency-with-brakeman-pro</id>
+    <content type="html"><![CDATA[<p>Pricing in the static analysis security tool (SAST) world is difficult. Do you charge per project? Per repository? Per line of code? Per language? Per user? What defines a &#8220;user&#8221;?
+None of these approaches are very satisfying, because no single approach will cover all types of customers.</p>
+
+<p>Instead, companies come up with per-customer pricing. Meaning they will look at a potential customer&#8217;s needs and size, and then come up with a number they think the customer might be willing to pay.</p>
+
+<p>Then the negotation dance begins, where the customer attempts to talk the seller down 20-50% from the initial quote (which was kind of made up anyway).</p>
+
+<p>To me, that&#8217;s stressful, time-consuming, and a little shady.</p>
+
+<p>Personally, I do not want to deal with salespeople (and their relentless follow up emails/calls) just to get a rough idea of what a product will cost.</p>
+
+<p>With Brakeman Pro, I wanted to be upfront and honest with customers. That&#8217;s why, as far as I know, we are the only commercial SAST with <a href="https://brakemanpro.com/purchase/pricing">publicly-available pricing</a>.</p>
+
+<p>Want to purchase a license? You can buy with a credit card on the website and you never have to talk to anyone! That is the kind of interaction I like to have with a company - not &#8220;request a quote&#8221; or &#8220;contact us for pricing&#8221;.</p>
+
+<p>Does that mean we make less money than if we had hidden price lists and made up numbers based on what we think a customer would pay? Almost certainly. Our customers range from companies making billions per year to individual users. It would be &#8220;smarter&#8221; to have the large companies pay more.</p>
+
+<p>But the &#8220;mission&#8221; of the company is not to maximize profit. It is to fund development of a security product that will <em>help make the world a little safer</em>.</p>
+
+<p>That is why it has been more important to me that we focus on number of customers, rather than overall revenue.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Challenges When Building Commercial Versions of Open Source]]></title>
