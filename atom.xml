@@ -4,7 +4,7 @@
   <title><![CDATA[Justin Collins' Blugh]]></title>
   <link href="http://presidentbeef.github.com/atom.xml" rel="self"/>
   <link href="http://presidentbeef.github.com/"/>
-  <updated>2018-11-28T12:22:08-08:00</updated>
+  <updated>2018-11-28T12:31:38-08:00</updated>
   <id>http://presidentbeef.github.com/</id>
   <author>
     <name><![CDATA[Justin Collins]]></name>
@@ -90,21 +90,21 @@ I thought for sure skipping this and starting with the final array of integers w
 <span class='line-number'>9</span>
 <span class='line-number'>10</span>
 <span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="k">class</span> <span class="nc">Parser</span> <span class="o">&lt;</span> <span class="ss">Racc</span><span class="p">:</span><span class="ss">:Parser</span>
-</span><span class='line'>    <span class="kp">include</span> <span class="no">RubyParserStuff</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Parser</span> <span class="o">&lt;</span> <span class="ss">Racc</span><span class="p">:</span><span class="ss">:Parser</span>
+</span><span class='line'>  <span class="kp">include</span> <span class="no">RubyParserStuff</span>
 </span><span class='line'>
-</span><span class='line'>    <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">inherited</span> <span class="n">x</span>
-</span><span class='line'>      <span class="ss">RubyParser</span><span class="p">:</span><span class="ss">:VERSIONS</span> <span class="o">&lt;&lt;</span> <span class="n">x</span>
-</span><span class='line'>    <span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">version</span>
-</span><span class='line'>      <span class="no">Parser</span> <span class="o">&gt;</span> <span class="nb">self</span> <span class="ow">and</span> <span class="nb">self</span><span class="o">.</span><span class="n">name</span><span class="o">[</span><span class="sr">/(?:V|Ruby)(\d+)/</span><span class="p">,</span> <span class="mi">1</span><span class="o">].</span><span class="n">to_i</span>
-</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">inherited</span> <span class="n">x</span>
+</span><span class='line'>    <span class="ss">RubyParser</span><span class="p">:</span><span class="ss">:VERSIONS</span> <span class="o">&lt;&lt;</span> <span class="n">x</span>
 </span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">version</span>
+</span><span class='line'>    <span class="no">Parser</span> <span class="o">&gt;</span> <span class="nb">self</span> <span class="ow">and</span> <span class="nb">self</span><span class="o">.</span><span class="n">name</span><span class="o">[</span><span class="sr">/(?:V|Ruby)(\d+)/</span><span class="p">,</span> <span class="mi">1</span><span class="o">].</span><span class="n">to_i</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Take a look at the <code>Parser.version</code> method. RubyParser is actually not just one parser, but multiple parsers for different versions of Ruby.
+<p>On line 8 you can see the <code>Parser.version</code> method. RubyParser is actually not just one parser, but multiple parsers for different versions of Ruby.
 So there is a <code>RubyParser</code> class but also <code>Ruby18Parser</code>, <code>Ruby19Parser</code>, etc. <em>and</em> <code>RubyParser::V18</code>, <code>RubyParser::V19</code>, etc.
 To figure out the version of the current class, the code above grabs the version from the class name itself.</p>
 
@@ -144,7 +144,7 @@ It seems the Ruby VM has gotten pretty good at allocating and garbage collecting
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>The two lines of interest are the assignments to the local variable <code>c</code>, which pull information from <code>caller</code>.
+<p>The two lines of interest are 3 and 4 - the assignments to the local variable <code>c</code>, which pull information from <code>caller</code>.
 <code>caller</code> is a fairly expensive method, since it needs to generate a stack trace for the current method call.</p>
 
 <p>Upon a closer look, it&#8217;s clear the <code>c</code> variable is only used in the message on the following line, and that message is only used if the <code>debug</code> flag is set.
@@ -208,7 +208,7 @@ This means we can wrap all that code in a condition, like this:</p>
 
 <h3>Freezing Strings</h3>
 
-<p>Finally, back to the original idea. By the time I made it back to freezing string literals, I was feeling pretty lazy, so I just threw the frozen string header on <code>ruby_lexer.rb</code>:</p>
+<p>Finally, back to the original idea. By the time I made it back to freezing string literals, I was feeling pretty lazy, so I just threw the frozen string header on <a href="https://github.com/seattlerb/ruby_parser/blob/dd2adeca68471a2de7a8d541fb145972f3e3494f/lib/ruby_lexer.rb"><code>ruby_lexer.rb</code></a>:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># frozen_string_literal: true</span>
