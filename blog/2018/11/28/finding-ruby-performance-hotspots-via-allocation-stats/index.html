@@ -98,7 +98,7 @@
 
 <p>Recently I was poking around to see if there was any low-hanging fruit for performance improvements.
 At first, I was interested in the generated parsers. Racc outputs some <em>crazy</em> arrays of state machine changes.
-Instead of outputing arrays of integers, it outputs arrays of strings, then splits those strings into integers which it loads into the final array.
+Instead of generating arrays of integers, it outputs arrays of strings, then splits those strings into integers which it loads into the final array.
 I thought for sure skipping this and starting with the final array of integers would be faster, but&#8230;somehow it wasn&#8217;t.</p>
 
 <p>I moved on to thinking about <a href="https://wyeworks.com/blog/2015/12/1/immutable-strings-in-ruby-2-dot-3">frozen string literals</a>, which led me to checking String allocations.</p>
