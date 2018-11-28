@@ -1,0 +1,414 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Finding Ruby Performance Hotspots via Allocation Stats - Justin Collins' Blugh</title>
+  <meta name="author" content="Justin Collins">
+
+  
+  <meta name="description" content="RubyParser is a library written by Ryan Davis for parsing Ruby code and producing an abstract syntax tree. It is used by Brakeman and several other &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://presidentbeef.github.com/blog/2018/11/28/finding-ruby-performance-hotspots-via-allocation-stats">
+  <link href="/favicon.ico" rel="icon">
+  
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Justin Collins' Blugh" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="https://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="https://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-20920647-3']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   class="no-sidebar"  >
+  <header role="banner"><hgroup>
+  
+    <h2><a href="/">*.blog</a></h2>
+  
+  <em>by <a style="text-decoration: none" href="http://presidentbeef.com">Justin Collins</a></em>
+</hgroup>
+
+</header>
+  <nav role="navigation">
+  
+<ul class="main-navigation">
+  <li><a href="/">Recent</a></li>
+  <li><a href="/blog/archives">All</a></li>
+  <li><a href="https://twitter.com/presidentbeef">Twitter</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Finding Ruby Performance Hotspots via Allocation Stats</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-11-28T11:45:00-08:00" pubdate data-updated="true">Nov 28<span>th</span>, 2018</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><a href="https://github.com/seattlerb/ruby_parser/">RubyParser</a> is a library written by <a href="http://www.zenspider.com/">Ryan Davis</a> for parsing Ruby code and producing an abstract syntax tree. It is used by <a href="https://brakemanscanner.org/">Brakeman</a> and several other static analysis gems.</p>
+
+<p>Recently I was poking around to see if there was any low-hanging fruit for performance improvements.
+At first, I was interested in the generated parsers. Racc outputs some <em>crazy</em> arrays of state machine changes.
+Instead of outputing arrays of integers, it outputs arrays of strings, then splits those strings into integers which it loads into the final array.
+I thought for sure skipping this and starting with the final array of integers would be faster, but&#8230;somehow it wasn&#8217;t.</p>
+
+<p>I moved on to thinking about <a href="https://wyeworks.com/blog/2015/12/1/immutable-strings-in-ruby-2-dot-3">frozen string literals</a>, which led me to checking String allocations.</p>
+
+<h3>Measuring String Allocations</h3>
+
+<p>I found the <a href="https://github.com/srawlins/allocation_stats">allocation_stats</a> gem very useful for this.</p>
+
+<p>I set up a test like this to read in a file and parse it:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;ruby_parser&#39;</span>
+</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;allocation_stats&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">f</span> <span class="o">=</span> <span class="no">File</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="no">ARGV</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">rp</span> <span class="o">=</span> <span class="no">RubyParser</span><span class="o">.</span><span class="n">new</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">stats</span> <span class="o">=</span> <span class="no">AllocationStats</span><span class="o">.</span><span class="n">trace</span> <span class="k">do</span>
+</span><span class='line'>  <span class="n">rp</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="no">ARGV</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="nb">puts</span> <span class="n">stats</span><span class="o">.</span><span class="n">allocations</span><span class="p">(</span><span class="n">alias_paths</span><span class="p">:</span> <span class="kp">true</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="ss">class</span><span class="p">:</span> <span class="nb">String</span><span class="p">)</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="ss">:sourcefile</span><span class="p">,</span> <span class="ss">:sourceline</span><span class="p">)</span><span class="o">.</span><span class="n">sort_by_count</span><span class="o">.</span><span class="n">to_text</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This outputs a report like this (truncated here):</p>
+
+<pre><code>                    sourcefile                      sourceline  count
+--------------------------------------------------  ----------  -----
+&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_parser.rb                 20  70686
+&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_parser_extras.rb        1361  58154
+&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_parser_extras.rb        1362  54672
+&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_lexer.rb                 373  19019
+&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_lexer.rb                 770  12005
+&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_lexer.rex.rb             109   8252
+&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_parser_extras.rb        1015   6818
+</code></pre>
+
+<p>Right away, these look like some juicy targets.</p>
+
+<h3>Version Creation</h3>
+
+<p>Let&#8217;s take a look at the first one:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="k">class</span> <span class="nc">Parser</span> <span class="o">&lt;</span> <span class="ss">Racc</span><span class="p">:</span><span class="ss">:Parser</span>
+</span><span class='line'>    <span class="kp">include</span> <span class="no">RubyParserStuff</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">inherited</span> <span class="n">x</span>
+</span><span class='line'>      <span class="ss">RubyParser</span><span class="p">:</span><span class="ss">:VERSIONS</span> <span class="o">&lt;&lt;</span> <span class="n">x</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">version</span>
+</span><span class='line'>      <span class="no">Parser</span> <span class="o">&gt;</span> <span class="nb">self</span> <span class="ow">and</span> <span class="nb">self</span><span class="o">.</span><span class="n">name</span><span class="o">[</span><span class="sr">/(?:V|Ruby)(\d+)/</span><span class="p">,</span> <span class="mi">1</span><span class="o">].</span><span class="n">to_i</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Take a look at the <code>Parser.version</code> method. RubyParser is actually not just one parser, but multiple parsers for different versions of Ruby.
+So there is a <code>RubyParser</code> class but also <code>Ruby18Parser</code>, <code>Ruby19Parser</code>, etc. <em>and</em> <code>RubyParser::V18</code>, <code>RubyParser::V19</code>, etc.
+To figure out the version of the current class, the code above grabs the version from the class name itself.</p>
+
+<p>The problem is this code is called <em>a lot</em> (70k+ in the example above) to make version-specific decisions during the lexing phase.
+This is <a href="https://github.com/presidentbeef/ruby_parser/commit/7274aa6df023981fc3c375a9d22bcde781f2cc3f">fairly easy to fix</a>.</p>
+
+<p>In my testing, this <strong>reduced string allocations by ~25% and parse time by 5-10%.</strong>
+One thing I have noticed - and you may also find if you go chasing object allocations in Ruby programs - is that reducing allocations doesn&#8217;t necessarily help with peak memory use or run time.
+It seems the Ruby VM has gotten pretty good at allocating and garbage collecting objects efficiently.</p>
+
+<h3>Debug Code</h3>
+
+<p>Let&#8217;s take a look at the next two large number of String allocations:</p>
+
+<pre><code>                    sourcefile                      sourceline  count
+--------------------------------------------------  ----------  -----
+&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_parser_extras.rb        1361  58154
+&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_parser_extras.rb        1362  54672
+</code></pre>
+
+<p>Interesting: just two lines apart, with over 100k allocations between them.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">push</span> <span class="n">val</span>
+</span><span class='line'>  <span class="vi">@stack</span><span class="o">.</span><span class="n">push</span> <span class="n">val</span>
+</span><span class='line'>  <span class="n">c</span> <span class="o">=</span> <span class="nb">caller</span><span class="o">.</span><span class="n">first</span>
+</span><span class='line'>  <span class="n">c</span> <span class="o">=</span> <span class="nb">caller</span><span class="o">[</span><span class="mi">1</span><span class="o">]</span> <span class="k">if</span> <span class="n">c</span> <span class="o">=~</span> <span class="sr">/expr_result/</span>
+</span><span class='line'>  <span class="nb">warn</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">_stack(push): </span><span class="si">#{</span><span class="n">val</span><span class="si">}</span><span class="s2"> at line </span><span class="si">#{</span><span class="n">c</span><span class="o">.</span><span class="n">clean_caller</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">debug</span>
+</span><span class='line'>  <span class="kp">nil</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The two lines of interest are the assignments to the local variable <code>c</code>, which pull information from <code>caller</code>.
+<code>caller</code> is a fairly expensive method, since it needs to generate a stack trace for the current method call.</p>
+
+<p>Upon a closer look, it&#8217;s clear the <code>c</code> variable is only used in the message on the following line, and that message is only used if the <code>debug</code> flag is set.
+This means we can wrap all that code in a condition, like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">push</span> <span class="n">val</span>
+</span><span class='line'>  <span class="vi">@stack</span><span class="o">.</span><span class="n">push</span> <span class="n">val</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">if</span> <span class="n">debug</span>
+</span><span class='line'>    <span class="n">c</span> <span class="o">=</span> <span class="nb">caller</span><span class="o">.</span><span class="n">first</span>
+</span><span class='line'>    <span class="n">c</span> <span class="o">=</span> <span class="nb">caller</span><span class="o">[</span><span class="mi">1</span><span class="o">]</span> <span class="k">if</span> <span class="n">c</span> <span class="o">=~</span> <span class="sr">/expr_result/</span>
+</span><span class='line'>    <span class="nb">warn</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">_stack(push): </span><span class="si">#{</span><span class="n">val</span><span class="si">}</span><span class="s2"> at line </span><span class="si">#{</span><span class="n">c</span><span class="o">.</span><span class="n">clean_caller</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="kp">nil</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This change <strong>saves 38-50% on string allocations and 20-26% on parse time.</strong></p>
+
+<h3>Reading Lines</h3>
+
+<p>Skipping down a few unavoidable string allocations, there&#8217;s this one:</p>
+
+<pre><code>                    sourcefile                      sourceline  count
+--------------------------------------------------  ----------  -----
+&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_parser_extras.rb        1015   6818
+</code></pre>
+
+<p>Here&#8217;s the code:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">header</span> <span class="o">=</span> <span class="n">str</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">first</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>RubyParser checks the first couple lines of a file for any comments setting the encoding for the file. The trouble is that calling <code>String#lines</code> will split the entire string up when we only need the first two lines.</p>
+
+<p>Grabbing only the first two lines ends up being pretty trivial thanks to Ruby&#8217;s standard approach of returning enumerators for enumeration methods if a block is not supplied:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">header</span> <span class="o">=</span> <span class="n">str</span><span class="o">.</span><span class="n">each_line</span><span class="o">.</span><span class="n">first</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>String#each_line</code> will lazily return the lines from the string, so it only does the work needed.</p>
+
+<p>Sadly, this didn&#8217;t do much for overall string allocations and parse time since this method is only called once, but I think it&#8217;s a clear improvement to only grab the two lines needed.</p>
+
+<h3>Freezing Strings</h3>
+
+<p>Finally, back to the original idea. By the time I made it back to freezing string literals, I was feeling pretty lazy, so I just threw the frozen string header on <code>ruby_lexer.rb</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># frozen_string_literal: true</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Running the tests showed only one method where frozen string literals did not work, so these strings needed to be <code>dup</code>ed.</p>
+
+<p>String allocations were reduced by 24-30%, but with almost no parse time change. Probably because these were tiny, tiny strings.</p>
+
+<h3>Final Metrics</h3>
+
+<p>With these four changes, <strong>string allocations were reduced by 75-83% and parse time was reduced by 30-37%.</strong> The test suite for RubyParser ran 33% faster on my machine.</p>
+
+<p>I did not see a huge decrease in peak memory use. Maybe 3%. My guess is this is because the String representation in Ruby is fairly well-optimized already (e.g. copy-on-write).</p>
+
+<p>For Brakeman, parsing is a decent part of the run time (30-60% even), so a faster RubyParser definitely makes Brakeman scans faster. From a few test scans, I saw as much as a 30% improvement in total scan time.</p>
+
+<h3>Final Changes</h3>
+
+<p>The final version of the changes applied by Ryan are in <a href="https://github.com/seattlerb/ruby_parser/commit/358e5a058e1eca75c6d6ab075ae31c2cc44827a5">this commit</a>.</p>
+
+<p>I expect these improvements will be in the next RubyParser and Brakeman releases.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn"><a href="/about" title="About the author (Justin Collins)" rel="author">Justin Collins</a></span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-11-28T11:45:00-08:00" pubdate data-updated="true">Nov 28<span>th</span>, 2018</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://presidentbeef.github.com/blog/2018/11/28/finding-ruby-performance-hotspots-via-allocation-stats/" data-via="presidentbeef" data-counturl="http://presidentbeef.github.com/blog/2018/11/28/finding-ruby-performance-hotspots-via-allocation-stats/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2017/12/21/price-transparency-with-brakeman-pro/" title="Previous Post: Price Transparency with Brakeman Pro">&laquo; Price Transparency with Brakeman Pro</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2018 - Justin Collins -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -
+  <span class="credit">Theme by <a href="http://aron.cedercrantz.com/">Aron Cedercrantz</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'presidentbeefblog';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://presidentbeef.github.com/blog/2018/11/28/finding-ruby-performance-hotspots-via-allocation-stats/';
+        var disqus_url = 'http://presidentbeef.github.com/blog/2018/11/28/finding-ruby-performance-hotspots-via-allocation-stats/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'https://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'https://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
