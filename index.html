@@ -9,7 +9,7 @@
   <meta name="author" content="Justin Collins">
 
   
-  <meta name="description" content="RubyParser is a library written by Ryan Davis for parsing Ruby code and producing an abstract syntax tree. It is used by Brakeman and several other &hellip;">
+  <meta name="description" content="It started off as a joke&#8230; Just setting up my burner machine for @defcon pic.twitter.com/Dz9pjCBTCo&mdash; Justin Collins (@presidentbeef) June &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -68,6 +68,218 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2019/08/04/reviving-an-hp660lx-in-2019/">Reviving an HP660LX in 2019</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2019-08-04T09:52:00-07:00" pubdate data-updated="true">Aug 4<span>th</span>, 2019</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>It started off as a joke&#8230;</p>
+
+<blockquote class="twitter-tweet" data-dnt="true" data-link-color="#E81C4F"><p lang="en" dir="ltr">Just setting up my burner machine for <a href="https://twitter.com/defcon?ref_src=twsrc%5Etfw">@defcon</a> <a href="https://t.co/Dz9pjCBTCo">pic.twitter.com/Dz9pjCBTCo</a></p>&mdash; Justin Collins (@presidentbeef) <a href="https://twitter.com/presidentbeef/status/1144761345847336960?ref_src=twsrc%5Etfw">June 29, 2019</a></blockquote>
+
+
+<p> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script></p>
+
+<p>I had spent some time <em>several years ago</em> trying to get Linux running on this machine via the (defunct) JLime project,
+so I had some of the pieces available to actually get this little &#8220;pocket computer&#8221; going again - mainly
+compatible CompactFlash cards and an external card reader.
+But I was mostly joking.</p>
+
+<p>Then I starting thinking how funny it would be to actually sit in a talk and take notes at <a href="https://defcon.org/">DEF CON</a> on it&#8230;</p>
+
+<h3>Battery Power</h3>
+
+<p>The reason I was mostly joking is because the batteries in the 660LX were not working at all.
+So, what was I going to do? Plug it into the wall? That&#8217;s just sad, not funny.</p>
+
+<p>I started looking around online for replacement batteries for this machine from 1998.
+Despite visiting several rather shady websites, for some reason I was unable to find anyone selling twenty-year-old
+laptop batteries.
+Some sites claimed to offer a replacement, but from the pictures it was clear they would not work.
+The only real possibilities I found were complete sets - a 660LX, manual, cables, etc.
+I already had a 660LX, acquired for free, so I really didn&#8217;t want to spend $100+ on another one!
+Also, kind of ruins the joke to do so.</p>
+
+<p><em>(Side note: the 660LX has a button battery for backup power. Searching for &#8220;HP 660LX battery&#8221; will return sites trying to sell
+you a little CR2032 battery.)</em></p>
+
+<p>Now, I will admit my mental model of a laptop battery was a block of chemical goop inside of some plastic wrap with some wires coming out of it.
+After ungracefully disassembling the 660LX battery, I found inside it was just two smaller batteries?!</p>
+
+<p><a href="/images/blog/hp_660lx/hp660lx_battery_open.jpg"><img src="/images/blog/hp_660lx/hp660lx_battery_open.jpg" alt="Open battery pack of HP 660LX" /></a></p>
+
+<p>The batteries said &#8220;US18650S SONY ENERGYTEC&#8221; on them.</p>
+
+<p><a href="/images/blog/hp_660lx/hp_660lx_old_batteries.jpg"><img src="/images/blog/hp_660lx/hp_660lx_old_batteries.jpg" alt="Sony 18650S Batteries" /></a></p>
+
+<p>While I didn&#8217;t find those exact batteries, some investigation showed the 18650 battery in general is extremely common.</p>
+
+<p>There are two kinds of 18650 - one with &#8220;caps&#8221; (that little nub on the top) and one without.
+It seems the ones with caps are safer, as they have an internal circuit to keep them from blowing up.
+However, as you can see above, I needed the kind without caps. Presumably the little circuit board
+regulates charging the batteries.</p>
+
+<p>The Internet suggested sticking to &#8220;brand name&#8221; batteries, but weirdly Amazon does not carry any of those.
+I took a chance on a pack of batteries which reviewers suggested looked like &#8220;genuine&#8221; Samsung batteries.</p>
+
+<p><a href="/images/blog/hp_660lx/samsung_18650-30Q_batteries.jpg"><img src="/images/blog/hp_660lx/samsung_18650-30Q_batteries.jpg" alt="Samsung 18650 batteries" /></a></p>
+
+<p>I carefully ripped the old batteries out. The leads from the batteries to the little circuit board were
+actually soldered to the batteries, so I pried them off with a screwdriver. Probably not a great idea
+unless they are really, truly dead.</p>
+
+<p>With some effort, I shoved the new batteries back in the case and sandwiched the wires back in as well.
+I didn&#8217;t bother actually attaching/gluing/soldering anything.</p>
+
+<p>I did, however, scare myself when I generated a terrifying little electric arc as I
+tried to use a screwdriver to squeeze everything back into the battery case.</p>
+
+<p><a href="/images/blog/hp_660lx/hp660lx_batteries_replaced.jpg"><img src="/images/blog/hp_660lx/hp660lx_batteries_replaced.jpg" alt="HP 660LX batteries replaced" /></a></p>
+
+<p>I may have damaged the case just a tiny bit when I gently pried it open,
+contributing to it looking a slightly sketchy when I tried to close it back up.</p>
+
+<p><a href="/images/blog/hp_660lx/hp660lx_battery_together.jpg"><img src="/images/blog/hp_660lx/hp660lx_battery_together.jpg" alt="HP 660LX battery put back together" /></a></p>
+
+<p>But, who cares how it looks&#8230;does it work??</p>
+
+<p><a href="/images/blog/hp_660lx/hp660lx_running_on_new_batteries.jpg"><img src="/images/blog/hp_660lx/hp660lx_running_on_new_batteries.jpg" alt="HP 660LX running on battery power" /></a></p>
+
+<p><strong>YES!</strong></p>
+
+<p>Hahahaha now I can walk around using my relic with no wires!</p>
+
+<h3>Software Updates</h3>
+
+<p>Nowadays, a device that can&#8217;t connect to anything does not seem like much fun.</p>
+
+<p>Of course I wanted to hook this Windows CE 2.0 machine up to the Internet!</p>
+
+<p>The HP 660LX has a &#8220;PC CARD&#8221; expansion slot where you can slap in an Ethernet or wireless card,
+but of course it is ancient and you have to be careful about compatibility.</p>
+
+<p>Enter <a href="https://www.hpcfactor.com/">HPC: Factor</a>! This is a website/forum full of useful information.
+For £10 you can get access to a ton of file downloads (software, drivers, updates) for a year.
+Totally worth it.</p>
+
+<p>One thing I learned quickly is that you need the service pack for Windows CE 2.0 and the Network Service Pack
+in order to have a chance at getting a wireless card to work.</p>
+
+<p>At this point, I had been transferring files to the 660LX via a compact flash card (which, at 8GB, probably blew the little machine&#8217;s <em>mind</em>).
+However, most software for Windows CE requires installation via ActiveSync.</p>
+
+<p><a href="/images/blog/hp_660lx/kingston_cf_8gb_card.jpg"><img src="/images/blog/hp_660lx/kingston_cf_8gb_card.jpg" alt="Kingston CompactFlash card" /></a></p>
+
+<p>What is ActiveSync? Well, originally these &#8220;pocket computers&#8221; weren&#8217;t meant to be tiny laptops.
+They were more like little helpers you use while you are away from your main machine, then you sync up
+files, calendars, email, etc. when you went back to your desk.</p>
+
+<p>ActiveSync was the software used to sync between a pocket computer and your main machine.</p>
+
+<p>Now, for Windows CE 2.0, the recommended version of ActiveSync is 3.8. The very <em>newest</em> operating system
+supported by ActiveSync 3.8 is Windows XP.</p>
+
+<p>By pure luck, I had an old Windows XP laptop and I was able to install ActiveSync!</p>
+
+<p><strong>BUT</strong>&#8230; you need a special serial cable to hook up the 660LX.
+At first I poked around eBay, but no luck. Yet, in the back of my mind,
+I was <em>pretty</em> sure I still had that cable somewhere. I searched all around my office and
+dug through my big box of (mostly useless) cables,
+but still no luck.</p>
+
+<p>Just when I gave up (of course) I found it!! Yay!!</p>
+
+<p><strong>BUT</strong>&#8230; turns out I don&#8217;t have a serial port on my Windows XP laptop.</p>
+
+<p>I thought about trying a Windows XP virtual machine on my main Linux box, but it doesn&#8217;t have a serial port, either!
+None of my machines had an infrared port, either.</p>
+
+<p>After first buying the wrong cable on Amazon, I got an RS-232 to USB adapter and a tiny, tiny CD with drivers.
+Luckily, the laptop has a CD drive, so I was able to actually install the proper drivers.</p>
+
+<p><a href="/images/blog/hp_660lx/usb_to_serial_cable.jpg"><img src="/images/blog/hp_660lx/usb_to_serial_cable.jpg" alt="USB to serial cable" /></a></p>
+
+<p>After an uncomfortable amount of configuration twiddling&#8230; they connected!!</p>
+
+<p><a href="/images/blog/hp_660lx/active_sync_connected.jpg"><img src="/images/blog/hp_660lx/active_sync_connected.jpg" alt="ActiveSync is connected" /></a></p>
+
+<p>I was then able to install Windows CE 2.0 SP1 and the CE Network Service Pack.</p>
+
+<p><a href="/images/blog/hp_660lx/install_ce_sp1.jpg"><img src="/images/blog/hp_660lx/install_ce_sp1.jpg" alt="Installing Windows CE SP1" /></a></p>
+
+<h3>Networking</h3>
+
+<p>One of my criteria for this project was to <em>not spend much money on a joke</em>.</p>
+
+<p>After spending some time looking around, I bought a $20 wireless adapter off of eBay.
+$20 was really right at the limit of my per-item budget.</p>
+
+<p>In the meantime, though, I found out there was another way to access the Internet.</p>
+
+<p>Turns out you can &#8220;share&#8221; the networking connection on the main machine with the 660LX
+over the serial cable, via ActiveSync.</p>
+
+<p>The only weird bit is that you need to run a proxy server on the main machine to route
+the connection to the Internet.</p>
+
+<p>In the modern world, that is not a problem. In the land of Windows XP, however, I was not sure I would be able to get something working.
+I found <a href="https://www.youngzsoft.net/ccproxy/windows-proxy-server.htm">CCProxy</a>, which did work, despite its awful and confusing interface.</p>
+
+<p>Configured the proxy for &#8220;The Internet&#8221; on the 660LX and&#8230;</p>
+
+<p><a href="/images/blog/hp_660lx/hp660lx_accessing_google.jpg"><img src="/images/blog/hp_660lx/hp660lx_accessing_google.jpg" alt="Accessing Google via Pocket Explorer" /></a></p>
+
+<p>Wow! The Internet!</p>
+
+<p>Sadly&#8230; or not so sadly&#8230; the world has moved to HTTPS and to stronger protocols than what
+lowly Pocket Explorer supports. Thus, most of the web is entirely inaccessible on the device.</p>
+
+<p><a href="/images/blog/hp_660lx/hp660lx_failure_to_access_github.jpg"><img src="/images/blog/hp_660lx/hp660lx_failure_to_access_github.jpg" alt="Failure to access sites over HTTPS" /></a></p>
+
+<p>As a result, when the eBay seller canceled my order for the wireless adapter, I figured &#8220;meh&#8221;.
+Even if you can get WiFi working (which would likely require connecting to a totally unsecured network),
+there&#8217;s not much of the web that one can even visit.</p>
+
+<p>Yes, it would be possible to use an SSL stripper, etc., but I didn&#8217;t want to go through the hassle of setting
+that up on Windows XP.</p>
+
+<h3>Wrapping Up</h3>
+
+<p><a href="/images/blog/hp_660lx/the_whole_setup.jpg"><img src="/images/blog/hp_660lx/the_whole_setup.jpg" alt="The whole setup" /></a></p>
+
+<p>This turned into more of a narrative than a how-to guide.
+Maybe I&#8217;ll do another write-up with the details.
+In the meantime, I can try to answer questions about specifics.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1466,143 +1678,9 @@ results = DB.execute(query)
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3/">Faster Call Indexing in Brakeman</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2012-11-28T11:49:00-08:00" pubdate data-updated="true">Nov 28<span>th</span>, 2012</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h2>Background</h2>
-
-<p>About a month ago, an <a href="https://github.com/presidentbeef/brakeman/issues/171">issue</a> was reported where <a href="http://brakemanscanner.org">Brakeman</a> taking a ridiculously long time on the &#8220;call indexing&#8221; step. At the time, I was pessimistic about opportunities to improve the performance of call indexing, since it is a pretty simple operation.</p>
-
-<h3>Call Indexing</h3>
-
-<p>The majority of the checks performed by Brakeman involve finding and examining method calls (e.g., SQL queries). In order to make these checks faster, Brakeman scans an app once and then saves information about each method call in a data structure called the &#8220;call index&#8221;. This makes searching for specific method calls very fast.</p>
-
-<p>The call index allows search for methods by name and also by the class of the target. For example, it is possible to search for all calls to <code>open</code> on <code>File</code>. It also allows searching via regular expressions for methods and targets.</p>
-
-<h2>Investigation</h2>
-
-<p>I happened to notice a Rails application in my collection which also seemed to take a long time indexing calls. So I ran it through <a href="https://github.com/tmm1/perftools.rb">perftools.rb</a> to see if there was anything interesting going on.</p>
-
-<p>This is the result:</p>
-
-<p><a href="/images/blog/brakeman-scan-1.8.2.pdf"><img src="/images/blog/brakeman-scan-1.8.2.png" alt="Brakeman 1.8.2 scan" /></a></p>
-
-<p>The large amount of time spent in the garbage collector (60%) was high even for Brakeman. But then something else caught my eye:</p>
-
-<p><img src="/images/blog/call-indexing-1.8.2.png" alt="Call indexing in 1.8.2" /></p>
-
-<p>This scan spent 4.7% of its time converting <code>Sexp</code>s to strings while indexing calls. This seemed excessive.</p>
-
-<p>This is the entirety of the call indexing code:</p>
-
-<figure class='code'><figcaption><span>call_index.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="k">def</span> <span class="nf">index_calls</span> <span class="n">calls</span>
-</span><span class='line'>    <span class="n">calls</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">call</span><span class="o">|</span>
-</span><span class='line'>      <span class="vi">@methods</span> <span class="o">&lt;&lt;</span> <span class="n">call</span><span class="o">[</span><span class="ss">:method</span><span class="o">].</span><span class="n">to_s</span>
-</span><span class='line'>      <span class="vi">@targets</span> <span class="o">&lt;&lt;</span> <span class="n">call</span><span class="o">[</span><span class="ss">:target</span><span class="o">].</span><span class="n">to_s</span>
-</span><span class='line'>      <span class="vi">@calls_by_method</span><span class="o">[</span><span class="n">call</span><span class="o">[</span><span class="ss">:method</span><span class="o">]]</span> <span class="o">&lt;&lt;</span> <span class="n">call</span>
-</span><span class='line'>      <span class="vi">@calls_by_target</span><span class="o">[</span><span class="n">call</span><span class="o">[</span><span class="ss">:target</span><span class="o">]]</span> <span class="o">&lt;&lt;</span> <span class="n">call</span>
-</span><span class='line'>    <span class="k">end</span>
-</span><span class='line'>  <span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>@methods</code> and <code>@targets</code> are sets which contain the string versions of all the methods and method targets. This is <em>exclusively</em> used to search for methods and targets via regular expressions.</p>
-
-<p>The call method will always be a symbol&#8230;but what about the target? It turns out that while much of the time it is a symbol, if a sane value like <code>:File</code> or <code>:@something</code> cannot be found, then it will be the entire <code>Sexp</code>! This is where Brakeman was wasting time calling <code>Sexp#to_s</code>.</p>
-
-<p>The quick fix was to only store symbol targets in the <code>@targets</code> set, ignoring any other target values.</p>
-
-<h2>Results</h2>
-
-<p>Scanning the same application with Brakeman 1.8.3 has this result:</p>
-
-<p><a href="/images/blog/brakeman-scan-1.8.3.pdf"><img src="/images/blog/brakeman-scan-1.8.3.png" alt="Brakeman 1.8.3 scan" /></a></p>
-
-<p>Garbage collection time dropped from 60% to 42%. While still very high, this is a good sign. Time spent indexing calls has dropped from 5.4% to 1.8% and the calls to <code>Sexp#to_s</code> have vanished.</p>
-
-<p>The total scan time dropped from 3.5 minutes to about 2 minutes. For the original reporter, scan times went from <a href="https://github.com/presidentbeef/brakeman/issues/171#issuecomment-10344355">78 minutes to 40 <em>seconds</em></a>.</p>
-
-<h2>More Improvements</h2>
-
-<p>Looking through Brakeman, it does not currently use the &#8220;search via regex&#8221; feature for the call index. So the method and target name sets can be removed entirely.</p>
-
-<p>Going even further, nowhere does Brakeman search for targets by any values other than symbols. Note in the graph below that <code>Array#eql?</code> was sampled 1,330 times during call indexing:</p>
-
-<p><img src="/images/blog/call-indexing-hashing-sexp.png" alt="Call indexing hashing" /></p>
-
-<p>Since <code>Sexp</code>s are subclassed from <code>Array</code>, it is clear that these calls are generated when using the <code>call[:target]</code> as a hash key (line 6 above). Again, the current Brakeman code only searches for call targets by symbol, never by a full <code>Sexp</code>. There is no reason to the call targets that are <code>Sexp</code>s.</p>
-
-<p>This is the modified call indexing code:</p>
-
-<figure class='code'><figcaption><span>Modified call_index.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="k">def</span> <span class="nf">index_calls</span> <span class="n">calls</span>
-</span><span class='line'>    <span class="n">calls</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">call</span><span class="o">|</span>
-</span><span class='line'>      <span class="vi">@calls_by_method</span><span class="o">[</span><span class="n">call</span><span class="o">[</span><span class="ss">:method</span><span class="o">]]</span> <span class="o">&lt;&lt;</span> <span class="n">call</span>
-</span><span class='line'>
-</span><span class='line'>      <span class="k">unless</span> <span class="n">call</span><span class="o">[</span><span class="ss">:target</span><span class="o">].</span><span class="n">is_a?</span> <span class="no">Sexp</span>
-</span><span class='line'>        <span class="vi">@calls_by_target</span><span class="o">[</span><span class="n">call</span><span class="o">[</span><span class="ss">:target</span><span class="o">]]</span> <span class="o">&lt;&lt;</span> <span class="n">call</span>
-</span><span class='line'>      <span class="k">end</span>
-</span><span class='line'>    <span class="k">end</span>
-</span><span class='line'>  <span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>With this code in place, call indexing does not even show up under perftools. Speed improvements vary by project, but this should at least shave off a few seconds. <a href="https://github.com/presidentbeef/brakeman/pull/189#issuecomment-10768297">YMMV</a>.</p>
-
-<h2>Wrapping Up</h2>
-
-<p>Some quick profiling led me to performance improvements where I really did not expect to find them. Sadly, this is one of the cleanest, simplest parts of Brakeman, so I know there are many other instances where Brakeman can be improved. Prior to the introduction of the call index in Brakeman 1.0, I was trying to keep Brakeman scans under 20 minutes (on large applications). Now I worry when scans take longer than a few minutes.</p>
-
-<p>97% of the open source Rails applications I use as test cases can be scanned in less than 30 seconds. Unfortunately, this probably does not reflect scan times for large, commercial applications. Please <a href="https://github.com/presidentbeef/brakeman/issues">report</a> any long-running scans! It may lead to more speed improvements like the ones above.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
+    
+      <a class="prev" href="/blog/page/2/">&larr; Older</a>
     
     <a href="/blog/archives">Blog Archives</a>
     
@@ -1612,7 +1690,7 @@ results = DB.execute(query)
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2018 - Justin Collins -
+  Copyright &copy; 2019 - Justin Collins -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -
   <span class="credit">Theme by <a href="http://aron.cedercrantz.com/">Aron Cedercrantz</a></span>
 </p>

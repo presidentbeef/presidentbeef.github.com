@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Faster Call Indexing in Brakeman - Justin Collins' Blugh</title>
+  <title>Justin Collins' Blugh</title>
   <meta name="author" content="Justin Collins">
 
   
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://presidentbeef.github.com/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3">
+  <link rel="canonical" href="http://presidentbeef.github.com/blog/page/2">
   <link href="/favicon.ico" rel="icon">
   
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
@@ -66,12 +66,15 @@
 </nav>
   <div id="main">
     <div id="content">
-      <div>
-<article class="hentry" role="article">
+      <div class="blog-index">
   
+  
+  
+    <article>
+      
   <header>
     
-      <h1 class="entry-title">Faster Call Indexing in Brakeman</h1>
+      <h1 class="entry-title"><a href="/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3/">Faster Call Indexing in Brakeman</a></h1>
     
     
       <p class="meta">
@@ -94,7 +97,7 @@
   </header>
 
 
-<div class="entry-content"><h2>Background</h2>
+  <div class="entry-content"><h2>Background</h2>
 
 <p>About a month ago, an <a href="https://github.com/presidentbeef/brakeman/issues/171">issue</a> was reported where <a href="http://brakemanscanner.org">Brakeman</a> taking a ridiculously long time on the &#8220;call indexing&#8221; step. At the time, I was pessimistic about opportunities to improve the performance of call indexing, since it is a pretty simple operation.</p>
 
@@ -196,59 +199,20 @@
 
 <p>97% of the open source Rails applications I use as test cases can be scanned in less than 30 seconds. Unfortunately, this probably does not reflect scan times for large, commercial applications. Please <a href="https://github.com/presidentbeef/brakeman/issues">report</a> any long-running scans! It may lead to more speed improvements like the ones above.</p>
 </div>
-
-
-  <footer>
-    <p class="meta">
-      
   
-
-<span class="byline author vcard">Posted by <span class="fn"><a href="/about" title="About the author (Justin Collins)" rel="author">Justin Collins</a></span></span>
-
-      
-
-
-
-
-
-
-
-
   
 
 
-<time datetime="2012-11-28T11:49:00-08:00" pubdate data-updated="true">Nov 28<span>th</span>, 2012</time>
-      
-
-
-    </p>
+    </article>
+  
+  <div class="pagination">
     
-      <div class="sharing">
-  
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://presidentbeef.github.com/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3/" data-via="presidentbeef" data-counturl="http://presidentbeef.github.com/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3/" >Tweet</a>
-  
-  
-  
-</div>
-
+    <a href="/blog/archives">Blog Archives</a>
     
-    <p class="meta">
-      
-      
-        <a class="basic-alignment right" href="/blog/2013/02/08/avoid-sql-injection-in-rails/" title="next Post: Avoiding SQL Injection in Rails">Avoiding SQL Injection in Rails &raquo;</a>
-      
-    </p>
-  </footer>
-</article>
-
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a class="next" href="/">Newer &rarr;</a>
+    
+  </div>
 </div>
-  </section>
-
-</div>
-
 
     </div>
   </div>
@@ -265,10 +229,7 @@
       var disqus_shortname = 'presidentbeefblog';
       
         
-        // var disqus_developer = 1;
-        var disqus_identifier = 'http://presidentbeef.github.com/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3/';
-        var disqus_url = 'http://presidentbeef.github.com/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3/';
-        var disqus_script = 'embed.js';
+        var disqus_script = 'count.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

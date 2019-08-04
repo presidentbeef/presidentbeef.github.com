@@ -4,7 +4,7 @@
         <loc>
             http://presidentbeef.github.com/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3/
         </loc>
-        <lastmod>2018-11-28T11:59:03-08:00</lastmod>
+        <lastmod>2019-08-04T00:10:27-07:00</lastmod>
     </url>
     <url>
         <loc>http://presidentbeef.github.com/blog/2013/02/08/avoid-sql-injection-in-rails/</loc>
@@ -53,12 +53,16 @@
         <lastmod>2018-11-28T12:32:48-08:00</lastmod>
     </url>
     <url>
+        <loc>http://presidentbeef.github.com/blog/2019/08/04/reviving-an-hp660lx-in-2019/</loc>
+        <lastmod>2019-08-04T00:10:16-07:00</lastmod>
+    </url>
+    <url>
         <loc>http://presidentbeef.github.com/about/</loc>
         <lastmod>2018-11-28T11:59:03-08:00</lastmod>
     </url>
     <url>
         <loc>http://presidentbeef.github.com/blog/archives/</loc>
-        <lastmod>2018-11-28T12:32:48-08:00</lastmod>
+        <lastmod>2019-08-04T00:10:27-07:00</lastmod>
     </url>
     <url>
         <loc>http://presidentbeef.github.com/404.html</loc>
@@ -66,6 +70,6 @@
     </url>
     <url>
         <loc>http://presidentbeef.github.com/</loc>
-        <lastmod>2018-11-28T12:32:48-08:00</lastmod>
+        <lastmod>2019-08-04T00:10:27-07:00</lastmod>
     </url>
 </urlset>
