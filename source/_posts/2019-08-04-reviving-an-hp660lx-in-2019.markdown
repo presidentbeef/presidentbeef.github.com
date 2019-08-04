@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Reviving an HP660LX in 2019"
+title: "Reviving an HP 660LX in 2019"
 date: 2019-08-04 09:52
 comments: true
 categories: 
