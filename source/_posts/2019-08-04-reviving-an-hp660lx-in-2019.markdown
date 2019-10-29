@@ -15,7 +15,7 @@ so I had some of the pieces available to actually get this little "pocket comput
 compatible CompactFlash cards and an external card reader.
 But I was mostly joking.
 
-Then I starting thinking how funny it would be to actually sit in a talk and take notes at [DEF CON](https://defcon.org/) on it...
+Then I starting thinking how funny it would be to actually sit in a talk and take notes at [DEF CON](https://defcon.org/) on an ancient "laptop"...
 
 ### Battery Power
 
@@ -61,13 +61,13 @@ unless they are really, truly dead.
 With some effort, I shoved the new batteries back in the case and sandwiched the wires back in as well.
 I didn't bother actually attaching/gluing/soldering anything.
 
-I did, however, scare myself when I generated a terrifying little electric arc as I 
+I did, however, scare myself when I generated a terrifying electric arc as I
 tried to use a screwdriver to squeeze everything back into the battery case.
 
 [![HP 660LX batteries replaced](/images/blog/hp_660lx/hp660lx_batteries_replaced.jpg)](/images/blog/hp_660lx/hp660lx_batteries_replaced.jpg)
 
 I may have damaged the case just a tiny bit when I gently pried it open,
-contributing to it looking a slightly sketchy when I tried to close it back up.
+contributing to it looking slightly sketchy when I tried to close it back up.
 
 [![HP 660LX battery put back together](/images/blog/hp_660lx/hp660lx_battery_together.jpg)](/images/blog/hp_660lx/hp660lx_battery_together.jpg)
 
@@ -92,7 +92,7 @@ Enter [HPC: Factor](https://www.hpcfactor.com/)! This is a website/forum full of
 For £10 you can get access to a ton of file downloads (software, drivers, updates) for a year.
 Totally worth it.
 
-One thing I learned quickly is that you need the service pack for Windows CE 2.0 and the Network Service Pack 
+One thing I learned quickly is that you need the service pack for Windows CE 2.0 and the Network Service Pack
 in order to have a chance at getting a wireless card to work.
 
 At this point, I had been transferring files to the 660LX via a compact flash card (which, at 8GB, probably blew the little machine's _mind_).
@@ -104,7 +104,7 @@ What is ActiveSync? Well, originally these "pocket computers" weren't meant to b
 They were more like little helpers you use while you are away from your main machine, then you sync up
 files, calendars, email, etc. when you went back to your desk.
 
-ActiveSync was the software used to sync between a pocket computer and your main machine. 
+ActiveSync was the software used to sync between a pocket computer and your main machine.
 
 Now, for Windows CE 2.0, the recommended version of ActiveSync is 3.8. The very _newest_ operating system
 supported by ActiveSync 3.8 is Windows XP.
@@ -173,7 +173,7 @@ there's not much of the web that one can even visit.
 Yes, it would be possible to use an SSL stripper, etc., but I didn't want to go through the hassle of setting
 that up on Windows XP.
 
-### Wrapping Up 
+### Wrapping Up
 
 [![The whole setup](/images/blog/hp_660lx/the_whole_setup.jpg)](/images/blog/hp_660lx/the_whole_setup.jpg)
 
