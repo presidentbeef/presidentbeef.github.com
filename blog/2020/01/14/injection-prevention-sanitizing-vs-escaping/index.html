@@ -1,0 +1,346 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Sanitizing, Escaping, and Encoding - Justin Collins' Blugh</title>
+  <meta name="author" content="Justin Collins">
+
+  
+  <meta name="description" content="&#8220;We need to sanitize this data&#8221; is a phrase I have heard too many times in the context of web security.
+It always makes me a little &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://presidentbeef.github.com/blog/2020/01/14/injection-prevention-sanitizing-vs-escaping">
+  <link href="/favicon.ico" rel="icon">
+  
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="/javascripts/ender.js"></script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <link href="/atom.xml" rel="alternate" title="Justin Collins' Blugh" type="application/atom+xml">
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="https://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="https://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-20920647-3']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   class="no-sidebar"  >
+  <header role="banner"><hgroup>
+  
+    <h2><a href="/">*.blog</a></h2>
+  
+  <em>by <a style="text-decoration: none" href="http://presidentbeef.com">Justin Collins</a></em>
+</hgroup>
+
+</header>
+  <nav role="navigation">
+  
+<ul class="main-navigation">
+  <li><a href="/">Recent</a></li>
+  <li><a href="/blog/archives">All</a></li>
+  <li><a href="https://twitter.com/presidentbeef">Twitter</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Sanitizing, Escaping, and Encoding</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2020-01-14T14:24:00-08:00" pubdate data-updated="true">Jan 14<span>th</span>, 2020</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p><em>&#8220;We need to sanitize this data&#8221;</em> is a phrase I have heard too many times in the context of web security.
+It always makes me a little nervous.</p>
+
+<p>The implication of the term &#8220;sanitize&#8221; is somehow cleaning the data or rendering it &#8220;safe&#8221;.
+But the details of how that safety is achieved are a little vague.</p>
+
+<p>Often it means simply searching for a function containing <code>sanitize</code> and blindly using that function.</p>
+
+<p>That is usually the wrong thing!</p>
+
+<h3>Injection Vulnerabilities</h3>
+
+<p>Injection vulnerabilities, including <a href="https://www.owasp.org/index.php/Top_10-2017_A7-Cross-Site_Scripting_(XSS)">cross-site scripting</a>, are a <a href="https://www.owasp.org/index.php/Top_10-2017_Top_10">top category of web vulnerabilities</a>.</p>
+
+<p>The root cause of injection vulnerabilities is the mixing of code and data which is then handed to a parser (the browser, database driver, shell, etc).
+Injection is possible when the data is treated as code.</p>
+
+<p>(<a href="https://youtu.be/g_24036NDhM">See my talk about injection for a deeper dive!</a>)</p>
+
+<p>Since proper escaping or sanitization is the mitigation for injection vulnerabilities, it is important to have a clear understanding of what those terms mean.</p>
+
+<h3>Escaping</h3>
+
+<p>The term &#8220;escaping&#8221; originates from situations where text is being interpreted in some mode
+and we want to &#8220;escape&#8221; from that mode into a different mode.</p>
+
+<p>For example, there are <a href="https://en.wikipedia.org/wiki/ANSI_escape_code">ANSI &#8220;escape codes&#8221;</a>
+to tell your terminal to switch from a text mode to interpreting a sequence of control characters.</p>
+
+<p>The more common situation is when a developer needs to tell a parser to <em>not</em> interpret a value as code.
+For example, when one is writing a string and wants to include a double-quote inside the string:</p>
+
+<pre><code>"blah\"blah"
+</code></pre>
+
+<p>The backslash <code>\</code> is an escape character that tells the parser to treat the following character as just a value,
+not the end of the string literal.</p>
+
+<p>However, especially in web security, when we say &#8220;escaping&#8221; we typically mean &#8220;encoding&#8221;:</p>
+
+<h3>Encoding</h3>
+
+<p><strong>Encoding</strong> involves replacing special characters with a different representation.</p>
+
+<p>HTML encoding uses <a href="https://developer.mozilla.org/en-US/docs/Glossary/Entity">HTML entities</a>.</p>
+
+<p>For example, <code>&lt;</code> would normally be interpreted as the start of an HTML tag.
+To display a <code>&lt;</code> character without it being interpreted as a tag, use <code>&amp;lt;</code>.</p>
+
+<p>In HTML, <code>&amp;</code> is the escape character. So now you can see how encoding and escaping are intertwined.</p>
+
+<p>In URLs, encoding involves replacing characters with <code>%</code> followed by a hexadecimal number that corresponds
+to the ASCII code for that character.</p>
+
+<p>For example, <code>/</code> in a URL would normally be interpreted as a path separator.
+To pass in <code>/</code> without it being interpreted that way, use <code>%2F</code>.</p>
+
+<p>This is called &#8220;URL encoding&#8221; or &#8221;<a href="https://en.wikipedia.org/wiki/Percent-encoding">percent encoding</a>&#8221; and the <code>%</code> character is the escape character.
+The value after <code>%</code> is the hex representation of the ASCII code for the desired display character.</p>
+
+<p>Encoding special characters is typically a very simple and straightforward process.
+Characters are simply replaced with their encoded value in a linear fashion.</p>
+
+<p>The encoding scheme used depends on context.
+For any type of interpretation (HTML, JavaScript, URLs, CSS, SQL, JSON, &#8230;) there will be a different
+encoding scheme. It is important to use the correct encoding for the context.</p>
+
+<p><strong>Also note that encoding is a completely reversible process!</strong>
+Given an encoded string, we can easily decode it back to the original value.</p>
+
+<h3>Sanitizing</h3>
+
+<p>Unlike encoding and escaping, <strong>sanitization</strong> involves <em>removing</em> characters entirely in order to make the value &#8220;safe&#8221;.</p>
+
+<p>This is a complicated, error-prone process.</p>
+
+<p>Here is a classic example of bad sanitization:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># Remove script tags!</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">sanitize_js</span><span class="p">(</span><span class="n">input</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">input</span><span class="o">.</span><span class="n">gsub</span><span class="p">(</span><span class="sr">/&lt;\/?script&gt;/</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">sanitize_js</span><span class="p">(</span><span class="s2">&quot;&lt;script&gt;alert(1)&lt;/script&gt;&quot;</span><span class="p">)</span> <span class="c1"># =&gt; &quot;alert(1)&quot;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">sanitize_js</span><span class="p">(</span><span class="s2">&quot;&lt;scri&lt;script&gt;pt&gt;alert(1)&lt;/scr&lt;/script&gt;ipt&gt;&quot;</span><span class="p">)</span> <span class="c1"># =&gt; &quot;&lt;script&gt;alert(1)&lt;/script&gt;&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is not just an amusing theoretical example - I have seen this exact approach used in production applications.</p>
+
+<p>Since sanitization is so difficult - nearly impossible - to do correctly, most sanitization implementations have seen
+<a href="https://www.google.com/search?q=html+sanitize+bypass">a number of bypasses</a>.</p>
+
+<p>Also, unlike encoding, sanitization is not reversible!
+Information is lost when the data is sanitized.
+You cannot retrieve the original input once it has gone through a sanitization process.
+This is rarely a desirable side-effect.</p>
+
+<p><em>Sanitization can also mean removal or replacement of sensitive data.
+That is a different usage not being discussed here.</em></p>
+
+<h3>Using the Right Approach</h3>
+
+<p>From a security perspective, contextually encoding untrusted values <em>at time of use</em> is the preferred approach.</p>
+
+<p>The tricky part is understanding the output context of the data and which encoding to use.
+HTML can easily have more than four different contexts in a single document!
+Also, it makes no sense to use HTML encoding in SQL.</p>
+
+<p>When possible, use encoding routines provided by libraries or frameworks.</p>
+
+<p>Sanitization should be reserved for cases when encoding is simply not possible.
+For example, if an application must accept and display HTML from users.
+There is no way to use encoding in that scenario.</p>
+
+<p>Again, when possible, do not write your own sanitization! Use existing libraries.</p>
+
+<h3>Summary</h3>
+
+<p>When discussing handling potentially dangerous data, be precise with terms!</p>
+
+<p>The security industry seems to have settled on &#8220;escaping&#8221; to actually mean &#8220;encoding&#8221;.
+In other words, a reversible transformation that encodes special characters so
+they will not be interpreted as code.</p>
+
+<p>Sanitization, in this context, means an irreversible stripping of special characters.</p>
+
+<p>When possible, prefer encoding/escaping to sanitization!</p>
+
+<h3>See Also</h3>
+
+<p><a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet">OWASP Cross-Site Scripting Prevention Cheatsheet</a></p>
+
+<p><a href="https://cheatsheetseries.owasp.org/cheatsheets/Injection_Prevention_Cheat_Sheet.html">OWASP Injection Prevention Cheatsheet</a></p>
+
+<p><a href="https://youtu.be/g_24036NDhM">Taking on the King: Killing Injection Vulnerabilities</a></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn"><a href="/about" title="About the author (Justin Collins)" rel="author">Justin Collins</a></span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2020-01-14T14:24:00-08:00" pubdate data-updated="true">Jan 14<span>th</span>, 2020</time>
+      
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://presidentbeef.github.com/blog/2020/01/14/injection-prevention-sanitizing-vs-escaping/" data-via="presidentbeef" data-counturl="http://presidentbeef.github.com/blog/2020/01/14/injection-prevention-sanitizing-vs-escaping/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2019/08/04/reviving-an-hp660lx-in-2019/" title="Previous Post: Reviving an HP 660LX in 2019">&laquo; Reviving an HP 660LX in 2019</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2020 - Justin Collins -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -
+  <span class="credit">Theme by <a href="http://aron.cedercrantz.com/">Aron Cedercrantz</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'presidentbeefblog';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://presidentbeef.github.com/blog/2020/01/14/injection-prevention-sanitizing-vs-escaping/';
+        var disqus_url = 'http://presidentbeef.github.com/blog/2020/01/14/injection-prevention-sanitizing-vs-escaping/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'https://' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'https://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

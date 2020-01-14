@@ -4,72 +4,78 @@
         <loc>
             http://presidentbeef.github.com/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3/
         </loc>
-        <lastmod>2019-08-04T00:10:27-07:00</lastmod>
+        <lastmod>2020-01-14T14:46:12-08:00</lastmod>
     </url>
     <url>
         <loc>http://presidentbeef.github.com/blog/2013/02/08/avoid-sql-injection-in-rails/</loc>
-        <lastmod>2018-11-28T11:59:03-08:00</lastmod>
+        <lastmod>2020-01-14T14:46:12-08:00</lastmod>
     </url>
     <url>
         <loc>http://presidentbeef.github.com/blog/2013/09/02/fast-compact-sparse-bitsets/</loc>
-        <lastmod>2018-11-28T11:59:03-08:00</lastmod>
+        <lastmod>2020-01-14T14:46:12-08:00</lastmod>
     </url>
     <url>
         <loc>http://presidentbeef.github.com/blog/2013/11/01/testing-brakeman/</loc>
-        <lastmod>2018-11-28T11:59:03-08:00</lastmod>
+        <lastmod>2020-01-14T14:46:12-08:00</lastmod>
     </url>
     <url>
         <loc>http://presidentbeef.github.com/blog/2014/02/28/simple-readers-writer-lock-gem/</loc>
-        <lastmod>2018-11-28T11:59:03-08:00</lastmod>
+        <lastmod>2020-01-14T14:46:12-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://presidentbeef.github.com/blog/2016/06/12/automatically-lock-old-closed-github-issues/
         </loc>
-        <lastmod>2018-11-28T11:59:03-08:00</lastmod>
+        <lastmod>2020-01-14T14:46:12-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://presidentbeef.github.com/blog/2016/08/09/bundling-gem-dependencies-inside-ruby-gems/
         </loc>
-        <lastmod>2018-11-28T11:59:03-08:00</lastmod>
+        <lastmod>2020-01-14T14:46:12-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://presidentbeef.github.com/blog/2017/03/08/challenges-when-building-commercial-versions-of-oss/
         </loc>
-        <lastmod>2018-11-28T11:59:03-08:00</lastmod>
+        <lastmod>2020-01-14T14:46:12-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://presidentbeef.github.com/blog/2017/12/21/price-transparency-with-brakeman-pro/
         </loc>
-        <lastmod>2018-11-28T11:59:03-08:00</lastmod>
+        <lastmod>2020-01-14T14:46:12-08:00</lastmod>
     </url>
     <url>
         <loc>
             http://presidentbeef.github.com/blog/2018/11/28/finding-ruby-performance-hotspots-via-allocation-stats/
         </loc>
-        <lastmod>2018-11-28T12:32:48-08:00</lastmod>
+        <lastmod>2020-01-14T14:46:12-08:00</lastmod>
     </url>
     <url>
         <loc>http://presidentbeef.github.com/blog/2019/08/04/reviving-an-hp660lx-in-2019/</loc>
-        <lastmod>2019-08-04T08:26:18-07:00</lastmod>
+        <lastmod>2020-01-14T14:46:12-08:00</lastmod>
+    </url>
+    <url>
+        <loc>
+            http://presidentbeef.github.com/blog/2020/01/14/injection-prevention-sanitizing-vs-escaping/
+        </loc>
+        <lastmod>2020-01-14T14:48:16-08:00</lastmod>
     </url>
     <url>
         <loc>http://presidentbeef.github.com/about/</loc>
-        <lastmod>2018-11-28T11:59:03-08:00</lastmod>
+        <lastmod>2020-01-14T14:46:12-08:00</lastmod>
     </url>
     <url>
         <loc>http://presidentbeef.github.com/blog/archives/</loc>
-        <lastmod>2019-08-04T08:26:18-07:00</lastmod>
+        <lastmod>2020-01-14T14:48:16-08:00</lastmod>
     </url>
     <url>
         <loc>http://presidentbeef.github.com/404.html</loc>
-        <lastmod>2018-11-28T11:59:03-08:00</lastmod>
+        <lastmod>2020-01-14T14:46:12-08:00</lastmod>
     </url>
     <url>
         <loc>http://presidentbeef.github.com/</loc>
-        <lastmod>2019-08-04T08:26:18-07:00</lastmod>
+        <lastmod>2020-01-14T14:48:16-08:00</lastmod>
     </url>
 </urlset>
