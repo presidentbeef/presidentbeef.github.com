@@ -83,14 +83,16 @@ This is a complicated, error-prone process.
 
 Here is a classic example of bad sanitization:
 
-    # Remove script tags!
-    def sanitize_js(input)
-      input.gsub(/<\/?script>/, "")
-    end
+```ruby
+# Remove script tags!
+def sanitize_js(input)
+  input.gsub(/<\/?script>/, "")
+end
 
-    sanitize_js("<script>alert(1)</script>") # => "alert(1)"
+sanitize_js("<script>alert(1)</script>") # => "alert(1)"
 
-    sanitize_js("<scri<script>pt>alert(1)</scr</script>ipt>") # => "<script>alert(1)</script>"
+sanitize_js("<scri<script>pt>alert(1)</scr</script>ipt>") # => "<script>alert(1)</script>"
+```
 
 This is not just an amusing theoretical example - I have seen this exact approach used in production applications.
 
