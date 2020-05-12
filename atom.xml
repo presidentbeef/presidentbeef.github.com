@@ -4,7 +4,7 @@
   <title><![CDATA[Justin Collins' Blugh]]></title>
   <link href="http://presidentbeef.github.com/atom.xml" rel="self"/>
   <link href="http://presidentbeef.github.com/"/>
-  <updated>2020-01-14T16:00:13-08:00</updated>
+  <updated>2020-05-12T12:31:30-07:00</updated>
   <id>http://presidentbeef.github.com/</id>
   <author>
     <name><![CDATA[Justin Collins]]></name>
@@ -12,6 +12,131 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Why 'Escaping' JavaScript is Dangerous]]></title>
+    <link href="http://presidentbeef.github.com/blog/2020/05/12/why-escape-javascript-is-dangerous/"/>
+    <updated>2020-05-12T11:40:00-07:00</updated>
+    <id>http://presidentbeef.github.com/blog/2020/05/12/why-escape-javascript-is-dangerous</id>
+    <content type="html"><![CDATA[<p>A recent <a href="https://github.com/rails/rails/security/advisories/GHSA-65cv-r6x7-79hv">vulnerability report</a> and <a href="https://chefsecure.com/blog/i-found-xss-security-flaws-in-rails-heres-what-happened">the blog post behind it</a> brought my attention back to the <a href="https://api.rubyonrails.org/v6.0.0/classes/ActionView/Helpers/JavaScriptHelper.html#method-i-escape_javascript"><code>escape_javascript</code></a> Ruby on Rails helper method.</p>
+
+<blockquote class="twitter-tweet" data-dnt="true"><p lang="en" dir="ltr">Let me say it again&#8230; if you are calling `escape_javascript` or `j` in your Rails code, please don&#39;t! <a href="https://t.co/60KLEjHX3T">https://t.co/60KLEjHX3T</a></p>&mdash; Justin Collins (@presidentbeef) <a href="https://twitter.com/presidentbeef/status/1258917835977318400?ref_src=twsrc%5Etfw">May 9, 2020</a></blockquote>
+
+
+<p> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script></p>
+
+<p>It&#8217;s bad form to drop blanket statements without explanation or evidence, so here it is:</p>
+
+<h3>Escaping HTML</h3>
+
+<p>Part of the danger of <code>escape_javascript</code> is the <strong>name</strong> and apparent relationship to <a href="https://api.rubyonrails.org/v6.0.0/classes/ERB/Util.html#method-c-html_escape"><code>html_escape</code></a>.</p>
+
+<p>HTML is a markup language for writing documents. Therefore, it must have a method for representing itself in text.
+In other words, there must be a way to encode <code>&lt;b&gt;</code> such that the browser <em>displays</em> <code>&lt;b&gt;</code> and does not interpret it as HTML.</p>
+
+<p>As a result, HTML has a well-defined HTML encoding strategy.
+In the context of security and <a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html">cross-site scripting</a>, if a value output in an HTML context is <em>HTML escaped</em>, it is safe - the value will not be interpreted as HTML.</p>
+
+<p><em>(<a href="https://blog.presidentbeef.com/blog/2020/01/14/injection-prevention-sanitizing-vs-escaping/">See my post all about escaping!</a>)</em></p>
+
+<h3>Escaping Javascript</h3>
+
+<p>On the other hand, JavaScript has no such escaping requirements or capabilities.</p>
+
+<p>Therefore, the &#8220;escaping&#8221; performed by <code>escape_javascript</code> is limited.
+The <a href="https://github.com/rails/rails/security/advisories/GHSA-65cv-r6x7-79hv">vulnerability report</a> states the method is for &#8220;escaping JavaScript string literals&#8221;.</p>
+
+<p>In particular, <code>escape_javascript</code> is only useful in one, single context: inside JavaScript strings!</p>
+
+<p>For example:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='erb'><span class='line'><span class="x"># ERb Template</span>
+</span><span class='line'><span class="x">&lt;script&gt;</span>
+</span><span class='line'><span class="x">  var x = &#39;</span><span class="cp">&lt;%=</span> <span class="n">escape_javascript</span> <span class="n">some_value</span> <span class="cp">%&gt;</span><span class="x">&#39;;</span>
+</span><span class='line'><span class="x">&lt;/script&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Use of <code>escape_javascript</code> in any other context is incorrect and dangerous!</strong></p>
+
+<p>This is and always has been dangerous (note the missing quotes):</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='erb'><span class='line'><span class="x"># ERb Template</span>
+</span><span class='line'><span class="x">&lt;script&gt;</span>
+</span><span class='line'><span class="x">  var x = </span><span class="cp">&lt;%=</span> <span class="n">escape_javascript</span> <span class="n">some_value</span> <span class="cp">%&gt;</span><span class="x">;</span>
+</span><span class='line'><span class="x">&lt;/script&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>some_value</code> could be a payload like <code>1; do_something_shady(); //</code> which would result in the following HTML:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;script&gt;</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">x</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="nx">do_something_shady</span><span class="p">();</span> <span class="c1">//; </span>
+</span><span class='line'><span class="nt">&lt;/script&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The <code>escape_javascript</code> helper <strong>does not</strong> and <strong>cannot</strong> make arbitrary values inserted into JavaScript &#8220;safe&#8221; in the same way <code>html_escape</code> makes values safe for HTML.</p>
+
+<h3>CVE-2020-5267</h3>
+
+<p><a href="https://chefsecure.com/blog/i-found-xss-security-flaws-in-rails-heres-what-happened">Jesse&#8217;s post</a> has more details, but here&#8217;s the gist: JavaScript added a new string literal. Instead of just single and double-quotes, now there are also backticks <code>`</code> which support string interpolation (like Ruby!).</p>
+
+<p>This meant it was simple to bypass <code>escape_javascript</code> and execute arbitrary JavaScript by using a backtick to break out of the string or just <code>#{...}</code> to execute code during interpolation.</p>
+
+<p>For example, if this were our code:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='erb'><span class='line'><span class="x"># ERb Template</span>
+</span><span class='line'><span class="x">&lt;script&gt;</span>
+</span><span class='line'><span class="x">  var x = `</span><span class="cp">&lt;%=</span> <span class="n">escape_javascript</span> <span class="n">some_value</span> <span class="cp">%&gt;</span><span class="x">`;</span>
+</span><span class='line'><span class="x">&lt;/script&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Then if <code>some_value</code> had a payload of <code>`; do_something_shady(); //</code>, the resulting HTML would be:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='html'><span class='line'><span class="nt">&lt;script&gt;</span>
+</span><span class='line'>  <span class="kd">var</span> <span class="nx">x</span> <span class="o">=</span> <span class="err">``</span><span class="p">;</span> <span class="nx">do_something_shady</span><span class="p">();</span> <span class="c1">//`</span>
+</span><span class='line'><span class="nt">&lt;/script&gt;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is because <code>escape_javascript</code> was not aware of backticks for strings.</p>
+
+<h3>Dangers of Dynamic Code Generation</h3>
+
+<blockquote class="twitter-tweet" data-dnt="true"><p lang="en" dir="ltr">Let me say it again… using dynamic javascript under practically any circumstance is inviting trouble. It might be ok. I’d rather not have to worry about it. <a href="https://t.co/wnPy3OnkKI">https://t.co/wnPy3OnkKI</a></p>&mdash; Shake, Oreo (@ndm) <a href="https://twitter.com/ndm/status/1258982525172510720?ref_src=twsrc%5Etfw">May 9, 2020</a></blockquote>
+
+
+<p> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script></p>
+
+<p>As I have <a href="https://youtu.be/g_24036NDhM">talked about before</a>, web applications are essentially poorly-defined compilers generating code with untrusted inputs.
+In the end, the server is just returning a mishmash of code for the browser to interpret.</p>
+
+<p>However, directly trying to generate safe code in a Turing-complete language like JavaScript or Ruby via string manipulation is a risky game.
+Methods like <code>escape_javascript</code> make it tempting to do so because the name sounds like it will make the code safe.</p>
+
+<p>If at all possible, avoid dynamic code generation!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Sanitizing, Escaping, and Encoding]]></title>
