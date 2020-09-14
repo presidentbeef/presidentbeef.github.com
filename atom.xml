@@ -4,7 +4,7 @@
   <title><![CDATA[Justin Collins' Blugh]]></title>
   <link href="http://presidentbeef.github.com/atom.xml" rel="self"/>
   <link href="http://presidentbeef.github.com/"/>
-  <updated>2020-05-12T12:31:30-07:00</updated>
+  <updated>2020-07-18T09:01:41-07:00</updated>
   <id>http://presidentbeef.github.com/</id>
   <author>
     <name><![CDATA[Justin Collins]]></name>
@@ -12,6 +12,201 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Another Reason to Avoid constantize in Rails]]></title>
+    <link href="http://presidentbeef.github.com/blog/2020/08/15/another-reason-to-avoid-constantize-in-rails/"/>
+    <updated>2020-08-15T13:37:00-07:00</updated>
+    <id>http://presidentbeef.github.com/blog/2020/08/15/another-reason-to-avoid-constantize-in-rails</id>
+    <content type="html"><![CDATA[<h2>Backstory</h2>
+
+<p>Recently a colleague asked me if <em>just</em> calling <code>constantize</code> on user input was dangerous, even if the code did not use the result:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">params</span><span class="o">[</span><span class="ss">:class</span><span class="o">].</span><span class="n">classify</span><span class="o">.</span><span class="n">constantize</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><a href="https://brakemanscanner.org/">Brakeman</a> generates a &#8220;remote code execution&#8221; warning for this code:</p>
+
+<pre>
+<font color="#00C300">Confidence</font>: <font color="#AA0000">High</font>
+<font color="#00C300">Category</font>: Remote Code Execution
+<font color="#00C300">Check</font>: UnsafeReflection
+<font color="#00C300">Message</font>: Unsafe reflection method `constantize` called with parameter value
+<font color="#00C300">Code</font>: <font color="#6C009B">params[:class].classify</font>.constantize
+<font color="#00C300">File</font>: app/controllers/users_controller.rb
+<font color="#00C300">Line</font>: 7
+</pre>
+
+
+<p>But why? Surely just converting a string to a constant (if the constant even exists!) can&#8217;t be dangerous, right?</p>
+
+<p>Coincidentally, around that same time I was looking at Ruby deserialization gadgets - in particular <a href="https://www.elttam.com/blog/ruby-deserialization/">this one</a> which mentions that Ruby&#8217;s <code>Digest</code> module will load a file based on the module name. For example, <code>Digest::A</code> will try to <code>require 'digest/a'</code>:</p>
+
+<pre>2.7.0 :001 &gt; require <font color="#FF5555"><b>&apos;</b></font><font color="#AA0000">digest</font><font color="#FF5555"><b>&apos;</b></font>
+ =&gt; <font color="#55FFFF"><b>true</b></font> 
+2.7.0 :002 &gt; <font color="#5555FF"><u style="text-decoration-style:single"><b>Digest</b></u></font>::<font color="#5555FF"><u style="text-decoration-style:single"><b>Whatever</b></u></font>
+<font color="#DEDEDE"><b>Traceback</b></font> (most recent call last):
+        5: from /home/justin/.rvm/rubies/ruby-2.7.0/bin/irb:23:in `&lt;main&gt;&apos;
+        4: from /home/justin/.rvm/rubies/ruby-2.7.0/bin/irb:23:in `load&apos;
+        3: from /home/justin/.rvm/rubies/ruby-2.7.0/lib/ruby/gems/2.7.0/gems/irb-1.2.1/exe/irb:11:in `&lt;top (required)&gt;&apos;
+        2: from (irb):2
+        1: from /home/justin/.rvm/rubies/ruby-2.7.0/lib/ruby/2.7.0/digest.rb:16:in `const_missing&apos;
+<font color="#DEDEDE"><b>LoadError (</b></font><font color="#DEDEDE"><u style="text-decoration-style:single"><b>library not found for class Digest::Whatever -- digest/whatever</b></u></font><font color="#DEDEDE"><b>)</b></font></pre>
+
+
+<p>This made me wonder if <code>constantize</code> and <code>const_missing</code> could be connected, and what the consequences would be.</p>
+
+<h2>Constantizing in Rails</h2>
+
+<p>The <code>constantize</code> method in Rails <a href="https://api.rubyonrails.org/classes/String.html#method-i-constantize">turns a string into a constant</a>. If the constant does not exist then a <code>NameError</code> will be raised.</p>
+
+<p>However, it is possible to hook into the constant lookup process in Ruby by defining a <code>const_missing</code> method. If a constant cannot be found in a given module, and that module has <code>const_missing</code> defined, then <code>const_missing</code> will be invoked.</p>
+
+<pre>2.7.0 :001 &gt; <font color="#00C300">module</font> <font color="#5555FF"><u style="text-decoration-style:single"><b>X</b></u></font>
+2.7.0 :002 &gt;   <font color="#00C300">def</font> <font color="#55FFFF"><b>self</b></font>.<font color="#5555FF"><b>const_missing</b></font>(name)
+2.7.0 :003 &gt;     puts <font color="#FF5555"><b>&quot;</b></font><font color="#AA0000">You tried to load #{</font>name.inspect<font color="#AA0000">}</font><font color="#FF5555"><b>&quot;</b></font>
+2.7.0 :004 &gt;   <font color="#00C300">end</font>
+2.7.0 :005 &gt; <font color="#00C300">end</font>
+ =&gt; <font color="#6C009B">:const_missing</font> 
+2.7.0 :006 &gt; <font color="#5555FF"><u style="text-decoration-style:single"><b>X</b></u></font>::<font color="#5555FF"><u style="text-decoration-style:single"><b>Hello</b></u></font>
+You tried to load :Hello
+ =&gt; <font color="#55FFFF"><b>nil</b></font></pre>
+
+
+<p>If <code>const_missing</code> is implemented with behavior based on the constant name, such as loading a file or creating a new object, there is an opportunity for malicious behavior.</p>
+
+<h2>Some Vulnerable Gems</h2>
+
+<p>Fortunately, <code>const_missing</code> is not used very often. When it is, the implementation is not usually exploitable.</p>
+
+<p>I did some searching across ~1300 gems and found only ~40 gems with a <code>const_missing</code> implementation. That is a small enough number to check manually.</p>
+
+<p>Of those, the majority were not exploitable because they checked the constant name against expected values or called <code>const_get</code> which raises an exception if the constant does not exist.</p>
+
+<p>One gem, <a href="https://github.com/rubychan/coderay">coderay</a>, <a href="https://github.com/rubychan/coderay/blob/d38502167541a1cd1b505a0e468e0098e3ae7538/lib/coderay/helpers/plugin_host.rb#L59-L67">loads files based on constant names</a> like the Digest library. Also like the Digest library, this does not appear to be exploitable because the files are limited to a single coderay directory.</p>
+
+<p>The next two gems below have memory leaks, which can enable denial of service attacks through memory exhaustion.</p>
+
+<h3>Temple</h3>
+
+<p>The <a href="https://github.com/judofyr/temple">Temple</a> gem is a foundational gem used by Haml, Slim, and other templating libraries.</p>
+
+<p>In Temple, there is a module called <code>Temple::Mixins::GrammarDSL</code> that implements <code>const_missing</code> like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">const_missing</span><span class="p">(</span><span class="nb">name</span><span class="p">)</span>
+</span><span class='line'>  <span class="nb">const_set</span><span class="p">(</span><span class="nb">name</span><span class="p">,</span> <span class="no">Root</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="nb">self</span><span class="p">,</span> <span class="nb">name</span><span class="p">))</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The method creates a new constant based on the given <code>name</code> and assigns a new object.</p>
+
+<p>This presents a memory leak since constants are never garbage collected. This code allows us to create any number of permanent objects on the system, if we can trigger it.</p>
+
+<p>Unfortunately, it is easy to exploit this code.</p>
+
+<p><code>Temple::Grammar</code> extends <code>Template::Mixins::GrammarDSL</code> and is a core class for Temple. Let&#8217;s see if it is loaded by Haml, a popular templating library often used with Rails:</p>
+
+<pre>2.7.0 :001 &gt; require <font color="#FF5555"><b>&apos;</b></font><font color="#AA0000">haml</font><font color="#FF5555"><b>&apos;</b></font>
+ =&gt; <font color="#55FFFF"><b>true</b></font> 
+2.7.0 :002 &gt; <font color="#5555FF"><u style="text-decoration-style:single"><b>Temple</b></u></font>::<font color="#5555FF"><u style="text-decoration-style:single"><b>Grammar</b></u></font>
+/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
+/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
+/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
+/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
+/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
+/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
+/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
+/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
+/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
+ =&gt; <font color="#5555FF"><u style="text-decoration-style:single"><b>Temple</b></u></font>::<font color="#5555FF"><u style="text-decoration-style:single"><b>Grammar</b></u></font> </pre>
+
+
+<p>Great! What happens if we try to reference a module that definitely does not exist?</p>
+
+<pre>2.7.0 :003 &gt; <font color="#5555FF"><u style="text-decoration-style:single"><b>Temple</b></u></font>::<font color="#5555FF"><u style="text-decoration-style:single"><b>Grammar</b></u></font>::<font color="#5555FF"><u style="text-decoration-style:single"><b>DefinitelyDoesNotExist</b></u></font>
+ =&gt; #&lt;Temple::Mixins::GrammarDSL::Root:0x000055a79b011060 @grammar=Temple::Grammar, @children=[], @name=:DefinitelyDoesNotExist&gt; </pre>
+
+
+<p>As can be seen above, the constant is created along with a new object.</p>
+
+<p>To go one step further&#8230; does the use of constantize invoke this code?</p>
+
+<p>We can test by loading a Rails console for an application using Haml:</p>
+
+<pre>Loading development environment (Rails 6.0.3.2)
+2.7.0 :001 &gt; require <font color="#FF5555"><b>&apos;</b></font><font color="#AA0000">haml</font><font color="#FF5555"><b>&apos;</b></font>
+ =&gt; <font color="#55FFFF"><b>false</b></font> 
+2.7.0 :002 &gt; <font color="#FF5555"><b>&apos;</b></font><font color="#AA0000">Temple::Grammar::DefinitelyDoesNotExist</font><font color="#FF5555"><b>&apos;</b></font>.constantize
+ =&gt; #&lt;Temple::Mixins::GrammarDSL::Root:0x000055ba28031a50 @grammar=Temple::Grammar, @children=[], @name=:DefinitelyDoesNotExist&gt; 
+</pre>
+
+
+<p>It does!</p>
+
+<p>Any Ruby on Rails application using Haml or Slim that calls <code>constantize</code> on user input (e.g. <code>params[:class].classify.constantize</code>) is vulnerable to a memory leak via this method.</p>
+
+<h3>Restforce</h3>
+
+<p>A very similar code pattern is implemented in the <a href="https://github.com/restforce/restforce">restforce</a> gem.</p>
+
+<p>The <a href="https://github.com/restforce/restforce/blob/b14175a9072fb6333c1c1b3dce2bb498c022a1b3/lib/restforce.rb#L65-L67">ErrorCode module</a> uses <code>const_missing</code> like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">module</span> <span class="nn">ErrorCode</span>
+</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">const_missing</span><span class="p">(</span><span class="n">constant_name</span><span class="p">)</span>
+</span><span class='line'>    <span class="nb">const_set</span> <span class="n">constant_name</span><span class="p">,</span> <span class="no">Class</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="no">ResponseError</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Nearly the same, except this actually creates new <em>classes</em>, not just regular objects.</p>
+
+<p>We can verify again:</p>
+
+<pre>Loading development environment (Rails 6.0.3.2)
+2.7.0 :001 &gt; require <font color="#FF5555"><b>&apos;</b></font><font color="#AA0000">restforce</font><font color="#FF5555"><b>&apos;</b></font>
+ =&gt; <font color="#55FFFF"><b>false</b></font> 
+2.7.0 :002 &gt; <font color="#5555FF"><u style="text-decoration-style:single"><b>Restforce</b></u></font>::<font color="#5555FF"><u style="text-decoration-style:single"><b>ErrorCode</b></u></font>::<font color="#5555FF"><u style="text-decoration-style:single"><b>WhateverWeWant</b></u></font>
+ =&gt; <font color="#5555FF"><u style="text-decoration-style:single"><b>Restforce</b></u></font>::<font color="#5555FF"><u style="text-decoration-style:single"><b>ErrorCode</b></u></font>::<font color="#5555FF"><u style="text-decoration-style:single"><b>WhateverWeWant</b></u></font> 
+</pre>
+
+
+<p>This time we get as many new classes as we want.</p>
+
+<p><strong>This has been fixed in <a href="https://github.com/restforce/restforce/blob/master/CHANGELOG.md#500-jul-10-2020">Restforce 5.0.0</a>.</strong></p>
+
+<h2>Exploiting Memory Leaks</h2>
+
+<p>Measuring memory use per-object is a little tricky and the two memory leaks described above create very minimal objects.</p>
+
+<p>From what I could estimate, a new <code>Rule</code> object in Temple uses about 300 bytes of memory, while a new class in Restforce was taking up almost 1,000 bytes.</p>
+
+<p>Based on that and my testing, it would take 1 to 4 million requests to use just 1GB of memory.</p>
+
+<p>Given that web applications are usually restarted on a regular basis and it&#8217;s not usually a big deal to kill off a process and start a new one, this does not seem particularly impactful.</p>
+
+<p>However, it would be annoying and possibly harmful for smaller sites. For example, the base Heroku instance only has 512MB of memory.</p>
+
+<h2>Conclusions</h2>
+
+<p>Avoid using <code>constantize</code> in Rails applications. If you need to use it, check against an allowed set of class names <em>before</em> calling <code>constantize</code>. (Calling <code>classify</code> first is okay, though.)</p>
+
+<p>Likewise for <code>const_missing</code> in Ruby libraries. Doing anything dynamic with the constant name (loading files, creating new objects, evaluating code, etc.) should be avoided. Ideally, check against an expected list of names and reject anything else.</p>
+
+<p>In the end, this comes down to the security basics of not trusting user input and strictly validating inputs.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Why 'Escaping' JavaScript is Dangerous]]></title>
