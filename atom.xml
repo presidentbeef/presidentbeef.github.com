@@ -4,7 +4,7 @@
   <title><![CDATA[Justin Collins' Blugh]]></title>
   <link href="http://presidentbeef.github.com/atom.xml" rel="self"/>
   <link href="http://presidentbeef.github.com/"/>
-  <updated>2020-09-14T10:45:25-07:00</updated>
+  <updated>2020-09-14T11:10:31-07:00</updated>
   <id>http://presidentbeef.github.com/</id>
   <author>
     <name><![CDATA[Justin Collins]]></name>
@@ -20,7 +20,7 @@
     <id>http://presidentbeef.github.com/blog/2020/09/14/another-reason-to-avoid-constantize-in-rails</id>
     <content type="html"><![CDATA[<h2>Backstory</h2>
 
-<p>Recently, a friend and colleague asked me if <em>just</em> calling <code>constantize</code> on user input was dangerous, even if subsequent code did not use the result:</p>
+<p>Recently, a friend asked me if <em>just</em> calling <code>constantize</code> on user input was dangerous, even if subsequent code did not use the result:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">params</span><span class="o">[</span><span class="ss">:class</span><span class="o">].</span><span class="n">classify</span><span class="o">.</span><span class="n">constantize</span>
