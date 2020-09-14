@@ -137,7 +137,7 @@
 <font><b>LoadError (</b><u style="text-decoration-style:single"><b>library not found for class Digest::Whatever -- digest/whatever</b></u><b>)</b></font></pre>
 
 
-<p>In the <code>Digest</code> library, it uses the <a href="https://rdoc.info/stdlib/core/Module:const_missing"><code>const_missing</code></a> hook to implement this functionality.</p>
+<p>The <code>Digest</code> library uses the <a href="https://rdoc.info/stdlib/core/Module:const_missing"><code>const_missing</code></a> hook to implement this functionality.</p>
 
 <p>This made me wonder if <code>constantize</code> and <code>const_missing</code> could be connected, and what the consequences would be.</p>
 
