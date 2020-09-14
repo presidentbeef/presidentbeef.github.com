@@ -4,7 +4,7 @@
   <title><![CDATA[Justin Collins' Blugh]]></title>
   <link href="http://presidentbeef.github.com/atom.xml" rel="self"/>
   <link href="http://presidentbeef.github.com/"/>
-  <updated>2020-07-18T09:01:41-07:00</updated>
+  <updated>2020-09-14T10:45:25-07:00</updated>
   <id>http://presidentbeef.github.com/</id>
   <author>
     <name><![CDATA[Justin Collins]]></name>
@@ -15,12 +15,12 @@
   
   <entry>
     <title type="html"><![CDATA[Another Reason to Avoid constantize in Rails]]></title>
-    <link href="http://presidentbeef.github.com/blog/2020/08/15/another-reason-to-avoid-constantize-in-rails/"/>
-    <updated>2020-08-15T13:37:00-07:00</updated>
-    <id>http://presidentbeef.github.com/blog/2020/08/15/another-reason-to-avoid-constantize-in-rails</id>
+    <link href="http://presidentbeef.github.com/blog/2020/09/14/another-reason-to-avoid-constantize-in-rails/"/>
+    <updated>2020-09-14T08:37:00-07:00</updated>
+    <id>http://presidentbeef.github.com/blog/2020/09/14/another-reason-to-avoid-constantize-in-rails</id>
     <content type="html"><![CDATA[<h2>Backstory</h2>
 
-<p>Recently a colleague asked me if <em>just</em> calling <code>constantize</code> on user input was dangerous, even if the code did not use the result:</p>
+<p>Recently, a friend and colleague asked me if <em>just</em> calling <code>constantize</code> on user input was dangerous, even if subsequent code did not use the result:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">params</span><span class="o">[</span><span class="ss">:class</span><span class="o">].</span><span class="n">classify</span><span class="o">.</span><span class="n">constantize</span>
@@ -53,8 +53,10 @@
         3: from /home/justin/.rvm/rubies/ruby-2.7.0/lib/ruby/gems/2.7.0/gems/irb-1.2.1/exe/irb:11:in `&lt;top (required)&gt;&apos;
         2: from (irb):2
         1: from /home/justin/.rvm/rubies/ruby-2.7.0/lib/ruby/2.7.0/digest.rb:16:in `const_missing&apos;
-<font color="#DEDEDE"><b>LoadError (</b></font><font color="#DEDEDE"><u style="text-decoration-style:single"><b>library not found for class Digest::Whatever -- digest/whatever</b></u></font><font color="#DEDEDE"><b>)</b></font></pre>
+<font><b>LoadError (</b><u style="text-decoration-style:single"><b>library not found for class Digest::Whatever -- digest/whatever</b></u><b>)</b></font></pre>
 
+
+<p>In the <code>Digest</code> library, it uses the <a href="https://rdoc.info/stdlib/core/Module:const_missing"><code>const_missing</code></a> hook to implement this functionality.</p>
 
 <p>This made me wonder if <code>constantize</code> and <code>const_missing</code> could be connected, and what the consequences would be.</p>
 
@@ -81,7 +83,7 @@ You tried to load :Hello
 
 <p>Fortunately, <code>const_missing</code> is not used very often. When it is, the implementation is not usually exploitable.</p>
 
-<p>I did some searching across ~1300 gems and found only ~40 gems with a <code>const_missing</code> implementation. That is a small enough number to check manually.</p>
+<p>Searching across ~1300 gems, I found only ~40 gems with a <code>const_missing</code> implementation.</p>
 
 <p>Of those, the majority were not exploitable because they checked the constant name against expected values or called <code>const_get</code> which raises an exception if the constant does not exist.</p>
 
@@ -106,7 +108,7 @@ You tried to load :Hello
 
 <p>The method creates a new constant based on the given <code>name</code> and assigns a new object.</p>
 
-<p>This presents a memory leak since constants are never garbage collected. This code allows us to create any number of permanent objects on the system, if we can trigger it.</p>
+<p>This is a memory leak since constants are never garbage collected. If an attacker can trigger it, they can create an unlimited number of permanent objects, using up as much memory as possible.</p>
 
 <p>Unfortunately, it is easy to exploit this code.</p>
 
@@ -115,15 +117,6 @@ You tried to load :Hello
 <pre>2.7.0 :001 &gt; require <font color="#FF5555"><b>&apos;</b></font><font color="#AA0000">haml</font><font color="#FF5555"><b>&apos;</b></font>
  =&gt; <font color="#55FFFF"><b>true</b></font> 
 2.7.0 :002 &gt; <font color="#5555FF"><u style="text-decoration-style:single"><b>Temple</b></u></font>::<font color="#5555FF"><u style="text-decoration-style:single"><b>Grammar</b></u></font>
-/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
-/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
-/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
-/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
-/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
-/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
-/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
-/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
-/home/justin/.rvm/gems/ruby-2.7.0@test/gems/temple-0.8.2/lib/temple/mixins/grammar_dsl.rb:146: warning: deprecated Object#=~ is called on Class; it always returns nil
  =&gt; <font color="#5555FF"><u style="text-decoration-style:single"><b>Temple</b></u></font>::<font color="#5555FF"><u style="text-decoration-style:single"><b>Grammar</b></u></font> </pre>
 
 
@@ -186,9 +179,11 @@ You tried to load :Hello
 
 <p><strong>This has been fixed in <a href="https://github.com/restforce/restforce/blob/master/CHANGELOG.md#500-jul-10-2020">Restforce 5.0.0</a>.</strong></p>
 
-<h2>Exploiting Memory Leaks</h2>
+<h2>Finding and Exploiting Memory Leaks</h2>
 
-<p>Measuring memory use per-object is a little tricky and the two memory leaks described above create very minimal objects.</p>
+<p><em>Finding</em> vulnerable code like this in a production application would be difficult. You would need to guess which parameters might be <code>constantize</code>d.</p>
+
+<p>Verifying that you&#8217;ve found a memory leak is a little tricky and the two memory leaks described above create very minimal objects.</p>
 
 <p>From what I could estimate, a new <code>Rule</code> object in Temple uses about 300 bytes of memory, while a new class in Restforce was taking up almost 1,000 bytes.</p>
 
@@ -198,9 +193,11 @@ You tried to load :Hello
 
 <p>However, it would be annoying and possibly harmful for smaller sites. For example, the base Heroku instance only has 512MB of memory.</p>
 
+<p>Another note here: Memory leaks are not the worst outcome of an unprotected call to <code>constantize</code>. More likely it can trigger remote code execution. The real issue I am trying to explore here is the unexpected behavior that may be hidden in dependencies.</p>
+
 <h2>Conclusions</h2>
 
-<p>Avoid using <code>constantize</code> in Rails applications. If you need to use it, check against an allowed set of class names <em>before</em> calling <code>constantize</code>. (Calling <code>classify</code> first is okay, though.)</p>
+<p>In short: Avoid using <code>constantize</code> in Rails applications. If you need to use it, check against an allowed set of class names <em>before</em> calling <code>constantize</code>. (Calling <code>classify</code> first is okay, though.)</p>
 
 <p>Likewise for <code>const_missing</code> in Ruby libraries. Doing anything dynamic with the constant name (loading files, creating new objects, evaluating code, etc.) should be avoided. Ideally, check against an expected list of names and reject anything else.</p>
 
