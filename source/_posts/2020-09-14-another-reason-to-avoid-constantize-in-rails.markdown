@@ -8,7 +8,7 @@ categories:
 
 ## Backstory
 
-Recently, a friend and colleague asked me if _just_ calling `constantize` on user input was dangerous, even if subsequent code did not use the result:
+Recently, a friend asked me if _just_ calling `constantize` on user input was dangerous, even if subsequent code did not use the result:
 
 ```ruby
 params[:class].classify.constantize
@@ -41,7 +41,7 @@ Coincidentally, around that same time I was looking at Ruby deserialization gadg
         1: from /home/justin/.rvm/rubies/ruby-2.7.0/lib/ruby/2.7.0/digest.rb:16:in `const_missing&apos;
 <font><b>LoadError (</b><u style="text-decoration-style:single"><b>library not found for class Digest::Whatever -- digest/whatever</b></u><b>)</b></font></pre>
 
-In the `Digest` library, it uses the [`const_missing`](https://rdoc.info/stdlib/core/Module:const_missing) hook to implement this functionality.
+The `Digest` library uses the [`const_missing`](https://rdoc.info/stdlib/core/Module:const_missing) hook to implement this functionality.
 
 This made me wonder if `constantize` and `const_missing` could be connected, and what the consequences would be.
 
@@ -169,9 +169,10 @@ Another note here: Memory leaks are not the worst outcome of an unprotected call
 
 ## Conclusions
 
-In short: Avoid using `constantize` in Rails applications. If you need to use it, check against an allowed set of class names _before_ calling `constantize`. (Calling `classify` first is okay, though.)
+In short: Avoid using `constantize` in Rails applications. If you need to use it, check against an allowed set of class names _before_ calling `constantize`. (Calling `classify` before checking is okay, though.)
 
 Likewise for `const_missing` in Ruby libraries. Doing anything dynamic with the constant name (loading files, creating new objects, evaluating code, etc.) should be avoided. Ideally, check against an expected list of names and reject anything else.
 
 In the end, this comes down to the security basics of not trusting user input and strictly validating inputs.
 
+_Edit:_ It seems some language I used above was a little ambiguous, so I tweaked it. Calling `classify` does not make the code safe - I meant calling `classify` is not dangerous by itself. It's the subsequent call to `constantize` that is dangerous. So you can safely call `classify`, check against a list of allowed classes, then take the appropriate action.
