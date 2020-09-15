@@ -278,11 +278,13 @@ You tried to load :Hello
 
 <h2>Conclusions</h2>
 
-<p>In short: Avoid using <code>constantize</code> in Rails applications. If you need to use it, check against an allowed set of class names <em>before</em> calling <code>constantize</code>. (Calling <code>classify</code> first is okay, though.)</p>
+<p>In short: Avoid using <code>constantize</code> in Rails applications. If you need to use it, check against an allowed set of class names <em>before</em> calling <code>constantize</code>. (Calling <code>classify</code> before checking is okay, though.)</p>
 
 <p>Likewise for <code>const_missing</code> in Ruby libraries. Doing anything dynamic with the constant name (loading files, creating new objects, evaluating code, etc.) should be avoided. Ideally, check against an expected list of names and reject anything else.</p>
 
 <p>In the end, this comes down to the security basics of not trusting user input and strictly validating inputs.</p>
+
+<p><em>Edit:</em> It seems some language I used above was a little ambiguous, so I tweaked it. Calling <code>classify</code> does not make the code safe - I meant calling <code>classify</code> is not dangerous by itself. It&#8217;s the subsequent call to <code>constantize</code> that is dangerous. So you can safely call <code>classify</code>, check against a list of allowed classes, then take the appropriate action.</p>
 </div>
 
 
