@@ -9,7 +9,7 @@
   <meta name="author" content="Justin Collins">
 
   
-  <meta name="description" content="Backstory Recently, a friend asked me if just calling constantize on user input was dangerous, even if subsequent code did not use the result: 1 &hellip;">
+  <meta name="description" content="Since early 2013, I have been maintaining rails-sqli.org, a collection of Rails ActiveRecord methods that can be vulnerable to SQL injection. Rails 6 &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -33,7 +33,7 @@
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:site" content="@presidentbeef" />
 <meta name="twitter:title" content="Justin Collins' Blugh" />
-<meta name="description" content="Backstory Recently, a friend asked me if just calling constantize on user input was dangerous, even if subsequent code did not use the result: 1 &hellip;">
+<meta name="description" content="Since early 2013, I have been maintaining rails-sqli.org, a collection of Rails ActiveRecord methods that can be vulnerable to SQL injection. Rails 6 &hellip;">
 
   
   <script type="text/javascript">
@@ -73,6 +73,191 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2021/07/21/rails-6-dot-1-sql-injection-updates/">Rails 6.1 SQL Injection Updates</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2021-07-21T12:14:00-07:00" pubdate data-updated="true">Jul 21<span>st</span>, 2021</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Since early 2013, I have been maintaining <a href="https://rails-sqli.org">rails-sqli.org</a>, a collection of Rails ActiveRecord methods that can be vulnerable to <a href="https://guides.rubyonrails.org/security.html#sql-injection">SQL injection</a>.</p>
+
+<p>Rails 6 has been out <a href="https://guides.rubyonrails.org/6_0_release_notes.html">since December 2019</a>, but sadly the site has been missing information about changes and new methods in Rails 6.</p>
+
+<p>As that deficiency has recently been rectified, let&#8217;s walk through what has changed since Rails 5!</p>
+
+<h2><code>delete_all</code>, <code>destroy_all</code></h2>
+
+<p>In earlier versions of Rails, <code>delete_all</code> and <code>destroy_all</code> could be passed a string of raw SQL.</p>
+
+<p>In Rails 6, these two methods no longer accept any arguments.</p>
+
+<p>Instead, you can use&#8230;</p>
+
+<h2><code>delete_by</code>, <code>destroy_by</code></h2>
+
+<p>New in Rails 6, <a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/Relation.html#method-i-delete_by"><code>delete_by</code></a> and <a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/Relation.html#method-i-destroy_by"><code>destroy_by</code></a> accept the same type of arguments as <code>where</code>: a Hash, an Array, or a raw SQL String.</p>
+
+<p>This means they are vulnerable to the same kind of SQL injection.</p>
+
+<p>For example:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span> <span class="o">=</span> <span class="s2">&quot;1) OR 1=1--&quot;</span>
+</span><span class='line'><span class="no">User</span><span class="o">.</span><span class="n">delete_by</span><span class="p">(</span><span class="s2">&quot;id = </span><span class="si">#{</span><span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Resulting query that deletes all users:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">DELETE</span> <span class="k">FROM</span> <span class="ss">&quot;users&quot;</span> <span class="k">WHERE</span> <span class="p">(</span><span class="n">id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">OR</span> <span class="mi">1</span><span class="o">=</span><span class="mi">1</span><span class="c1">--)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2><code>order</code>, <code>reorder</code></h2>
+
+<p>Prior to Rails 6, it was possible to pass arbitrary SQL to the <a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/QueryMethods.html#method-i-order"><code>order</code></a> and <a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/QueryMethods.html#method-i-reorder"><code>reorder</code></a> methods.</p>
+
+<p>Since Rails did not offer an easy way of setting sort direction, this kind of code was common:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">User</span><span class="o">.</span><span class="n">order</span><span class="p">(</span><span class="s2">&quot;name </span><span class="si">#{</span><span class="n">params</span><span class="o">[</span><span class="ss">:direction</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In Rails 6.0, injection attempts would raise a deprecation warning:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">DEPRECATION</span> <span class="ss">WARNING</span><span class="p">:</span> <span class="no">Dangerous</span> <span class="n">query</span> <span class="nb">method</span> <span class="p">(</span><span class="nb">method</span> <span class="n">whose</span> <span class="n">arguments</span> <span class="n">are</span> <span class="n">used</span> <span class="n">as</span> <span class="n">raw</span> <span class="no">SQL</span><span class="p">)</span> <span class="n">called</span> <span class="n">with</span> <span class="n">non</span><span class="o">-</span><span class="n">attribute</span> <span class="n">argument</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="s2">&quot;--&quot;</span><span class="o">.</span> <span class="no">Non</span><span class="o">-</span><span class="n">attribute</span> <span class="n">arguments</span> <span class="n">will</span> <span class="n">be</span> <span class="n">disallowed</span> <span class="k">in</span> <span class="no">Rails</span> <span class="mi">6</span><span class="o">.</span><span class="mi">1</span><span class="o">.</span> <span class="no">This</span> <span class="nb">method</span> <span class="n">should</span> <span class="ow">not</span> <span class="n">be</span> <span class="n">called</span> <span class="n">with</span> <span class="n">user</span><span class="o">-</span><span class="n">provided</span> <span class="n">values</span><span class="p">,</span> <span class="n">such</span> <span class="n">as</span> <span class="n">request</span> <span class="n">parameters</span> <span class="ow">or</span> <span class="n">model</span> <span class="n">attributes</span><span class="o">.</span> <span class="no">Known</span><span class="o">-</span><span class="n">safe</span> <span class="n">values</span> <span class="n">can</span> <span class="n">be</span> <span class="n">passed</span> <span class="n">by</span> <span class="n">wrapping</span> <span class="n">them</span> <span class="k">in</span> <span class="no">Arel</span><span class="o">.</span><span class="n">sql</span><span class="p">()</span><span class="o">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Starting with Rails 6.1, some logic to check the arguments to <code>order</code>. If the arguments do not appear to be column names or sort order, they will be rejected:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">&gt;</span> <span class="no">User</span><span class="o">.</span><span class="n">order</span><span class="p">(</span><span class="s2">&quot;name ARGLBARGHL&quot;</span><span class="p">)</span>
+</span><span class='line'><span class="no">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+</span><span class='line'>        <span class="mi">1</span><span class="p">:</span> <span class="n">from</span> <span class="p">(</span><span class="n">irb</span><span class="p">):</span><span class="mi">12</span>
+</span><span class='line'><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">UnknownAttributeReference</span> <span class="p">(</span><span class="no">Query</span> <span class="nb">method</span> <span class="n">called</span> <span class="n">with</span> <span class="n">non</span><span class="o">-</span><span class="n">attribute</span> <span class="n">argument</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="s2">&quot;name ARGLBARGHL&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It is still possible to inject additional columns to extract some information from the table, such as number of columns or names of the columns:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">params</span><span class="o">[</span><span class="ss">:direction</span><span class="o">]</span> <span class="o">=</span> <span class="s2">&quot;, 8&quot;</span>
+</span><span class='line'><span class="no">User</span><span class="o">.</span><span class="n">order</span><span class="p">(</span><span class="s2">&quot;name </span><span class="si">#{</span><span class="n">params</span><span class="o">[</span><span class="ss">:direction</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Resulting exception:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">ActiveRecord</span><span class="o">::</span><span class="no">StatementInvalid</span> <span class="p">(</span><span class="no">SQLite3</span><span class="o">::</span><span class="ss">SQLException</span><span class="p">:</span> <span class="mi">2</span><span class="n">nd</span> <span class="no">ORDER</span> <span class="no">BY</span> <span class="n">term</span> <span class="n">out</span> <span class="n">of</span> <span class="n">range</span> <span class="o">-</span> <span class="n">should</span> <span class="n">be</span> <span class="n">between</span> <span class="mi">1</span> <span class="ow">and</span> <span class="mi">7</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2><code>pluck</code></h2>
+
+<p><a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-pluck"><code>pluck</code></a> pulls out specified columns from a query, instead of loading whole records.</p>
+
+<p>In previous versions of Rails, <code>pluck</code> (somewhat surprisingly!) accepted arbitrary SQL strings if they were passed in as an array.</p>
+
+<p>Like <code>order</code>/<code>reorder</code>, Rails 6.0 started warning about this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'> <span class="o">&gt;</span> <span class="no">User</span><span class="o">.</span><span class="n">pluck</span><span class="p">(</span><span class="o">[</span><span class="s2">&quot;1&quot;</span><span class="o">]</span><span class="p">)</span>
+</span><span class='line'><span class="no">DEPRECATION</span> <span class="ss">WARNING</span><span class="p">:</span> <span class="no">Dangerous</span> <span class="n">query</span> <span class="nb">method</span> <span class="p">(</span><span class="nb">method</span> <span class="n">whose</span> <span class="n">arguments</span> <span class="n">are</span> <span class="n">used</span> <span class="n">as</span> <span class="n">raw</span> <span class="no">SQL</span><span class="p">)</span> <span class="n">called</span> <span class="n">with</span> <span class="n">non</span><span class="o">-</span><span class="n">attribute</span> <span class="n">argument</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="o">[</span><span class="s2">&quot;1&quot;</span><span class="o">].</span> <span class="no">Non</span><span class="o">-</span><span class="n">attribute</span> <span class="n">arguments</span> <span class="n">will</span> <span class="n">be</span> <span class="n">disallowed</span> <span class="k">in</span> <span class="no">Rails</span> <span class="mi">6</span><span class="o">.</span><span class="mi">1</span><span class="o">.</span> <span class="no">This</span> <span class="nb">method</span> <span class="n">should</span> <span class="ow">not</span> <span class="n">be</span> <span class="n">called</span> <span class="n">with</span> <span class="n">user</span><span class="o">-</span><span class="n">provided</span> <span class="n">values</span><span class="p">,</span> <span class="n">such</span> <span class="n">as</span> <span class="n">request</span> <span class="n">parameters</span> <span class="ow">or</span> <span class="n">model</span> <span class="n">attributes</span><span class="o">.</span> <span class="no">Known</span><span class="o">-</span><span class="n">safe</span> <span class="n">values</span> <span class="n">can</span> <span class="n">be</span> <span class="n">passed</span> <span class="n">by</span> <span class="n">wrapping</span> <span class="n">them</span> <span class="k">in</span> <span class="no">Arel</span><span class="o">.</span><span class="n">sql</span><span class="p">()</span><span class="o">.</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In Rails 6.1, <code>pluck</code> now only accepts attribute names!</p>
+
+<h2><code>reselect</code></h2>
+
+<p>Rails 6 introduced <a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/QueryMethods.html#method-i-reselect"><code>reselect</code></a>, which allows one to completely replace the <code>SELECT</code> clause of a query. Like <code>select</code>, it accepts any SQL string. Since <code>SELECT</code> is at the very beginning of the SQL query, it makes it a great target for SQL injection.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">params</span><span class="o">[</span><span class="ss">:column</span><span class="o">]</span> <span class="o">=</span> <span class="s2">&quot;* FROM orders -- &quot;</span>
+</span><span class='line'><span class="no">User</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="ss">:name</span><span class="p">)</span><span class="o">.</span><span class="n">reselect</span><span class="p">(</span><span class="n">params</span><span class="o">[</span><span class="ss">:column</span><span class="o">]</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Note this selects <em>all</em> columns <em>from a different table</em>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">orders</span> <span class="c1">-- FROM &quot;users&quot;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2><code>rewhere</code></h2>
+
+<p><a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/QueryMethods.html#method-i-rewhere"><code>rewhere</code></a> is analogous to <code>reselect</code> but it replaces the <code>WHERE</code> clause.</p>
+
+<p>Like <code>where</code>, it is very easy to open up <code>rewhere</code> to SQL injection.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">params</span><span class="o">[</span><span class="ss">:age</span><span class="o">]</span> <span class="o">=</span> <span class="s2">&quot;1=1) OR 1=1--&quot;</span>
+</span><span class='line'><span class="no">User</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="nb">name</span><span class="p">:</span> <span class="s2">&quot;Bob&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rewhere</span><span class="p">(</span><span class="s2">&quot;age &gt; </span><span class="si">#{</span><span class="n">params</span><span class="o">[</span><span class="ss">:age</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Resulting query:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">SELECT</span> <span class="s2">&quot;users&quot;</span><span class="o">.</span><span class="n">*</span> <span class="no">FROM</span> <span class="s2">&quot;users&quot;</span> <span class="no">WHERE</span> <span class="s2">&quot;users&quot;</span><span class="o">.</span><span class="s2">&quot;name&quot;</span> <span class="o">=</span> <span class="p">?</span> <span class="no">AND</span> <span class="p">(</span><span class="n">age</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="no">OR</span> <span class="mi">1</span><span class="o">=</span><span class="mi">1</span><span class="o">--</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Wrapping Up</h2>
+
+<p>Any other new methods that allow SQL injection? Let me know!</p>
+
+<p>Want to find out more?</p>
+
+<ul>
+<li><a href="https://rails-sqli.org">rails-sqli.org</a> for the complete list.</li>
+<li><a href="https://brakemanscanner.org/">Brakeman</a> to help find vulnerable queries in your code.</li>
+<li><a href="https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html">OWASP SQL Injection Cheat Sheet</a> to learn more about preventing SQL injection.</li>
+</ul>
+
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1435,144 +1620,6 @@ Perhaps it will be useful to you!</p>
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2014/02/28/simple-readers-writer-lock-gem/">Simple Readers-Writer Lock Gem</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2014-02-28T08:53:00-08:00" pubdate data-updated="true">Feb 28<span>th</span>, 2014</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>A <a href="http://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock">readers-writer lock</a> can be used to allow many concurrent read-only operations on a resource but ensure exclusive access for modifying operations performed by &#8220;writers&#8221;. For my purposes, I needed a readers-writer lock at the thread level, basically to control access to a shared array. In my scenario, the array is accessed through a server which may server many clients at once. Some requests will be to read elements from the array, while other requests might be adding elements to the array. There is no reason to restrict reads to one client at a time, but elements need to be added while no other client is reading or writing to the array.</p>
-
-<p><a href="https://github.com/presidentbeef/rwlock">My implementation</a> is very simple (the entire <code>RWLock</code> class is 25 lines of code) because it relies on Ruby&#8217;s <a href="http://rdoc.info/stdlib/thread/SizedQueue">SizedQueue</a> class. <code>SizedQueue</code> provides a thread-safe queue with a maximum size. If a thread attempts to add elements to a queue that is full, it will be blocked until an element is removed from the queue to make room. This is a key piece of funtionality used for the readers-writer lock implementation.</p>
-
-<p>The <code>RWLock</code> class only really needs to provide two methods: one to provide read access, and one to provide write access. Since this is Ruby, the methods will take a block to execute the reading/writing code:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">RWLock</span>
-</span><span class='line'>  <span class="k">def</span> <span class="nf">read_sync</span>
-</span><span class='line'>    <span class="c1">#lock magic</span>
-</span><span class='line'>    <span class="k">yield</span>
-</span><span class='line'>    <span class="c1">#lock magic</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">def</span> <span class="nf">write_sync</span>
-</span><span class='line'>    <span class="c1">#lock magic</span>
-</span><span class='line'>    <span class="k">yield</span>
-</span><span class='line'>    <span class="c1">#lock magic</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The internal state of the lock will be a <code>SizedQueue</code> and a <code>Mutex</code>.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span> <span class="n">max_size</span> <span class="o">=</span> <span class="mi">10</span>
-</span><span class='line'>    <span class="vi">@write_lock</span> <span class="o">=</span> <span class="no">Mutex</span><span class="o">.</span><span class="n">new</span>
-</span><span class='line'>    <span class="vi">@q</span> <span class="o">=</span> <span class="no">SizedQueue</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">max_size</span><span class="p">)</span>
-</span><span class='line'>  <span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The <code>SizedQueue</code> will essentially be used as a counting semaphore. Each time a reader enters <code>read_sync</code>, the lock will push an element onto the queue. What the element actually is doesn&#8217;t matter, but I used <code>true</code> because it&#8217;s cheap. If the queue is full, the reader will block until a space has opened up.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="k">def</span> <span class="nf">read_sync</span>
-</span><span class='line'>    <span class="vi">@q</span><span class="o">.</span><span class="n">push</span> <span class="kp">true</span>
-</span><span class='line'>    <span class="k">yield</span>
-</span><span class='line'>  <span class="k">ensure</span>
-</span><span class='line'>    <span class="vi">@q</span><span class="o">.</span><span class="n">pop</span>
-</span><span class='line'>  <span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>When a writer calls <code>write_sync</code>, it synchronizes on the mutex to prevent multiple concurrent writers. Then it adds <em>n</em> elements to the queue, where <em>n</em> is equal to the maximum size of the queue.</p>
-
-<p>This has two effects: first, the writer is forced to wait for all current readers to finish. Second, it essentially prevents any new readers from gaining access (there is a small chance one will sneak in, but the writer will still have to wait for it).</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="k">def</span> <span class="nf">write_sync</span>
-</span><span class='line'>    <span class="vi">@write_lock</span><span class="o">.</span><span class="n">synchronize</span> <span class="k">do</span>
-</span><span class='line'>      <span class="vi">@q</span><span class="o">.</span><span class="n">max</span><span class="o">.</span><span class="n">times</span> <span class="p">{</span> <span class="vi">@q</span><span class="o">.</span><span class="n">push</span> <span class="kp">true</span> <span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'>      <span class="k">begin</span>
-</span><span class='line'>        <span class="k">yield</span>
-</span><span class='line'>      <span class="k">ensure</span>
-</span><span class='line'>        <span class="vi">@q</span><span class="o">.</span><span class="n">clear</span>
-</span><span class='line'>      <span class="k">end</span>
-</span><span class='line'>    <span class="k">end</span>
-</span><span class='line'>  <span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Once the writer is finished, the queue is cleared, allowing all waiting readers to jump in. It is most likely waiting readers will get in before waiting writers, since the write mutex is held while the queue is emptied, but no effort is made to guarantee that one way or another. In practice, though, this seems to balance well between readers and writers.</p>
-
-<p>One obvious downside of this overall approach is the <code>SizedQueue</code> limits the number of concurrent readers. A larger queue will cause writers to wait longer (assuming many readers) while a smaller queue may cause readers to wait on other readers. The upside is readers cannot monopolize the resource and cause writer starvation.</p>
-
-<p>Unfortunately, <code>SizedQueue#clear</code> has been broken forever, since it was simply inherited from <code>Queue</code> and didn&#8217;t actually notify waiting threads that the queue is empty. For some reason, this does not appear to matter in Ruby 1.8, but in Ruby 1.9 and 2.0 it caused a deadlock.</p>
-
-<p>This has been fixed in Ruby 1.9.3p545 and 2.1.1. For broken versions, the <code>RWLock</code> gem monkey-patches <code>SizedQueue</code> to fix the behavior. Unfortunately, Ruby 2.0 also had a bug in <code>SizedQueue#push</code>, so it is completely incompatible. The code does work under JRuby, but there are faster implementations using Java primitives.</p>
-
-<p>RWLock is available as <a href="https://rubygems.org/gems/rwlock">a gem</a> and of course the <a href="https://github.com/presidentbeef/rwlock">code is on GitHub</a>.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1585,7 +1632,7 @@ Perhaps it will be useful to you!</p>
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2020 - Justin Collins -
+  Copyright &copy; 2021 - Justin Collins -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -
   <span class="credit">Theme by <a href="http://aron.cedercrantz.com/">Aron Cedercrantz</a></span>
 </p>

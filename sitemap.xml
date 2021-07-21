@@ -75,12 +75,18 @@
         <lastmod>2020-09-15T07:53:21-07:00</lastmod>
     </url>
     <url>
+        <loc>
+            http://presidentbeef.github.com/blog/2021/07/21/rails-6-dot-1-sql-injection-updates/
+        </loc>
+        <lastmod>2021-07-21T12:16:53-07:00</lastmod>
+    </url>
+    <url>
         <loc>http://presidentbeef.github.com/about/</loc>
         <lastmod>2020-05-11T07:39:00-07:00</lastmod>
     </url>
     <url>
         <loc>http://presidentbeef.github.com/blog/archives/</loc>
-        <lastmod>2020-09-15T07:53:21-07:00</lastmod>
+        <lastmod>2021-07-21T12:16:53-07:00</lastmod>
     </url>
     <url>
         <loc>http://presidentbeef.github.com/404.html</loc>
@@ -88,6 +94,6 @@
     </url>
     <url>
         <loc>http://presidentbeef.github.com/</loc>
-        <lastmod>2020-09-15T07:53:21-07:00</lastmod>
+        <lastmod>2021-07-21T12:16:53-07:00</lastmod>
     </url>
 </urlset>
