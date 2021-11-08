@@ -135,14 +135,12 @@
 <span class='line-number'>25</span>
 <span class='line-number'>26</span>
 <span class='line-number'>27</span>
-<span class='line-number'>28</span>
 </pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Task</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
 </span><span class='line'>  <span class="n">enum</span> <span class="ss">status</span><span class="p">:</span> <span class="p">{</span>
 </span><span class='line'>    <span class="ss">pending</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
 </span><span class='line'>    <span class="ss">success</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
 </span><span class='line'>    <span class="ss">failed</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
 </span><span class='line'>  <span class="p">}</span>
-</span><span class='line'>
 </span><span class='line'>  <span class="no">NOT_FAILURES</span> <span class="o">=</span> <span class="o">[</span><span class="s1">&#39;pending&#39;</span><span class="p">,</span> <span class="s1">&#39;success&#39;</span><span class="o">].</span><span class="n">freeze</span>
 </span><span class='line'><span class="k">end</span>
 </span><span class='line'>
