@@ -9,7 +9,8 @@
   <meta name="author" content="Justin Collins">
 
   
-  <meta name="description" content="A readers-writer lock can be used to allow many concurrent read-only operations on a resource but ensure exclusive access for modifying operations &hellip;">
+  <meta name="description" content="I am not sure this is a problem everyone has, but I grew tired of people commenting on old, resolved GitHub issues.
+Almost every time someone would &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -33,7 +34,8 @@
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:site" content="@presidentbeef" />
 <meta name="twitter:title" content="Justin Collins' Blugh" />
-<meta name="description" content="A readers-writer lock can be used to allow many concurrent read-only operations on a resource but ensure exclusive access for modifying operations &hellip;">
+<meta name="description" content="I am not sure this is a problem everyone has, but I grew tired of people commenting on old, resolved GitHub issues.
+Almost every time someone would &hellip;">
 
   
   <script type="text/javascript">
@@ -73,6 +75,70 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2016/06/12/automatically-lock-old-closed-github-issues/">Automatically Lock Old Closed GitHub Issues</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2016-06-12T22:27:00-07:00" pubdate data-updated="true">Jun 12<span>th</span>, 2016</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I am not sure this is a problem everyone has, but I grew tired of people commenting on old, resolved GitHub issues.
+Almost every time someone would comment &#8220;I have this problem, too&#8221; it would actually be a different issue. Then I&#8217;d
+go through the routine of asking them to open a new issue with details about their specific problem.
+Sometimes they would, and sometimes they&#8217;d never come back.</p>
+
+<p>Fortunately, right around the time I decided I should do something about this annoyance, <a href="https://developer.github.com/changes/2016-02-11-issue-locking-api/">GitHub released an API</a>
+to lock issues. (<a href="https://github.com/blog/1847-locking-conversations">Locking issues or pull requests</a> prevents any new comments except from repo collaborators.)</p>
+
+<p>So I put together a little gem called <a href="https://github.com/presidentbeef/github-auto-locker">github-auto-locker</a> to fetch and lock old, closed issues.</p>
+
+<p>To install it (requires Ruby):</p>
+
+<pre><code>gem install github-auto-locker
+</code></pre>
+
+<p>Then run:</p>
+
+<pre><code>github-auto-locker USER REPO TOKEN [age in days]
+</code></pre>
+
+<p>For example, I run this to lock resolved issues over 60 days old:</p>
+
+<pre><code>github-auto-locker presidentbeef brakeman N0TM1R34L70K3N 60
+</code></pre>
+
+<p>The default is 120 days.</p>
+
+<p>I&#8217;ve been running it periodically myself since February without any complaints.
+Perhaps it will be useful to you!</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
