@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Justin Collins' Blugh]]></title>
-  <link href="http://presidentbeef.github.com/atom.xml" rel="self"/>
-  <link href="http://presidentbeef.github.com/"/>
-  <updated>2022-01-05T11:23:29-08:00</updated>
-  <id>http://presidentbeef.github.com/</id>
+  <link href="https://blog.presidentbeef.com/atom.xml" rel="self"/>
+  <link href="https://blog.presidentbeef.com/"/>
+  <updated>2022-01-05T13:25:02-08:00</updated>
+  <id>https://blog.presidentbeef.com/</id>
   <author>
     <name><![CDATA[Justin Collins]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[API Levels in DragonRuby Game Toolkit]]></title>
-    <link href="http://presidentbeef.github.com/blog/2022/01/05/api-levels-in-dragonruby-game-toolkit/"/>
+    <link href="https://blog.presidentbeef.com/blog/2022/01/05/api-levels-in-dragonruby-game-toolkit/"/>
     <updated>2022-01-05T11:00:00-08:00</updated>
-    <id>http://presidentbeef.github.com/blog/2022/01/05/api-levels-in-dragonruby-game-toolkit</id>
+    <id>https://blog.presidentbeef.com/blog/2022/01/05/api-levels-in-dragonruby-game-toolkit</id>
     <content type="html"><![CDATA[<p><a href="https://dragonruby.org/toolkit/game">DragonRuby Game Toolkit (DRGTK)</a> is a 2D game engine built with <a href="https://mruby.org/">mRuby</a>, <a href="https://www.libsdl.org/">SDL</a>, and <a href="https://llvm.org/">LLVM</a>. It&#8217;s meant to be tiny, fast, and allow you to turn out games quickly using <a href="https://www.ruby-lang.org/">Ruby</a>.</p>
 
 <p>Unfortunately, since the documentation is focused on making games <em>quickly</em>, I sometimes get lost when trying to figure out how to do things that should be simple. DragonRuby seems to have borrowed Perl&#8217;s &#8221;<a href="https://en.wikipedia.org/wiki/There%27s_more_than_one_way_to_do_it">There&#8217;s more than one way to do it</a>&#8221; philosophy because for anything you want to do with the API there are <em>several</em> ways to do it.</p>
@@ -330,9 +330,9 @@
   
   <entry>
     <title type="html"><![CDATA[Fixing Just One False Positive in Brakeman]]></title>
-    <link href="http://presidentbeef.github.com/blog/2021/11/08/fixing-just-one-false-positive-in-brakeman/"/>
+    <link href="https://blog.presidentbeef.com/blog/2021/11/08/fixing-just-one-false-positive-in-brakeman/"/>
     <updated>2021-11-08T11:30:00-08:00</updated>
-    <id>http://presidentbeef.github.com/blog/2021/11/08/fixing-just-one-false-positive-in-brakeman</id>
+    <id>https://blog.presidentbeef.com/blog/2021/11/08/fixing-just-one-false-positive-in-brakeman</id>
     <content type="html"><![CDATA[<p>A while ago, I came across a <a href="https://brakemanscanner.org/">Brakeman</a> false positive that I wanted to fix.</p>
 
 <p>For just one false positive, it became a bit of an epic journey.</p>
@@ -716,9 +716,9 @@
   
   <entry>
     <title type="html"><![CDATA[Rails 6.1 SQL Injection Updates]]></title>
-    <link href="http://presidentbeef.github.com/blog/2021/07/21/rails-6-dot-1-sql-injection-updates/"/>
+    <link href="https://blog.presidentbeef.com/blog/2021/07/21/rails-6-dot-1-sql-injection-updates/"/>
     <updated>2021-07-21T12:14:00-07:00</updated>
-    <id>http://presidentbeef.github.com/blog/2021/07/21/rails-6-dot-1-sql-injection-updates</id>
+    <id>https://blog.presidentbeef.com/blog/2021/07/21/rails-6-dot-1-sql-injection-updates</id>
     <content type="html"><![CDATA[<p>Since early 2013, I have been maintaining <a href="https://rails-sqli.org">rails-sqli.org</a>, a collection of Rails ActiveRecord methods that can be vulnerable to <a href="https://guides.rubyonrails.org/security.html#sql-injection">SQL injection</a>.</p>
 
 <p>Rails 6 has been out <a href="https://guides.rubyonrails.org/6_0_release_notes.html">since December 2019</a>, but sadly the site has been missing information about changes and new methods in Rails 6.</p>
@@ -874,9 +874,9 @@
   
   <entry>
     <title type="html"><![CDATA[Another Reason to Avoid constantize in Rails]]></title>
-    <link href="http://presidentbeef.github.com/blog/2020/09/14/another-reason-to-avoid-constantize-in-rails/"/>
+    <link href="https://blog.presidentbeef.com/blog/2020/09/14/another-reason-to-avoid-constantize-in-rails/"/>
     <updated>2020-09-14T08:37:00-07:00</updated>
-    <id>http://presidentbeef.github.com/blog/2020/09/14/another-reason-to-avoid-constantize-in-rails</id>
+    <id>https://blog.presidentbeef.com/blog/2020/09/14/another-reason-to-avoid-constantize-in-rails</id>
     <content type="html"><![CDATA[<h2>Backstory</h2>
 
 <p>Recently, a friend asked me if <em>just</em> calling <code>constantize</code> on user input was dangerous, even if subsequent code did not use the result:</p>
@@ -1068,9 +1068,9 @@ You tried to load :Hello
   
   <entry>
     <title type="html"><![CDATA[Why 'Escaping' JavaScript is Dangerous]]></title>
-    <link href="http://presidentbeef.github.com/blog/2020/05/12/why-escape-javascript-is-dangerous/"/>
+    <link href="https://blog.presidentbeef.com/blog/2020/05/12/why-escape-javascript-is-dangerous/"/>
     <updated>2020-05-12T11:40:00-07:00</updated>
-    <id>http://presidentbeef.github.com/blog/2020/05/12/why-escape-javascript-is-dangerous</id>
+    <id>https://blog.presidentbeef.com/blog/2020/05/12/why-escape-javascript-is-dangerous</id>
     <content type="html"><![CDATA[<p>A recent <a href="https://github.com/rails/rails/security/advisories/GHSA-65cv-r6x7-79hv">vulnerability report</a> and <a href="https://chefsecure.com/blog/i-found-xss-security-flaws-in-rails-heres-what-happened">the blog post behind it</a> brought my attention back to the <a href="https://api.rubyonrails.org/v6.0.0/classes/ActionView/Helpers/JavaScriptHelper.html#method-i-escape_javascript"><code>escape_javascript</code></a> Ruby on Rails helper method.</p>
 
 <blockquote class="twitter-tweet" data-dnt="true"><p lang="en" dir="ltr">Let me say it again&#8230; if you are calling `escape_javascript` or `j` in your Rails code, please don&#39;t! <a href="https://t.co/60KLEjHX3T">https://t.co/60KLEjHX3T</a></p>&mdash; Justin Collins (@presidentbeef) <a href="https://twitter.com/presidentbeef/status/1258917835977318400?ref_src=twsrc%5Etfw">May 9, 2020</a></blockquote>
@@ -1193,9 +1193,9 @@ Methods like <code>escape_javascript</code> make it tempting to do so because th
   
   <entry>
     <title type="html"><![CDATA[Sanitizing, Escaping, and Encoding]]></title>
-    <link href="http://presidentbeef.github.com/blog/2020/01/14/injection-prevention-sanitizing-vs-escaping/"/>
+    <link href="https://blog.presidentbeef.com/blog/2020/01/14/injection-prevention-sanitizing-vs-escaping/"/>
     <updated>2020-01-14T14:24:00-08:00</updated>
-    <id>http://presidentbeef.github.com/blog/2020/01/14/injection-prevention-sanitizing-vs-escaping</id>
+    <id>https://blog.presidentbeef.com/blog/2020/01/14/injection-prevention-sanitizing-vs-escaping</id>
     <content type="html"><![CDATA[<p><em>&#8220;We need to sanitize this data&#8221;</em> is a phrase I have heard too many times in the context of web security.
 It always makes me a little nervous.</p>
 
@@ -1346,9 +1346,9 @@ they will not be interpreted as code.</p>
   
   <entry>
     <title type="html"><![CDATA[Reviving an HP 660LX in 2019]]></title>
-    <link href="http://presidentbeef.github.com/blog/2019/08/04/reviving-an-hp660lx-in-2019/"/>
+    <link href="https://blog.presidentbeef.com/blog/2019/08/04/reviving-an-hp660lx-in-2019/"/>
     <updated>2019-08-04T09:52:00-07:00</updated>
-    <id>http://presidentbeef.github.com/blog/2019/08/04/reviving-an-hp660lx-in-2019</id>
+    <id>https://blog.presidentbeef.com/blog/2019/08/04/reviving-an-hp660lx-in-2019</id>
     <content type="html"><![CDATA[<p>It started off as a joke&#8230;</p>
 
 <blockquote class="twitter-tweet" data-dnt="true" data-link-color="#E81C4F"><p lang="en" dir="ltr">Just setting up my burner machine for <a href="https://twitter.com/defcon?ref_src=twsrc%5Etfw">@defcon</a> <a href="https://t.co/Dz9pjCBTCo">pic.twitter.com/Dz9pjCBTCo</a></p>&mdash; Justin Collins (@presidentbeef) <a href="https://twitter.com/presidentbeef/status/1144761345847336960?ref_src=twsrc%5Etfw">June 29, 2019</a></blockquote>
@@ -1382,11 +1382,11 @@ you a little CR2032 battery.)</em></p>
 <p>Now, I will admit my mental model of a laptop battery was a block of chemical goop inside of some plastic wrap with some wires coming out of it.
 After ungracefully disassembling the 660LX battery, I found inside it was just two smaller batteries?!</p>
 
-<p><a href="http://presidentbeef.github.com/images/blog/hp_660lx/hp660lx_battery_open.jpg"><img src="http://presidentbeef.github.com/images/blog/hp_660lx/hp660lx_battery_open.jpg" alt="Open battery pack of HP 660LX" /></a></p>
+<p><a href="https://blog.presidentbeef.com/images/blog/hp_660lx/hp660lx_battery_open.jpg"><img src="https://blog.presidentbeef.com/images/blog/hp_660lx/hp660lx_battery_open.jpg" alt="Open battery pack of HP 660LX" /></a></p>
 
 <p>The batteries said &#8220;US18650S SONY ENERGYTEC&#8221; on them.</p>
 
-<p><a href="http://presidentbeef.github.com/images/blog/hp_660lx/hp_660lx_old_batteries.jpg"><img src="http://presidentbeef.github.com/images/blog/hp_660lx/hp_660lx_old_batteries.jpg" alt="Sony 18650S Batteries" /></a></p>
+<p><a href="https://blog.presidentbeef.com/images/blog/hp_660lx/hp_660lx_old_batteries.jpg"><img src="https://blog.presidentbeef.com/images/blog/hp_660lx/hp_660lx_old_batteries.jpg" alt="Sony 18650S Batteries" /></a></p>
 
 <p>While I didn&#8217;t find those exact batteries, some investigation showed the 18650 battery in general is extremely common.</p>
 
@@ -1398,7 +1398,7 @@ regulates charging the batteries.</p>
 <p>The Internet suggested sticking to &#8220;brand name&#8221; batteries, but weirdly Amazon does not carry any of those.
 I took a chance on a pack of batteries which reviewers suggested looked like &#8220;genuine&#8221; Samsung batteries.</p>
 
-<p><a href="http://presidentbeef.github.com/images/blog/hp_660lx/samsung_18650-30Q_batteries.jpg"><img src="http://presidentbeef.github.com/images/blog/hp_660lx/samsung_18650-30Q_batteries.jpg" alt="Samsung 18650 batteries" /></a></p>
+<p><a href="https://blog.presidentbeef.com/images/blog/hp_660lx/samsung_18650-30Q_batteries.jpg"><img src="https://blog.presidentbeef.com/images/blog/hp_660lx/samsung_18650-30Q_batteries.jpg" alt="Samsung 18650 batteries" /></a></p>
 
 <p>I carefully ripped the old batteries out. The leads from the batteries to the little circuit board were
 actually soldered to the batteries, so I pried them off with a screwdriver. Probably not a great idea
@@ -1410,16 +1410,16 @@ I didn&#8217;t bother actually attaching/gluing/soldering anything.</p>
 <p>I did, however, scare myself when I generated a terrifying electric arc as I
 tried to use a screwdriver to squeeze everything back into the battery case.</p>
 
-<p><a href="http://presidentbeef.github.com/images/blog/hp_660lx/hp660lx_batteries_replaced.jpg"><img src="http://presidentbeef.github.com/images/blog/hp_660lx/hp660lx_batteries_replaced.jpg" alt="HP 660LX batteries replaced" /></a></p>
+<p><a href="https://blog.presidentbeef.com/images/blog/hp_660lx/hp660lx_batteries_replaced.jpg"><img src="https://blog.presidentbeef.com/images/blog/hp_660lx/hp660lx_batteries_replaced.jpg" alt="HP 660LX batteries replaced" /></a></p>
 
 <p>I may have damaged the case just a tiny bit when I gently pried it open,
 contributing to it looking slightly sketchy when I tried to close it back up.</p>
 
-<p><a href="http://presidentbeef.github.com/images/blog/hp_660lx/hp660lx_battery_together.jpg"><img src="http://presidentbeef.github.com/images/blog/hp_660lx/hp660lx_battery_together.jpg" alt="HP 660LX battery put back together" /></a></p>
+<p><a href="https://blog.presidentbeef.com/images/blog/hp_660lx/hp660lx_battery_together.jpg"><img src="https://blog.presidentbeef.com/images/blog/hp_660lx/hp660lx_battery_together.jpg" alt="HP 660LX battery put back together" /></a></p>
 
 <p>But, who cares how it looks&#8230;does it work??</p>
 
-<p><a href="http://presidentbeef.github.com/images/blog/hp_660lx/hp660lx_running_on_new_batteries.jpg"><img src="http://presidentbeef.github.com/images/blog/hp_660lx/hp660lx_running_on_new_batteries.jpg" alt="HP 660LX running on battery power" /></a></p>
+<p><a href="https://blog.presidentbeef.com/images/blog/hp_660lx/hp660lx_running_on_new_batteries.jpg"><img src="https://blog.presidentbeef.com/images/blog/hp_660lx/hp660lx_running_on_new_batteries.jpg" alt="HP 660LX running on battery power" /></a></p>
 
 <p><strong>YES!</strong></p>
 
@@ -1444,7 +1444,7 @@ in order to have a chance at getting a wireless card to work.</p>
 <p>At this point, I had been transferring files to the 660LX via a compact flash card (which, at 8GB, probably blew the little machine&#8217;s <em>mind</em>).
 However, most software for Windows CE requires installation via ActiveSync.</p>
 
-<p><a href="http://presidentbeef.github.com/images/blog/hp_660lx/kingston_cf_8gb_card.jpg"><img src="http://presidentbeef.github.com/images/blog/hp_660lx/kingston_cf_8gb_card.jpg" alt="Kingston CompactFlash card" /></a></p>
+<p><a href="https://blog.presidentbeef.com/images/blog/hp_660lx/kingston_cf_8gb_card.jpg"><img src="https://blog.presidentbeef.com/images/blog/hp_660lx/kingston_cf_8gb_card.jpg" alt="Kingston CompactFlash card" /></a></p>
 
 <p>What is ActiveSync? Well, originally these &#8220;pocket computers&#8221; weren&#8217;t meant to be tiny laptops.
 They were more like little helpers you use while you are away from your main machine, then you sync up
@@ -1473,15 +1473,15 @@ None of my machines had an infrared port, either.</p>
 <p>After first buying the wrong cable on Amazon, I got an RS-232 to USB adapter and a tiny, tiny CD with drivers.
 Luckily, the laptop has a CD drive, so I was able to actually install the proper drivers.</p>
 
-<p><a href="http://presidentbeef.github.com/images/blog/hp_660lx/usb_to_serial_cable.jpg"><img src="http://presidentbeef.github.com/images/blog/hp_660lx/usb_to_serial_cable.jpg" alt="USB to serial cable" /></a></p>
+<p><a href="https://blog.presidentbeef.com/images/blog/hp_660lx/usb_to_serial_cable.jpg"><img src="https://blog.presidentbeef.com/images/blog/hp_660lx/usb_to_serial_cable.jpg" alt="USB to serial cable" /></a></p>
 
 <p>After an uncomfortable amount of configuration twiddling&#8230; they connected!!</p>
 
-<p><a href="http://presidentbeef.github.com/images/blog/hp_660lx/active_sync_connected.jpg"><img src="http://presidentbeef.github.com/images/blog/hp_660lx/active_sync_connected.jpg" alt="ActiveSync is connected" /></a></p>
+<p><a href="https://blog.presidentbeef.com/images/blog/hp_660lx/active_sync_connected.jpg"><img src="https://blog.presidentbeef.com/images/blog/hp_660lx/active_sync_connected.jpg" alt="ActiveSync is connected" /></a></p>
 
 <p>I was then able to install Windows CE 2.0 SP1 and the CE Network Service Pack.</p>
 
-<p><a href="http://presidentbeef.github.com/images/blog/hp_660lx/install_ce_sp1.jpg"><img src="http://presidentbeef.github.com/images/blog/hp_660lx/install_ce_sp1.jpg" alt="Installing Windows CE SP1" /></a></p>
+<p><a href="https://blog.presidentbeef.com/images/blog/hp_660lx/install_ce_sp1.jpg"><img src="https://blog.presidentbeef.com/images/blog/hp_660lx/install_ce_sp1.jpg" alt="Installing Windows CE SP1" /></a></p>
 
 <h3>Networking</h3>
 
@@ -1503,14 +1503,14 @@ I found <a href="https://www.youngzsoft.net/ccproxy/windows-proxy-server.htm">CC
 
 <p>Configured the proxy for &#8220;The Internet&#8221; on the 660LX and&#8230;</p>
 
-<p><a href="http://presidentbeef.github.com/images/blog/hp_660lx/hp660lx_accessing_google.jpg"><img src="http://presidentbeef.github.com/images/blog/hp_660lx/hp660lx_accessing_google.jpg" alt="Accessing Google via Pocket Explorer" /></a></p>
+<p><a href="https://blog.presidentbeef.com/images/blog/hp_660lx/hp660lx_accessing_google.jpg"><img src="https://blog.presidentbeef.com/images/blog/hp_660lx/hp660lx_accessing_google.jpg" alt="Accessing Google via Pocket Explorer" /></a></p>
 
 <p>Wow! The Internet!</p>
 
 <p>Sadly&#8230; or not so sadly&#8230; the world has moved to HTTPS and to stronger protocols than what
 lowly Pocket Explorer supports. Thus, most of the web is entirely inaccessible on the device.</p>
 
-<p><a href="http://presidentbeef.github.com/images/blog/hp_660lx/hp660lx_failure_to_access_github.jpg"><img src="http://presidentbeef.github.com/images/blog/hp_660lx/hp660lx_failure_to_access_github.jpg" alt="Failure to access sites over HTTPS" /></a></p>
+<p><a href="https://blog.presidentbeef.com/images/blog/hp_660lx/hp660lx_failure_to_access_github.jpg"><img src="https://blog.presidentbeef.com/images/blog/hp_660lx/hp660lx_failure_to_access_github.jpg" alt="Failure to access sites over HTTPS" /></a></p>
 
 <p>As a result, when the eBay seller canceled my order for the wireless adapter, I figured &#8220;meh&#8221;.
 Even if you can get WiFi working (which would likely require connecting to a totally unsecured network),
@@ -1521,7 +1521,7 @@ that up on Windows XP.</p>
 
 <h3>Wrapping Up</h3>
 
-<p><a href="http://presidentbeef.github.com/images/blog/hp_660lx/the_whole_setup.jpg"><img src="http://presidentbeef.github.com/images/blog/hp_660lx/the_whole_setup.jpg" alt="The whole setup" /></a></p>
+<p><a href="https://blog.presidentbeef.com/images/blog/hp_660lx/the_whole_setup.jpg"><img src="https://blog.presidentbeef.com/images/blog/hp_660lx/the_whole_setup.jpg" alt="The whole setup" /></a></p>
 
 <p>This turned into more of a narrative than a how-to guide.
 Maybe I&#8217;ll do another write-up with the details.
@@ -1531,9 +1531,9 @@ In the meantime, I can try to answer questions about specifics.</p>
   
   <entry>
     <title type="html"><![CDATA[Finding Ruby Performance Hotspots via Allocation Stats]]></title>
-    <link href="http://presidentbeef.github.com/blog/2018/11/28/finding-ruby-performance-hotspots-via-allocation-stats/"/>
+    <link href="https://blog.presidentbeef.com/blog/2018/11/28/finding-ruby-performance-hotspots-via-allocation-stats/"/>
     <updated>2018-11-28T11:45:00-08:00</updated>
-    <id>http://presidentbeef.github.com/blog/2018/11/28/finding-ruby-performance-hotspots-via-allocation-stats</id>
+    <id>https://blog.presidentbeef.com/blog/2018/11/28/finding-ruby-performance-hotspots-via-allocation-stats</id>
     <content type="html"><![CDATA[<p><a href="https://github.com/seattlerb/ruby_parser/">RubyParser</a> is a library written by <a href="http://www.zenspider.com/">Ryan Davis</a> for parsing Ruby code and producing an abstract syntax tree. It is used by <a href="https://brakemanscanner.org/">Brakeman</a> and several other static analysis gems.</p>
 
 <p>Recently I was poking around to see if there was any low-hanging fruit for performance improvements.
@@ -1753,9 +1753,9 @@ This means we can wrap all that code in a condition, like this:</p>
   
   <entry>
     <title type="html"><![CDATA[Price Transparency with Brakeman Pro]]></title>
-    <link href="http://presidentbeef.github.com/blog/2017/12/21/price-transparency-with-brakeman-pro/"/>
+    <link href="https://blog.presidentbeef.com/blog/2017/12/21/price-transparency-with-brakeman-pro/"/>
     <updated>2017-12-21T19:39:00-08:00</updated>
-    <id>http://presidentbeef.github.com/blog/2017/12/21/price-transparency-with-brakeman-pro</id>
+    <id>https://blog.presidentbeef.com/blog/2017/12/21/price-transparency-with-brakeman-pro</id>
     <content type="html"><![CDATA[<p>Pricing in the static analysis security tool (SAST) world is difficult. Do you charge per project? Per repository? Per line of code? Per language? Per user? What defines a &#8220;user&#8221;?
 None of these approaches are very satisfying, because no single approach will cover all types of customers.</p>
 
@@ -1781,9 +1781,9 @@ None of these approaches are very satisfying, because no single approach will co
   
   <entry>
     <title type="html"><![CDATA[Challenges When Building Commercial Versions of Open Source]]></title>
-    <link href="http://presidentbeef.github.com/blog/2017/03/08/challenges-when-building-commercial-versions-of-oss/"/>
+    <link href="https://blog.presidentbeef.com/blog/2017/03/08/challenges-when-building-commercial-versions-of-oss/"/>
     <updated>2017-03-08T21:53:00-08:00</updated>
-    <id>http://presidentbeef.github.com/blog/2017/03/08/challenges-when-building-commercial-versions-of-oss</id>
+    <id>https://blog.presidentbeef.com/blog/2017/03/08/challenges-when-building-commercial-versions-of-oss</id>
     <content type="html"><![CDATA[<p>It has been roughly three years since the ball began rolling on <a href="https://brakemanpro.com/">Brakeman Pro</a> (the commercial version of the <a href="http://brakemanscanner.org/">Brakeman</a> security tool for Ruby on Rails), and it has been a little over a year since Brakeman Pro actually <a href="https://brakemanpro.com/blog/announcement/2015/11/18/brakeman-pro-is-available">went on sale</a>. I have learned a ton in that time (and I am still having lessons beaten into me). There have been a ton of challenges going from an OSS project that was never meant to be a paid product to one people are actually buying. Here are just a couple I have much time thinking about:</p>
 
 <h2>The &#8220;Free&#8221; Version</h2>
@@ -1838,9 +1838,9 @@ None of these approaches are very satisfying, because no single approach will co
   
   <entry>
     <title type="html"><![CDATA[Bundling Dependencies inside Ruby Gems]]></title>
-    <link href="http://presidentbeef.github.com/blog/2016/08/09/bundling-gem-dependencies-inside-ruby-gems/"/>
+    <link href="https://blog.presidentbeef.com/blog/2016/08/09/bundling-gem-dependencies-inside-ruby-gems/"/>
     <updated>2016-08-09T08:53:00-07:00</updated>
-    <id>http://presidentbeef.github.com/blog/2016/08/09/bundling-gem-dependencies-inside-ruby-gems</id>
+    <id>https://blog.presidentbeef.com/blog/2016/08/09/bundling-gem-dependencies-inside-ruby-gems</id>
     <content type="html"><![CDATA[<h3>Backstory</h3>
 
 <p>I recently decided to distribute the <a href="http://brakemanscanner.org/">Brakeman</a> gem with all its dependencies included.
@@ -1955,9 +1955,9 @@ system "BM_PACKAGE=true gem build brakeman.gemspec"
   
   <entry>
     <title type="html"><![CDATA[Automatically Lock Old Closed GitHub Issues]]></title>
-    <link href="http://presidentbeef.github.com/blog/2016/06/12/automatically-lock-old-closed-github-issues/"/>
+    <link href="https://blog.presidentbeef.com/blog/2016/06/12/automatically-lock-old-closed-github-issues/"/>
     <updated>2016-06-12T22:27:00-07:00</updated>
-    <id>http://presidentbeef.github.com/blog/2016/06/12/automatically-lock-old-closed-github-issues</id>
+    <id>https://blog.presidentbeef.com/blog/2016/06/12/automatically-lock-old-closed-github-issues</id>
     <content type="html"><![CDATA[<p>I am not sure this is a problem everyone has, but I grew tired of people commenting on old, resolved GitHub issues.
 Almost every time someone would comment &#8220;I have this problem, too&#8221; it would actually be a different issue. Then I&#8217;d
 go through the routine of asking them to open a new issue with details about their specific problem.
@@ -1992,9 +1992,9 @@ Perhaps it will be useful to you!</p>
   
   <entry>
     <title type="html"><![CDATA[Simple Readers-Writer Lock Gem]]></title>
-    <link href="http://presidentbeef.github.com/blog/2014/02/28/simple-readers-writer-lock-gem/"/>
+    <link href="https://blog.presidentbeef.com/blog/2014/02/28/simple-readers-writer-lock-gem/"/>
     <updated>2014-02-28T08:53:00-08:00</updated>
-    <id>http://presidentbeef.github.com/blog/2014/02/28/simple-readers-writer-lock-gem</id>
+    <id>https://blog.presidentbeef.com/blog/2014/02/28/simple-readers-writer-lock-gem</id>
     <content type="html"><![CDATA[<p>A <a href="http://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock">readers-writer lock</a> can be used to allow many concurrent read-only operations on a resource but ensure exclusive access for modifying operations performed by &#8220;writers&#8221;. For my purposes, I needed a readers-writer lock at the thread level, basically to control access to a shared array. In my scenario, the array is accessed through a server which may server many clients at once. Some requests will be to read elements from the array, while other requests might be adding elements to the array. There is no reason to restrict reads to one client at a time, but elements need to be added while no other client is reading or writing to the array.</p>
 
 <p><a href="https://github.com/presidentbeef/rwlock">My implementation</a> is very simple (the entire <code>RWLock</code> class is 25 lines of code) because it relies on Ruby&#8217;s <a href="http://rdoc.info/stdlib/thread/SizedQueue">SizedQueue</a> class. <code>SizedQueue</code> provides a thread-safe queue with a maximum size. If a thread attempts to add elements to a queue that is full, it will be blocked until an element is removed from the queue to make room. This is a key piece of funtionality used for the readers-writer lock implementation.</p>
@@ -2103,9 +2103,9 @@ Perhaps it will be useful to you!</p>
   
   <entry>
     <title type="html"><![CDATA[Testing Brakeman Against 253 Rails Apps]]></title>
-    <link href="http://presidentbeef.github.com/blog/2013/11/01/testing-brakeman/"/>
+    <link href="https://blog.presidentbeef.com/blog/2013/11/01/testing-brakeman/"/>
     <updated>2013-11-01T07:54:00-07:00</updated>
-    <id>http://presidentbeef.github.com/blog/2013/11/01/testing-brakeman</id>
+    <id>https://blog.presidentbeef.com/blog/2013/11/01/testing-brakeman</id>
     <content type="html"><![CDATA[<p>Here is some information about how <a href="http://brakemanscanner.org/">Brakeman</a> is tested!</p>
 
 <h3>Basic Testing and Continuous Integration</h3>
@@ -2149,7 +2149,7 @@ Perhaps it will be useful to you!</p>
 
 <p>A small <a href="http://www.sinatrarb.com/">Sinatra</a> app serves up some basic graphs and allows two commits to be compared:</p>
 
-<p><img src="http://presidentbeef.github.com/images/blog/brakeman-graphs.png" title="Ugly, I know" alt="Brakeman Graphs" /></p>
+<p><img src="https://blog.presidentbeef.com/images/blog/brakeman-graphs.png" title="Ugly, I know" alt="Brakeman Graphs" /></p>
 
 <p>This &#8220;system&#8221; is not open source at the moment, but probably will be in the future when I&#8217;ve removed hard-coded stuff.</p>
 
@@ -2468,9 +2468,9 @@ Perhaps it will be useful to you!</p>
   
   <entry>
     <title type="html"><![CDATA[Fast Compact Sparse Bit Sets]]></title>
-    <link href="http://presidentbeef.github.com/blog/2013/09/02/fast-compact-sparse-bitsets/"/>
+    <link href="https://blog.presidentbeef.com/blog/2013/09/02/fast-compact-sparse-bitsets/"/>
     <updated>2013-09-02T14:49:00-07:00</updated>
-    <id>http://presidentbeef.github.com/blog/2013/09/02/fast-compact-sparse-bitsets</id>
+    <id>https://blog.presidentbeef.com/blog/2013/09/02/fast-compact-sparse-bitsets</id>
     <content type="html"><![CDATA[<p>Imagine you need a relatively compact data structure for quickly checking membership of mostly-consecutive non-negative integers. (If this sounds really specific, it is because it is precisely what I needed for a particular project.)</p>
 
 <p>The Ruby standard library contains a <a href="http://rdoc.info/stdlib/set/1.9.3/Set">Set</a> class which may be a good starting point. Set is actually implemented as a Hash with the Set elements as keys and <code>true</code> as the values. Thus the overhead for storing a value in the Set is essentially only the value itself since all keys point to the same <code>true</code> object. Assuming a 64-bit machine, the overhead will be 64 bits per value. This seems reasonable, but given the specific limitations of the values we wish to store, perhaps we can do better?</p>
@@ -2490,13 +2490,13 @@ Perhaps it will be useful to you!</p>
 
 <p>For example, to check if the value 4 is in the set, we use the mask <code>00010000</code> (the 5th bit from the right is set to 1) which is the decimal value <code>8</code>:</p>
 
-<p><img src="http://presidentbeef.github.com/images/blog/bitset-example1.png" alt="Bit Set Checking Example 1" /></p>
+<p><img src="https://blog.presidentbeef.com/images/blog/bitset-example1.png" alt="Bit Set Checking Example 1" /></p>
 
 <p>Since the result is zero, we know the value 4 is not in the set.</p>
 
 <p>If we check for the value <code>6</code>, the result is not zero, indicating the value is a member of the set:</p>
 
-<p><img src="http://presidentbeef.github.com/images/blog/bitset-example2.png" alt="Bit Set Checking Example 2" /></p>
+<p><img src="https://blog.presidentbeef.com/images/blog/bitset-example2.png" alt="Bit Set Checking Example 2" /></p>
 
 <p>Now, instead of 64 bits per value, it only requires a single bit! Now we just need to put a lot of bits together, either by using a long string or a bunch of integers in an array.</p>
 
@@ -2508,7 +2508,7 @@ Perhaps it will be useful to you!</p>
 
 <p>Below is an example of a hash table using integer keys and 8 bit integers for the bit sets:</p>
 
-<p><img src="http://presidentbeef.github.com/images/blog/sparse-bitset-example.png" alt="Sparse Bit Set Example" /></p>
+<p><img src="https://blog.presidentbeef.com/images/blog/sparse-bitset-example.png" alt="Sparse Bit Set Example" /></p>
 
 <p>The average overhead is <code>⌊(m * n) / w⌋ + m</code> bits, where <em>m</em> is the number of values (assumed to be consecutive), <em>w</em> is the number of bits per bit set, and <em>n</em> is the number of bits per key. In 64-bit Ruby, if we use integers for the bit sets, <em>n</em> = 64 and <em>w</em> = 62<a href="#footnote">*</a>. This works out to an average of 2 bits per value in the set. Of course, a single value incurs the overhead of both the key and the bit set: 128 bits! But if there are many consecutive values, the cost per value begins to shrink. For example, the numbers 0 to 61 can be stored in a single bit set, so 62 values can be stored in the 128 bits and we are back to about 2 bits per value.</p>
 
@@ -2627,9 +2627,9 @@ Perhaps it will be useful to you!</p>
   
   <entry>
     <title type="html"><![CDATA[Avoiding SQL Injection in Rails]]></title>
-    <link href="http://presidentbeef.github.com/blog/2013/02/08/avoid-sql-injection-in-rails/"/>
+    <link href="https://blog.presidentbeef.com/blog/2013/02/08/avoid-sql-injection-in-rails/"/>
     <updated>2013-02-08T09:45:00-08:00</updated>
-    <id>http://presidentbeef.github.com/blog/2013/02/08/avoid-sql-injection-in-rails</id>
+    <id>https://blog.presidentbeef.com/blog/2013/02/08/avoid-sql-injection-in-rails</id>
     <content type="html"><![CDATA[<p>SQL injection (SQLi) is any situation in which a user can manipulate a database query in an unintended manner. Consequences of SQL injection vulnerabilites range from data leaks, to authentication bypass, to root access on a database server. In short, it is a very big deal.</p>
 
 <p>Most Rails applications interact with a database through ActiveRecord, the default and convenient Object Relational Mapping (ORM) layer which comes with Rails.
@@ -2677,7 +2677,7 @@ results = DB.execute(query)
 
 <p>To make it easier on myself, I built the list into a Rails application so I could easily test, verify, and record any findings. The source is <a href="https://github.com/presidentbeef/inject-some-sql">available here</a> for those who would like try out the examples. The application is a single page of all the queries and example injections. From there one can submit queries and see the results:</p>
 
-<p><img src="http://presidentbeef.github.com/images/blog/inject-some-sql.png" alt="Query Example" /></p>
+<p><img src="https://blog.presidentbeef.com/images/blog/inject-some-sql.png" alt="Query Example" /></p>
 
 <p>The resulting information is available at <a href="http://rails-sqli.org">rails-sqli.org</a>, including examples of how SQL injection can occur and the resulting queries. This is basically a big list of what <em>not</em> to do when using ActiveRecord. Again, please feel free to <a href="https://github.com/presidentbeef/inject-some-sql">contribute</a> so that the list can be as authoritative as possible and help everyone avoid SQL injection in Rails.</p>
 ]]></content>
@@ -2685,9 +2685,9 @@ results = DB.execute(query)
   
   <entry>
     <title type="html"><![CDATA[Faster Call Indexing in Brakeman]]></title>
-    <link href="http://presidentbeef.github.com/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3/"/>
+    <link href="https://blog.presidentbeef.com/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3/"/>
     <updated>2012-11-28T11:49:00-08:00</updated>
-    <id>http://presidentbeef.github.com/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3</id>
+    <id>https://blog.presidentbeef.com/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3</id>
     <content type="html"><![CDATA[<h2>Background</h2>
 
 <p>About a month ago, an <a href="https://github.com/presidentbeef/brakeman/issues/171">issue</a> was reported where <a href="http://brakemanscanner.org">Brakeman</a> taking a ridiculously long time on the &#8220;call indexing&#8221; step. At the time, I was pessimistic about opportunities to improve the performance of call indexing, since it is a pretty simple operation.</p>
@@ -2704,11 +2704,11 @@ results = DB.execute(query)
 
 <p>This is the result:</p>
 
-<p><a href="http://presidentbeef.github.com/images/blog/brakeman-scan-1.8.2.pdf"><img src="http://presidentbeef.github.com/images/blog/brakeman-scan-1.8.2.png" alt="Brakeman 1.8.2 scan" /></a></p>
+<p><a href="https://blog.presidentbeef.com/images/blog/brakeman-scan-1.8.2.pdf"><img src="https://blog.presidentbeef.com/images/blog/brakeman-scan-1.8.2.png" alt="Brakeman 1.8.2 scan" /></a></p>
 
 <p>The large amount of time spent in the garbage collector (60%) was high even for Brakeman. But then something else caught my eye:</p>
 
-<p><img src="http://presidentbeef.github.com/images/blog/call-indexing-1.8.2.png" alt="Call indexing in 1.8.2" /></p>
+<p><img src="https://blog.presidentbeef.com/images/blog/call-indexing-1.8.2.png" alt="Call indexing in 1.8.2" /></p>
 
 <p>This scan spent 4.7% of its time converting <code>Sexp</code>s to strings while indexing calls. This seemed excessive.</p>
 
@@ -2743,7 +2743,7 @@ results = DB.execute(query)
 
 <p>Scanning the same application with Brakeman 1.8.3 has this result:</p>
 
-<p><a href="http://presidentbeef.github.com/images/blog/brakeman-scan-1.8.3.pdf"><img src="http://presidentbeef.github.com/images/blog/brakeman-scan-1.8.3.png" alt="Brakeman 1.8.3 scan" /></a></p>
+<p><a href="https://blog.presidentbeef.com/images/blog/brakeman-scan-1.8.3.pdf"><img src="https://blog.presidentbeef.com/images/blog/brakeman-scan-1.8.3.png" alt="Brakeman 1.8.3 scan" /></a></p>
 
 <p>Garbage collection time dropped from 60% to 42%. While still very high, this is a good sign. Time spent indexing calls has dropped from 5.4% to 1.8% and the calls to <code>Sexp#to_s</code> have vanished.</p>
 
@@ -2755,7 +2755,7 @@ results = DB.execute(query)
 
 <p>Going even further, nowhere does Brakeman search for targets by any values other than symbols. Note in the graph below that <code>Array#eql?</code> was sampled 1,330 times during call indexing:</p>
 
-<p><img src="http://presidentbeef.github.com/images/blog/call-indexing-hashing-sexp.png" alt="Call indexing hashing" /></p>
+<p><img src="https://blog.presidentbeef.com/images/blog/call-indexing-hashing-sexp.png" alt="Call indexing hashing" /></p>
 
 <p>Since <code>Sexp</code>s are subclassed from <code>Array</code>, it is clear that these calls are generated when using the <code>call[:target]</code> as a hash key (line 6 above). Again, the current Brakeman code only searches for call targets by symbol, never by a full <code>Sexp</code>. There is no reason to the call targets that are <code>Sexp</code>s.</p>
 

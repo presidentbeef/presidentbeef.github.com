@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: brakeman | Justin Collins' Blugh]]></title>
-  <link href="http://presidentbeef.github.com/blog/categories/brakeman/atom.xml" rel="self"/>
-  <link href="http://presidentbeef.github.com/"/>
-  <updated>2022-01-05T11:23:30-08:00</updated>
-  <id>http://presidentbeef.github.com/</id>
+  <link href="https://blog.presidentbeef.com/blog/categories/brakeman/atom.xml" rel="self"/>
+  <link href="https://blog.presidentbeef.com/"/>
+  <updated>2022-01-05T13:25:02-08:00</updated>
+  <id>https://blog.presidentbeef.com/</id>
   <author>
     <name><![CDATA[Justin Collins]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Challenges When Building Commercial Versions of Open Source]]></title>
-    <link href="http://presidentbeef.github.com/blog/2017/03/08/challenges-when-building-commercial-versions-of-oss/"/>
+    <link href="https://blog.presidentbeef.com/blog/2017/03/08/challenges-when-building-commercial-versions-of-oss/"/>
     <updated>2017-03-08T21:53:00-08:00</updated>
-    <id>http://presidentbeef.github.com/blog/2017/03/08/challenges-when-building-commercial-versions-of-oss</id>
+    <id>https://blog.presidentbeef.com/blog/2017/03/08/challenges-when-building-commercial-versions-of-oss</id>
     <content type="html"><![CDATA[<p>It has been roughly three years since the ball began rolling on <a href="https://brakemanpro.com/">Brakeman Pro</a> (the commercial version of the <a href="http://brakemanscanner.org/">Brakeman</a> security tool for Ruby on Rails), and it has been a little over a year since Brakeman Pro actually <a href="https://brakemanpro.com/blog/announcement/2015/11/18/brakeman-pro-is-available">went on sale</a>. I have learned a ton in that time (and I am still having lessons beaten into me). There have been a ton of challenges going from an OSS project that was never meant to be a paid product to one people are actually buying. Here are just a couple I have much time thinking about:</p>
 
 <h2>The "Free" Version</h2>
