@@ -9,7 +9,7 @@
   <meta name="author" content="Justin Collins">
 
   
-  <meta name="description" content="A while ago, I came across a Brakeman false positive that I wanted to fix. For just one false positive, it became a bit of an epic journey. The code &hellip;">
+  <meta name="description" content="DragonRuby Game Toolkit (DRGTK) is a 2D game engine built with mRuby, SDL, and LLVM. It&#8217;s meant to be tiny, fast, and allow you to turn out &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -33,7 +33,7 @@
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:site" content="@presidentbeef" />
 <meta name="twitter:title" content="Justin Collins' Blugh" />
-<meta name="description" content="A while ago, I came across a Brakeman false positive that I wanted to fix. For just one false positive, it became a bit of an epic journey. The code &hellip;">
+<meta name="description" content="DragonRuby Game Toolkit (DRGTK) is a 2D game engine built with mRuby, SDL, and LLVM. It&#8217;s meant to be tiny, fast, and allow you to turn out &hellip;">
 
   
   <script type="text/javascript">
@@ -73,6 +73,348 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2022/01/05/api-levels-in-dragonruby-game-toolkit/">API Levels in DragonRuby Game Toolkit</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2022-01-05T11:00:00-08:00" pubdate data-updated="true">Jan 5<span>th</span>, 2022</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="https://dragonruby.org/toolkit/game">DragonRuby Game Toolkit (DRGTK)</a> is a 2D game engine built with <a href="https://mruby.org/">mRuby</a>, <a href="https://www.libsdl.org/">SDL</a>, and <a href="https://llvm.org/">LLVM</a>. It&#8217;s meant to be tiny, fast, and allow you to turn out games quickly using <a href="https://www.ruby-lang.org/">Ruby</a>.</p>
+
+<p>Unfortunately, since the documentation is focused on making games <em>quickly</em>, I sometimes get lost when trying to figure out how to do things that should be simple. DragonRuby seems to have borrowed Perl&#8217;s &#8221;<a href="https://en.wikipedia.org/wiki/There%27s_more_than_one_way_to_do_it">There&#8217;s more than one way to do it</a>&#8221; philosophy because for anything you want to do with the API there are <em>several</em> ways to do it.</p>
+
+<p>The documentation and examples tend to focus on the simplest forms (which is fine) but then require digging and experimentation to figure out the rest.</p>
+
+<p>To help explain/document the different API options, this post will go through different methods of rendering images (well, rectangles mostly).</p>
+
+<h2>API Levels</h2>
+
+<h3>Level 0 - Getting Started</h3>
+
+<p>The main object one interacts with in DragonRuby is canonically called <code>args</code> (always accessible with <code>$gtk.args</code>&#8230; because there&#8217;s more than one way!)</p>
+
+<p>To output <em>things</em>, like shapes, sprites, or sounds, you can use the &#8220;shovel&#8221; operator <code>&lt;&lt;</code> on <code>args.outputs</code> - like <code>args.outputs.sprites</code> or <code>args.outputs.sounds</code>.</p>
+
+<p>For these &#8220;basic&#8221; objects, you&#8217;ll need to shovel <em>things</em> in on every &#8220;tick&#8221; of the game engine.</p>
+
+<p>This is a complete DragonRuby example to output a rectangle:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">solids</span> <span class="o">&lt;&lt;</span> <span class="o">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">400</span><span class="o">]</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So far, so good.</p>
+
+<p>(You can assume the rest of the examples below are inside a <code>tick</code> method if it&#8217;s not explicitly defined.)</p>
+
+<h3>Level 1 - Arrays</h3>
+
+<p>The documentation usually starts off by passing <em>things</em> to <code>args.outputs</code> as arrays - essentially positional arguments.</p>
+
+<p>For example:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">solids</span> <span class="o">&lt;&lt;</span> <span class="o">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">400</span><span class="o">]</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What does that do? I&#8217;m not quite sure!</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/p9aobr3f41cbih3kpa95.png" alt="A black rectangle on a gray background" /></p>
+
+<p>Okay - it shows a black rectangle on the screen. Not that exciting, but useful enough for our examples.</p>
+
+<p>The problem with using arrays though is remembering which index in the array is which attribute. On top of that, it&#8217;s not even recommended to pass in arrays because they are slow (for some reason).</p>
+
+<h3>Level 2 - Hashes</h3>
+
+<p>What is better than arrays? Hashes! (Hash tables/associative arrays for anyone not familiar with Ruby.)</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">solids</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+</span><span class='line'>  <span class="ss">x</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">y</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">w</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>  <span class="c1"># width</span>
+</span><span class='line'>  <span class="ss">h</span><span class="p">:</span> <span class="mi">400</span>   <span class="c1"># height</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Okay, that&#8217;s way easier to understand!</p>
+
+<p>And there are more options, too:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">solids</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+</span><span class='line'>  <span class="ss">x</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">y</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">w</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">h</span><span class="p">:</span> <span class="mi">400</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">r</span><span class="p">:</span> <span class="mi">255</span><span class="p">,</span>  <span class="c1"># red</span>
+</span><span class='line'>  <span class="ss">g</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>  <span class="c1"># green</span>
+</span><span class='line'>  <span class="ss">b</span><span class="p">:</span> <span class="mi">255</span><span class="p">,</span>  <span class="c1"># blue</span>
+</span><span class='line'>  <span class="ss">a</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>  <span class="c1"># alpha</span>
+</span><span class='line'>  <span class="ss">blendmode_enum</span><span class="p">:</span> <span class="mi">0</span>  <span class="c1"># blend mode</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Level 3 - Primitives</h3>
+
+<p>But there is yet another way&#8230; instead of using <code>args.outputs.solids</code>, <code>args.outputs.labels</code>, <code>args.outputs.sprites</code>, etc., we can output a hash to <code>args.outputs.primitives</code> but mark it as the right primitive &#8220;type&#8221;:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">primitives</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+</span><span class='line'>  <span class="ss">x</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">y</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">w</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">h</span><span class="p">:</span> <span class="mi">400</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">r</span><span class="p">:</span> <span class="mi">255</span><span class="p">,</span>  <span class="c1"># red</span>
+</span><span class='line'>  <span class="ss">g</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>  <span class="c1"># green</span>
+</span><span class='line'>  <span class="ss">b</span><span class="p">:</span> <span class="mi">255</span><span class="p">,</span>  <span class="c1"># blue</span>
+</span><span class='line'>  <span class="ss">a</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>  <span class="c1"># alpha</span>
+</span><span class='line'>  <span class="ss">blendmode_enum</span><span class="p">:</span> <span class="mi">0</span>  <span class="c1"># blend mode</span>
+</span><span class='line'><span class="p">}</span><span class="o">.</span><span class="n">solid!</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Weird, but okay. Why might one want to do this? See the &#8220;Layers&#8221; section down below!</p>
+
+<h3>Level 4 - Classes</h3>
+
+<p>Finally, probably the most natural for a Rubyist: just use a class!</p>
+
+<p>To do this, you <em>must</em> define all the methods expected for the type of primitive, plus define a method called <code>primitive_marker</code> that returns the type of primitive.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">ACoolSolid</span>
+</span><span class='line'>  <span class="kp">attr_reader</span> <span class="ss">:x</span><span class="p">,</span> <span class="ss">:y</span><span class="p">,</span> <span class="ss">:w</span><span class="p">,</span> <span class="ss">:h</span><span class="p">,</span> <span class="ss">:r</span><span class="p">,</span> <span class="ss">:g</span><span class="p">,</span> <span class="ss">:b</span><span class="p">,</span> <span class="ss">:a</span><span class="p">,</span> <span class="ss">:blendmode_enum</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span>
+</span><span class='line'>    <span class="vi">@x</span> <span class="o">=</span> <span class="n">x</span>
+</span><span class='line'>    <span class="vi">@y</span> <span class="o">=</span> <span class="n">y</span>
+</span><span class='line'>    <span class="vi">@w</span> <span class="o">=</span> <span class="n">w</span>
+</span><span class='line'>    <span class="vi">@h</span> <span class="o">=</span> <span class="n">h</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">primitive_marker</span>
+</span><span class='line'>    <span class="ss">:solid</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">primitives</span> <span class="o">&lt;&lt;</span> <span class="no">ACoolSolid</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Instead of defining a bunch of methods with <code>attr_reader</code>, you can use <code>attr_sprite</code> instead which is a DragonRuby shortcut method to do the same thing.</p>
+
+<h2>Layers</h2>
+
+<p>DragonRuby renders outputs in this order (from back to front):</p>
+
+<ul>
+<li>Solids</li>
+<li>Sprites</li>
+<li>Primitives</li>
+<li>Labels</li>
+<li>Lines</li>
+<li>Borders</li>
+</ul>
+
+
+<p>For each &#8220;layer&#8221; the objects are rendered in FIFO order - the first things in the queue are rendered first.</p>
+
+<p>But wait&#8230; one of these things is not like the others. Doesn&#8217;t <code>primitives</code> just hold things like solids, sprites, labels&#8230;?</p>
+
+<p>Yes!</p>
+
+<p>But using <code>primitives</code> enables better control over render order.</p>
+
+<p>For example, what if we want to render a rectangle on top of a sprite? With the fixed rendering order above, it&#8217;s impossible! But by using <code>args.outputs.primitives</code> we can do it:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+</span><span class='line'>  <span class="n">a_solid</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>    <span class="ss">x</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">y</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">w</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">h</span><span class="p">:</span> <span class="mi">400</span>
+</span><span class='line'>  <span class="p">}</span><span class="o">.</span><span class="n">solid!</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">a_sprite</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>    <span class="ss">x</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">y</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">w</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">h</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">path</span><span class="p">:</span> <span class="s1">&#39;metadata/icon.png&#39;</span>
+</span><span class='line'>  <span class="p">}</span><span class="o">.</span><span class="n">sprite!</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">primitives</span> <span class="o">&lt;&lt;</span> <span class="n">a_sprite</span> <span class="o">&lt;&lt;</span> <span class="n">a_solid</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And here&#8217;s the proof:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/z1596wyp7n71lwya3f2c.png" alt="Screenshot showing a black rectangle on top of the DragonRuby logo" /></p>
+
+<h2>Every Tick?</h2>
+
+<p><code>args.outputs.sprites</code>, etc. get cleared after each call to <code>tick</code>. So every tick we have to recreate all the objects and pass them in to <code>args.outputs</code>. Seems wasteful, right? Yes, it is!</p>
+
+<p>It&#8217;s somewhat odd that most DragonRuby examples show creating arrays or hashes for primitives each tick. It made me think somehow the rendering process was destructive - were the things added into <code>args.outputs</code> destroyed or modified in some way?</p>
+
+<p>Turns out, no. It is fine to create e.g. a sprite representation once and render the same object each time.</p>
+
+<p>Here we&#8217;ll use a global for demonstration purposes:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">ACoolSolid</span>
+</span><span class='line'>  <span class="kp">attr_reader</span> <span class="ss">:x</span><span class="p">,</span> <span class="ss">:y</span><span class="p">,</span> <span class="ss">:w</span><span class="p">,</span> <span class="ss">:h</span><span class="p">,</span> <span class="ss">:r</span><span class="p">,</span> <span class="ss">:g</span><span class="p">,</span> <span class="ss">:b</span><span class="p">,</span> <span class="ss">:a</span><span class="p">,</span> <span class="ss">:blendmode_enum</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span>
+</span><span class='line'>    <span class="vi">@x</span> <span class="o">=</span> <span class="n">x</span>
+</span><span class='line'>    <span class="vi">@y</span> <span class="o">=</span> <span class="n">y</span>
+</span><span class='line'>    <span class="vi">@w</span> <span class="o">=</span> <span class="n">w</span>
+</span><span class='line'>    <span class="vi">@h</span> <span class="o">=</span> <span class="n">h</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">primitive_marker</span>
+</span><span class='line'>    <span class="ss">:solid</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="vg">$a_solid</span> <span class="o">=</span> <span class="no">ACoolSolid</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">primitives</span> <span class="o">&lt;&lt;</span> <span class="vg">$a_solid</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>But Wait&#8230;</h3>
+
+<p>We are still shoveling an object into <code>args.outputs.primitives</code> each time. Surely that is unnecessary?</p>
+
+<p>Correct! There are <a href="http://docs.dragonruby.org/#------static_solids-"><em>static</em> versions</a> for each <code>args.outputs</code> (e.g. <code>args.outputs.static_solids</code>) that do <em>not</em> get cleared every tick.</p>
+
+<p>Naturally, this is more efficient than creating objects and updating the outputs 60 times per second.</p>
+
+<p>We&#8217;ll explore these options in a future post, but be aware they are available!</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -1825,150 +2167,6 @@ None of these approaches are very satisfying, because no single approach will co
 
     </article>
   
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2016/08/09/bundling-gem-dependencies-inside-ruby-gems/">Bundling Dependencies Inside Ruby Gems</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2016-08-09T08:53:00-07:00" pubdate data-updated="true">Aug 9<span>th</span>, 2016</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>Backstory</h3>
-
-<p>I recently decided to distribute the <a href="http://brakemanscanner.org/">Brakeman</a> gem with all its dependencies included.
-This was the culmination of a lot of frustration with <a href="https://github.com/presidentbeef/brakeman/issues/659">Bundler</a>, <a href="https://github.com/presidentbeef/brakeman/issues/709">version conflicts</a>, <a href="https://github.com/presidentbeef/brakeman/issues/767#issuecomment-180964293">RubyGem bugs</a>, and trying to maintain compatibility with older versions of Ruby <a href="https://github.com/presidentbeef/brakeman/pull/602#issuecomment-69494355">while libraries did not</a>.</p>
-
-<p>Brakeman is most often used as an <em>application</em>, not a library. Yet most Rubyists are used to including <em>all</em> dependencies in a <code>Gemfile</code> for use with Bundler.
-Doing so causes Brakeman&#8217;s dependencies to be mixed in with users&#8217; application dependencies, which doesn&#8217;t make sense and causes a lot of anguish.</p>
-
-<p>I liken it to having to worry about whether or not your Rails application&#8217;s dependencies conflict with your browser&#8217;s. It shouldn&#8217;t matter.</p>
-
-<p>However, Bundler does not have a way to isolate dependencies for applications like Brakeman, and Bundler is the best way to manage dependencies so we are stuck with it.</p>
-
-<p>Since Brakeman is not normally loaded into users&#8217; applications (and I recommend against doing so), its dependencies are separate and should not really matter to the end user.
-To this end, I wanted to distribute Brakeman with all its dependencies already inside the gem.</p>
-
-<h3>Bundling Dependencies</h3>
-
-<p>Conveniently, Bundler already has a way to do this: <code>bundle install --standalone</code>.
-This generates a <code>bundle</code> directory with two subdirectories <code>bundler</code> and <code>ruby</code>.</p>
-
-<p>The <code>bundler</code> directory just has one file: <code>setup.rb</code>. This file adds the bundled gems to the load path. We&#8217;ll come back to this file later.</p>
-
-<p>The <code>ruby</code> directory has everything you need to run Bundler, along with all of the bundled gems and their executables.
-The path to the gems looks something like <code>ruby/2.3.0/gems/rake-10.1.1/</code>.
-Note this includes the Ruby version and the gem&#8217;s version.
-When <code>setup.rb</code> sets up the library paths, it chooses dynamically based on the running Ruby implementation and version (which is not what we want, see below).</p>
-
-<h3>Adding Dependencies</h3>
-
-<p>All the dependencies are now there in the <code>bundle/</code> directory, but it&#8217;s still assumed you will be using Bundler.
-I would prefer to just load the dependencies myself.</p>
-
-<p>To do so, the Brakeman build script removes the <code>bundle/bundler/setup.rb</code> file and generates its own <code>load.rb</code> using similar logic.
-However, it does not build paths dependent on the running Ruby version because we don&#8217;t know what the end user will be using.
-Instead, it just globs the paths as they are and loads those.</p>
-
-<p>In Brakeman itself, it loads <code>bundle/load.rb</code> <a href="https://github.com/presidentbeef/brakeman/blob/fb4f9de160fd97a2b72d5e01c16058718941ec3d/lib/brakeman.rb#L431-L439">lazily</a> if the file exists. I do not use it in normal testing or development.
-In general, all that is needed is to <code>require</code> the <code>load.rb</code> file inside your code somewhere.</p>
-
-<h3>Building the Gem</h3>
-
-<p>All that is left to do is add the bundled gems to the Brakeman gem itself.</p>
-
-<p>Note that Brakeman&#8217;s Gemfile relies on its gemspec, but the gemspec needs to rely on the bundled gems, leading to a circular dependency.</p>
-
-<p>This simple code is all that is required in the gemspec:</p>
-
-<pre><code>if File.exist? 'bundle/load.rb'
-  s.files += Dir['bundle/ruby/*/gems/**/*'] + ['bundle/load.rb']
-else
-  # add dependencies as normal
-end
-</code></pre>
-
-<h3>Pros</h3>
-
-<p>The main advantage of this approach is not polluting application dependencies!
-No more version conflicts! No more worries that weird Bundler or gem bugs will break users&#8217; installs.</p>
-
-<p>In theory it also makes it easier to distribute Brakeman as a standalone application, if someone were interested in that.</p>
-
-<h3>Cons</h3>
-
-<p>The main problem, of course, is that this hides the dependencies.
-If you add Brakeman as a dependency and then either load it programmatically or run it with Rake, you may get mysterious library conflicts.
-To avoid this, use the &#8221;<a href="https://rubygems.org/gems/brakeman-lib">brakeman-lib</a>&#8221; gem, which is the same as the main Brakeman gem but does not bundle dependencies.</p>
-
-<p>It also locks dependencies to a specific version such that updating dependencies requires a new release.
-This can be good (avoid breaking with new versions) but it can also be bad if a library has a bug or vulnerability.</p>
-
-<h3>Code</h3>
-
-<p>The script I use to build the main Brakeman gem is <a href="https://github.com/presidentbeef/brakeman/blob/fb4f9de160fd97a2b72d5e01c16058718941ec3d/build.rb">here</a>.</p>
-
-<p>Here&#8217;s the annotated version:</p>
-
-<pre><code>#!/usr/bin/env ruby
-puts 'Packaging Brakeman gem...'
-
-# Clean up any existing build artifacts
-system 'rm -rf bundle Gemfile.lock brakeman-*.gem' and
-
-# Generate gem bundle in ./bundle
-system 'BM_PACKAGE=true bundle install --standalone'
-
-abort "No bundle installed" unless Dir.exist? 'bundle'
-
-# Remove the setup.rb file we don't use
-File.delete "bundle/bundler/setup.rb"
-Dir.delete "bundle/bundler"
-
-# Generate new file to set load paths
-# Code below is a little confusing because it is generating code
-File.open "bundle/load.rb", "w" do |f|
-
-  # Set path at runtime
-  f.puts "path = File.expand_path('../..', __FILE__)"
-
-  # Add each gem's lib/ directory to the load path (again at runtime)
-  Dir["bundle/ruby/**/lib"].each do |dir|
-    f.puts %Q[$:.unshift "\#{path}/#{dir}"]
-  end
-end
-
-# Build the gem
-system "BM_PACKAGE=true gem build brakeman.gemspec"
-</code></pre>
-
-<p>When bundling gems and building the gem, the script sets the <code>BM_PACKAGE</code> variable so that development dependencies <a href="https://github.com/presidentbeef/brakeman/blob/fb4f9de160fd97a2b72d5e01c16058718941ec3d/brakeman.gemspec#L22">are not included</a> in the bundled gems.</p>
-</div>
-  
-  
-
-
-    </article>
-  
   <div class="pagination">
     
       <a class="prev" href="/blog/page/2/">&larr; Older</a>
@@ -1981,7 +2179,7 @@ system "BM_PACKAGE=true gem build brakeman.gemspec"
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2021 - Justin Collins -
+  Copyright &copy; 2022 - Justin Collins -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -
   <span class="credit">Theme by <a href="http://aron.cedercrantz.com/">Aron Cedercrantz</a></span>
 </p>
