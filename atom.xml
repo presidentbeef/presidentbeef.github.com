@@ -4,7 +4,7 @@
   <title><![CDATA[Justin Collins' Blugh]]></title>
   <link href="https://blog.presidentbeef.com/atom.xml" rel="self"/>
   <link href="https://blog.presidentbeef.com/"/>
-  <updated>2022-01-05T13:25:02-08:00</updated>
+  <updated>2022-01-15T21:20:59-08:00</updated>
   <id>https://blog.presidentbeef.com/</id>
   <author>
     <name><![CDATA[Justin Collins]]></name>
@@ -12,6 +12,700 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[DragonRuby: Object-Oriented Starter]]></title>
+    <link href="https://blog.presidentbeef.com/blog/2022/01/15/a-object-oriented-starter-for-dragonruby/"/>
+    <updated>2022-01-15T11:00:00-08:00</updated>
+    <id>https://blog.presidentbeef.com/blog/2022/01/15/a-object-oriented-starter-for-dragonruby</id>
+    <content type="html"><![CDATA[<p>I enjoy playing with the <a href="https://dragonruby.itch.io/dragonruby-gtk">DragonRuby Game Toolkit</a>, but the <a href="http://docs.dragonruby.org/">documentation</a> and many of the examples are very much intended for non-Rubyists. Additionally, as a game engine, it&#8217;s more data/functionally-oriented than most Rubyists are used to. For example, the main game loop in the <code>tick</code> method needs to be implemented as a top-level method.</p>
+
+<p>This post walks through structuring a game in a way that is a little more familiar to Rubyists.</p>
+
+<p><em>Caveat!</em> I am new to DragonRuby myself and this is not meant to be the &#8220;correct&#8221; or &#8220;best&#8221; or even &#8220;great&#8221; way to organize your code. It&#8217;s just a pattern I&#8217;ve started using and it might be useful for you!</p>
+
+<p>(By the way, while DragonRuby is a commercial product, you can often <a href="https://dragonruby.itch.io/dragonruby-gtk">grab a free copy</a>. Keep an eye out for sales!)</p>
+
+<h3>Starting Example</h3>
+
+<p>First, let&#8217;s start with some code that isn&#8217;t using any class definitions at all. Everything happens inside <code>tick</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>  <span class="c1"># Set up player object</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">player</span> <span class="o">||=</span> <span class="p">{</span>
+</span><span class='line'>    <span class="ss">x</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">w</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">y</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">h</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">w</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">h</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># Move player based on keyboard input</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">keyboard</span><span class="o">.</span><span class="n">left</span>
+</span><span class='line'>    <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">x</span> <span class="o">-=</span> <span class="mi">10</span>
+</span><span class='line'>  <span class="k">elsif</span> <span class="n">args</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">keyboard</span><span class="o">.</span><span class="n">right</span>
+</span><span class='line'>    <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">x</span> <span class="o">+=</span> <span class="mi">10</span>
+</span><span class='line'>  <span class="k">elsif</span> <span class="n">args</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">keyboard</span><span class="o">.</span><span class="n">down</span>
+</span><span class='line'>    <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">y</span> <span class="o">-=</span> <span class="mi">10</span>
+</span><span class='line'>  <span class="k">elsif</span> <span class="n">args</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">keyboard</span><span class="o">.</span><span class="n">up</span>
+</span><span class='line'>    <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">y</span> <span class="o">+=</span> <span class="mi">10</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># Render the &quot;player&quot; as a square to the screen</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">solids</span> <span class="o">&lt;&lt;</span> <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">player</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/79w79at48p6lh0zeo08r.gif" alt="DragonRuby Example - Moving a black square around" /></p>
+
+<p>As a reminder, DragonRuby automatically loads up code from a file called <code>mygame/app/main.rb</code> and then calls <code>tick</code> 60 times per second.</p>
+
+<p><code>args.state</code> is like an OpenStruct where you can add on whatever attributes you want and store whatever you would like. In this case, we add a hash that we name <code>player</code>.</p>
+
+<p>The code then checks for keyboard input and adjusts the position of the &#8220;player&#8221;. (To keep things very simple, we don&#8217;t worry about keeping the player on the screen.)</p>
+
+<p>Finally, we render the &#8220;player&#8221; as a solid square.</p>
+
+<p>This is simple enough and the code isn&#8217;t too complicated. But, just for fun, let&#8217;s slowly transform it to be a little more &#8220;object-oriented&#8221;.</p>
+
+<h3>Game Object</h3>
+
+<p>First, let&#8217;s create a main &#8220;game&#8221; object to hold our logic, instead of putting it all in <code>tick</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">MyGame</span>
+</span><span class='line'>  <span class="c1"># Adds convenience methods for args, gtk, keyboard, etc.</span>
+</span><span class='line'>  <span class="n">attr_gtk</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">player</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>      <span class="ss">x</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">w</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">y</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">h</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">w</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">h</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">tick</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">keyboard</span><span class="o">.</span><span class="n">left</span>
+</span><span class='line'>      <span class="n">state</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">x</span> <span class="o">-=</span> <span class="mi">10</span>
+</span><span class='line'>    <span class="k">elsif</span> <span class="n">keyboard</span><span class="o">.</span><span class="n">right</span>
+</span><span class='line'>      <span class="n">state</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">x</span> <span class="o">+=</span> <span class="mi">10</span>
+</span><span class='line'>    <span class="k">elsif</span> <span class="n">keyboard</span><span class="o">.</span><span class="n">down</span>
+</span><span class='line'>      <span class="n">state</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">y</span> <span class="o">-=</span> <span class="mi">10</span>
+</span><span class='line'>    <span class="k">elsif</span> <span class="n">keyboard</span><span class="o">.</span><span class="n">up</span>
+</span><span class='line'>      <span class="n">state</span><span class="o">.</span><span class="n">player</span><span class="o">.</span><span class="n">y</span> <span class="o">+=</span> <span class="mi">10</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">outputs</span><span class="o">.</span><span class="n">solids</span> <span class="o">&lt;&lt;</span> <span class="n">state</span><span class="o">.</span><span class="n">player</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+</span><span class='line'>  <span class="vg">$my_game</span> <span class="o">||=</span> <span class="no">MyGame</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>  <span class="vg">$my_game</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
+</span><span class='line'>  <span class="vg">$my_game</span><span class="o">.</span><span class="n">tick</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Now the <code>tick</code> method only sets up the global <code>$my_game</code> on the first tick, then sets <code>args</code> on each tick and calls the game&#8217;s <code>tick</code> method.</p>
+
+<p>(<em>Tangent alert!</em> Is it necessary to set <code>args</code> on every tick? Not strictly - you could set <code>self.args = args</code> in <code>initialize</code> and it will work okay. But if you want to use DragonRuby&#8217;s unit test framework, it may cause problems because each test has a fresh copy of <code>args</code>.)</p>
+
+<p>Using <code>attr_gtk</code> allows the code to be a bit shorter. <code>args</code>, <code>state</code>, <code>keyboard</code>, <a href="http://docs.dragonruby.org/#----attr_gtk-rb">and more</a> now have convenience methods for them.</p>
+
+<h3>Instance Variables Instead of State</h3>
+
+<p><code>args.state</code> is essentially a global variable space. This is a big convenience when a game is all top-level methods - otherwise you would have to figure out where to stash all your game state yourself.</p>
+
+<p>However, it&#8217;s not required to use it.</p>
+
+<p>The code below uses <code>@player</code> to store the player hash, instead of <code>args.state</code>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">MyGame</span>
+</span><span class='line'>  <span class="n">attr_gtk</span>
+</span><span class='line'>  <span class="kp">attr_reader</span> <span class="ss">:player</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>    <span class="vi">@player</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>      <span class="ss">x</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">w</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">y</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">h</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">w</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">h</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">tick</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">keyboard</span><span class="o">.</span><span class="n">left</span>
+</span><span class='line'>      <span class="n">player</span><span class="o">.</span><span class="n">x</span> <span class="o">-=</span> <span class="mi">10</span>
+</span><span class='line'>    <span class="k">elsif</span> <span class="n">keyboard</span><span class="o">.</span><span class="n">right</span>
+</span><span class='line'>      <span class="n">player</span><span class="o">.</span><span class="n">x</span> <span class="o">+=</span> <span class="mi">10</span>
+</span><span class='line'>    <span class="k">elsif</span> <span class="n">keyboard</span><span class="o">.</span><span class="n">down</span>
+</span><span class='line'>      <span class="n">player</span><span class="o">.</span><span class="n">y</span> <span class="o">-=</span> <span class="mi">10</span>
+</span><span class='line'>    <span class="k">elsif</span> <span class="n">keyboard</span><span class="o">.</span><span class="n">up</span>
+</span><span class='line'>      <span class="n">player</span><span class="o">.</span><span class="n">y</span> <span class="o">+=</span> <span class="mi">10</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">outputs</span><span class="o">.</span><span class="n">solids</span> <span class="o">&lt;&lt;</span> <span class="n">player</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+</span><span class='line'>  <span class="vg">$my_game</span> <span class="o">||=</span> <span class="no">MyGame</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>  <span class="vg">$my_game</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
+</span><span class='line'>  <span class="vg">$my_game</span><span class="o">.</span><span class="n">tick</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>One thing that has thrown me off with DragonRuby is understanding just how much &#8220;regular&#8221; Ruby I can use. For the most part, other than how the <code>tick</code> method is used as the main game loop, you can use the Ruby language constructs you are comfortable with.</p>
+
+<h3>Splitting Things Up</h3>
+
+<p>No big change here, but as a game grows it&#8217;s easier to split the steps of each game loop into different methods.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">MyGame</span>
+</span><span class='line'>  <span class="n">attr_gtk</span>
+</span><span class='line'>  <span class="kp">attr_reader</span> <span class="ss">:player</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>    <span class="vi">@player</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>      <span class="ss">x</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">w</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">y</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">h</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">w</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">h</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">tick</span>
+</span><span class='line'>    <span class="n">handle_input</span>
+</span><span class='line'>    <span class="n">render</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">handle_input</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">keyboard</span><span class="o">.</span><span class="n">left</span>
+</span><span class='line'>      <span class="n">player</span><span class="o">.</span><span class="n">x</span> <span class="o">-=</span> <span class="mi">10</span>
+</span><span class='line'>    <span class="k">elsif</span> <span class="n">keyboard</span><span class="o">.</span><span class="n">right</span>
+</span><span class='line'>      <span class="n">player</span><span class="o">.</span><span class="n">x</span> <span class="o">+=</span> <span class="mi">10</span>
+</span><span class='line'>    <span class="k">elsif</span> <span class="n">keyboard</span><span class="o">.</span><span class="n">down</span>
+</span><span class='line'>      <span class="n">player</span><span class="o">.</span><span class="n">y</span> <span class="o">-=</span> <span class="mi">10</span>
+</span><span class='line'>    <span class="k">elsif</span> <span class="n">keyboard</span><span class="o">.</span><span class="n">up</span>
+</span><span class='line'>      <span class="n">player</span><span class="o">.</span><span class="n">y</span> <span class="o">+=</span> <span class="mi">10</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">render</span>
+</span><span class='line'>    <span class="n">outputs</span><span class="o">.</span><span class="n">solids</span> <span class="o">&lt;&lt;</span> <span class="n">player</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+</span><span class='line'>  <span class="vg">$my_game</span> <span class="o">||=</span> <span class="no">MyGame</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>  <span class="vg">$my_game</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
+</span><span class='line'>  <span class="vg">$my_game</span><span class="o">.</span><span class="n">tick</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Player Class</h3>
+
+<p>Final step in this post - let&#8217;s move the &#8220;player&#8221; out to a separate class.</p>
+
+<p>In this example, it might not make a lot of sense. But in most games there will be a lot of state and logic you might want to associate with the &#8220;player&#8221; or any other objects in the game. Having it be its own class helps keep the logic in one place.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">MyGame</span>
+</span><span class='line'>  <span class="n">attr_gtk</span>
+</span><span class='line'>  <span class="kp">attr_reader</span> <span class="ss">:player</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>    <span class="vi">@player</span> <span class="o">=</span> <span class="no">Player</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">w</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">h</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">tick</span>
+</span><span class='line'>    <span class="n">handle_input</span>
+</span><span class='line'>    <span class="n">render</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">handle_input</span>
+</span><span class='line'>    <span class="k">if</span> <span class="n">keyboard</span><span class="o">.</span><span class="n">left</span>
+</span><span class='line'>      <span class="n">player</span><span class="o">.</span><span class="n">x</span> <span class="o">-=</span> <span class="mi">10</span>
+</span><span class='line'>    <span class="k">elsif</span> <span class="n">keyboard</span><span class="o">.</span><span class="n">right</span>
+</span><span class='line'>      <span class="n">player</span><span class="o">.</span><span class="n">x</span> <span class="o">+=</span> <span class="mi">10</span>
+</span><span class='line'>    <span class="k">elsif</span> <span class="n">keyboard</span><span class="o">.</span><span class="n">down</span>
+</span><span class='line'>      <span class="n">player</span><span class="o">.</span><span class="n">y</span> <span class="o">-=</span> <span class="mi">10</span>
+</span><span class='line'>    <span class="k">elsif</span> <span class="n">keyboard</span><span class="o">.</span><span class="n">up</span>
+</span><span class='line'>      <span class="n">player</span><span class="o">.</span><span class="n">y</span> <span class="o">+=</span> <span class="mi">10</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">render</span>
+</span><span class='line'>    <span class="n">outputs</span><span class="o">.</span><span class="n">solids</span> <span class="o">&lt;&lt;</span> <span class="n">player</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">class</span> <span class="nc">Player</span>
+</span><span class='line'>  <span class="n">attr_sprite</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</span><span class='line'>    <span class="vi">@x</span> <span class="o">=</span> <span class="n">x</span>
+</span><span class='line'>    <span class="vi">@y</span> <span class="o">=</span> <span class="n">y</span>
+</span><span class='line'>    <span class="vi">@w</span> <span class="o">=</span> <span class="mi">20</span>
+</span><span class='line'>    <span class="vi">@h</span> <span class="o">=</span> <span class="mi">20</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+</span><span class='line'>  <span class="vg">$my_game</span> <span class="o">||=</span> <span class="no">MyGame</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>  <span class="vg">$my_game</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">args</span>
+</span><span class='line'>  <span class="vg">$my_game</span><span class="o">.</span><span class="n">tick</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here the code uses another DragonRuby convenience. <code>attr_sprite</code> adds a bunch of <a href="http://docs.dragonruby.org/#----attr_sprite-rb">helper methods</a> that allow you to use any object as a sprite/solid/border, etc. (Note that the code still passes <code>player</code> into <code>outputs.solids</code> and DragonRuby treats it as a solid. If it were passed into <code>outputs.sprites</code> then it would be treated like a sprite instead!)</p>
+
+<h3>Separate Files?</h3>
+
+<p>For the sake of a blog post, all the code is together. But there is no reason not to start splitting the code across separate files.</p>
+
+<p>But! In DragonRuby there is one weirdness with <code>require</code>: you must include the file extension (usually <code>.rb</code>), while in regular Ruby that is usually omitted.</p>
+
+<h2>Wrapping Up</h2>
+
+<p>Did our code become longer and less straight-forward? Yes, for this small example, definitely.</p>
+
+<p>But as a game (or any project) grows, pulling bits out into modular pieces is going to be an advantage. Personally I fall back on this structure pretty quickly when I start a new DragonRuby project.</p>
+
+<p>Hopefully this post is useful to Rubyists trying to get into DragonRuby!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[DragonRuby: Static Outputs]]></title>
+    <link href="https://blog.presidentbeef.com/blog/2022/01/05/dragon-ruby-static-outputs/"/>
+    <updated>2022-01-05T11:00:00-08:00</updated>
+    <id>https://blog.presidentbeef.com/blog/2022/01/05/dragon-ruby-static-outputs</id>
+    <content type="html"><![CDATA[<p>In a <a href="https://dev.to/presidentbeef/api-levels-in-dragonruby-game-toolkit-4jb4">previous post</a> we looked at different ways to render outputs (sprites, rectangles, lines, etc.) in the <a href="https://dragonruby.org/toolkit/game">DragonRuby Game Toolkit</a>.</p>
+
+<p>The post ended by hinting at a more efficient way to render outputs instead of adding them to e.g. <code>args.outputs.solids</code> or <code>args.outputs.sprites</code> each tick.</p>
+
+<p>This post explores the world of &#8220;static outputs&#8221;!</p>
+
+<h2>Static What?</h2>
+
+<p>First of all, we should address the most confusing part of all this.</p>
+
+<p><strong>&#8220;Static&#8221; does not mean the images don&#8217;t move or change.</strong> Instead, it means that render &#8220;queue&#8221; is not cleared after every tick.</p>
+
+<p>Normally, one would load up the queue each tick, like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># Render a black rectangle</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">solids</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="ss">x</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">y</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">w</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>  <span class="c1"># width</span>
+</span><span class='line'>    <span class="ss">h</span><span class="p">:</span> <span class="mi">400</span>   <span class="c1"># height</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>But this is kind of wasteful. We are creating a new hash table each tick (60 ticks/second) and then throwing it away. Also each tick we are filling up the <code>args.outputs.solids</code> queue and then emptying it.</p>
+
+<p>Instead, why not create the hash table once, load up the queue once, and then re-use them?</p>
+
+<p>That&#8217;s the idea of static outputs!</p>
+
+<p>There are static versions for each rendered type:</p>
+
+<ul>
+<li><code>args.outputs.static_borders</code></li>
+<li><code>args.outputs.static_labels</code></li>
+<li><code>args.outputs.static_primitives</code></li>
+<li><code>args.outputs.static_solids</code></li>
+<li><code>args.outputs.static_sprites</code></li>
+</ul>
+
+
+<h2>Going Static</h2>
+
+<h3>Starting Out</h3>
+
+<p>Here&#8217;s an example with comments explaining what the code is doing. This &#8220;game&#8221; simply moves a square back and forth across the screen. This is the entire program!</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+</span><span class='line'>  <span class="c1"># Initialize the x location of the square</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">x</span> <span class="o">||=</span> <span class="mi">0</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># Initialize the direction/velocity</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">direction</span> <span class="o">||=</span> <span class="mi">10</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># If we hit the sides, change direction</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">x</span> <span class="o">&gt;</span> <span class="n">args</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">right</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">x</span> <span class="o">&lt;</span> <span class="n">args</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">left</span>
+</span><span class='line'>    <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">direction</span> <span class="o">=</span> <span class="o">-</span><span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">direction</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># Update the x location</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">x</span> <span class="o">+=</span> <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">direction</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># Build the square</span>
+</span><span class='line'>  <span class="n">square</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>    <span class="ss">x</span><span class="p">:</span> <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">y</span><span class="p">:</span> <span class="mi">400</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">w</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">h</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># Add the square to the render queue</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">solids</span> <span class="o">&lt;&lt;</span> <span class="n">square</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The resulting output looks like:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/o56m4w483wxr46y07zh0.gif" alt="Image description" /></p>
+
+<p>This example introduces <code>args.state</code>. This is basically a persistent bag you can throw anything into. (For Rubyists - this is like <a href="https://ruby-doc.org/stdlib-3.1.0/libdoc/ostruct/rdoc/OpenStruct.html">OpenStruct</a>.)</p>
+
+<p><code>x</code> and <code>direction</code> are not special, they are just variables we are defining. We use <code>||=</code> to initialize them because we only want to set the values on the first tick.</p>
+
+<p>This example illustrates the point from above - every tick it creates a new square and adds it to the queue. The queue is emptied out and then the code starts all over again.</p>
+
+<p>Seems wasteful, right?</p>
+
+<h3>Caching the Objects</h3>
+
+<p>First thing I think of is - &#8220;why not create the square once, then just update the object each tick? Does that work?&#8221; Yes! It does.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">direction</span> <span class="o">||=</span> <span class="mi">10</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">square</span> <span class="o">||=</span> <span class="p">{</span>
+</span><span class='line'>    <span class="ss">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">y</span><span class="p">:</span> <span class="mi">400</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">w</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">h</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">square</span><span class="o">[</span><span class="ss">:x</span><span class="o">]</span> <span class="o">&gt;</span> <span class="n">args</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">right</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">square</span><span class="o">[</span><span class="ss">:x</span><span class="o">]</span> <span class="o">&lt;</span> <span class="n">args</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">left</span>
+</span><span class='line'>    <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">direction</span> <span class="o">=</span> <span class="o">-</span><span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">direction</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">square</span><span class="o">[</span><span class="ss">:x</span><span class="o">]</span> <span class="o">+=</span> <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">direction</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">solids</span> <span class="o">&lt;&lt;</span> <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">square</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In this code, we create the <code>square</code> only once and then store it in <code>args.state.square</code>.</p>
+
+<p>Instead of having a separate <code>x</code> variable, the code updates the <code>x</code> property on the square directly.</p>
+
+<p>This is <em>better</em>, but we are still updating <code>args.outputs.solids</code> each tick.</p>
+
+<h3>Full Static</h3>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">direction</span> <span class="o">||=</span> <span class="mi">10</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">square</span> <span class="o">||=</span> <span class="p">{</span>
+</span><span class='line'>    <span class="ss">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">y</span><span class="p">:</span> <span class="mi">400</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">w</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">h</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># On the first tick, add the square to the render queue</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">tick_count</span> <span class="o">==</span> <span class="mi">0</span>
+</span><span class='line'>    <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">static_solids</span> <span class="o">&lt;&lt;</span> <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">square</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">square</span><span class="o">[</span><span class="ss">:x</span><span class="o">]</span> <span class="o">&gt;</span> <span class="n">args</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">right</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">square</span><span class="o">[</span><span class="ss">:x</span><span class="o">]</span> <span class="o">&lt;</span> <span class="n">args</span><span class="o">.</span><span class="n">grid</span><span class="o">.</span><span class="n">left</span>
+</span><span class='line'>    <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">direction</span> <span class="o">=</span> <span class="o">-</span><span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">direction</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">square</span><span class="o">[</span><span class="ss">:x</span><span class="o">]</span> <span class="o">+=</span> <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">direction</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In this code, we use the fact that the first <code>args.tick_count</code> is <code>0</code> to add the <code>square</code> to <code>args.outputs.static_solids</code> just <em>once</em>. It will continue to be rendered on each tick.</p>
+
+<h2>Performance</h2>
+
+<p>Intuitively, since the code is doing less, it should be faster. But does it really make a difference?</p>
+
+<p>It depends on your game, how much it&#8217;s doing per tick, how many sprites you are rendering, and what platform/hardware it&#8217;s running on.</p>
+
+<p>The examples above? Not going to see any difference using <code>static_solids</code>.</p>
+
+<p>But DragonRuby contains two examples that directly compare <code>args.outputs.sprites</code> vs. <code>args.outputs.static_sprites</code> (<a href="http://docs.dragonruby.org/#----performance---sprites-as-classes---main-rb">here</a> and <a href="http://docs.dragonruby.org/#----performance---static-sprites-as-classes---main-rb">here</a>).</p>
+
+<p>In these examples, you can play with the number of &#8220;stars&#8221; rendered to see different performance. On my ancient laptop, I do not see a performance difference until around 3,000 stars.</p>
+
+<p>Your mileage may vary, though!</p>
+
+<h2>Should I Always Use the Static Versions?</h2>
+
+<p>It depends! Probably not?</p>
+
+<p>If your code mainly manipulates the same objects around the screen <em>and</em> always renders them in the same order, then using the <code>static_</code> approach might be simpler and faster.</p>
+
+<p>But in many cases it might be easier to simply set up the render queues each tick, especially if the objects rendered or their ordering change regularly. Otherwise, managing the state of the rendering queues can become cumbersome. (We haven&#8217;t even talked about clearing the static queues, for example.)</p>
+
+<p>Some of this comes down to personal preference and how you would like to structure your code. But hopefully this post has helped explain how to use the <code>args.outputs.static_*</code> methods in your game!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[API Levels in DragonRuby Game Toolkit]]></title>
