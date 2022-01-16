@@ -4,7 +4,7 @@
   <title><![CDATA[Justin Collins' Blugh]]></title>
   <link href="https://blog.presidentbeef.com/atom.xml" rel="self"/>
   <link href="https://blog.presidentbeef.com/"/>
-  <updated>2022-01-15T21:20:59-08:00</updated>
+  <updated>2022-01-15T21:22:53-08:00</updated>
   <id>https://blog.presidentbeef.com/</id>
   <author>
     <name><![CDATA[Justin Collins]]></name>
@@ -457,9 +457,9 @@
   
   <entry>
     <title type="html"><![CDATA[DragonRuby: Static Outputs]]></title>
-    <link href="https://blog.presidentbeef.com/blog/2022/01/05/dragon-ruby-static-outputs/"/>
-    <updated>2022-01-05T11:00:00-08:00</updated>
-    <id>https://blog.presidentbeef.com/blog/2022/01/05/dragon-ruby-static-outputs</id>
+    <link href="https://blog.presidentbeef.com/blog/2022/01/08/dragon-ruby-static-outputs/"/>
+    <updated>2022-01-08T11:00:00-08:00</updated>
+    <id>https://blog.presidentbeef.com/blog/2022/01/08/dragon-ruby-static-outputs</id>
     <content type="html"><![CDATA[<p>In a <a href="https://dev.to/presidentbeef/api-levels-in-dragonruby-game-toolkit-4jb4">previous post</a> we looked at different ways to render outputs (sprites, rectangles, lines, etc.) in the <a href="https://dragonruby.org/toolkit/game">DragonRuby Game Toolkit</a>.</p>
 
 <p>The post ended by hinting at a more efficient way to render outputs instead of adding them to e.g. <code>args.outputs.solids</code> or <code>args.outputs.sprites</code> each tick.</p>
