@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "DragonRuby: Static Outputs"
-date: 2022-01-05 11:00
+date: 2022-01-08 11:00
 comments: true
 categories: 
 ---
