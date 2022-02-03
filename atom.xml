@@ -4,7 +4,7 @@
   <title><![CDATA[Justin Collins' Blugh]]></title>
   <link href="https://blog.presidentbeef.com/atom.xml" rel="self"/>
   <link href="https://blog.presidentbeef.com/"/>
-  <updated>2022-01-15T21:22:53-08:00</updated>
+  <updated>2022-02-02T20:25:36-08:00</updated>
   <id>https://blog.presidentbeef.com/</id>
   <author>
     <name><![CDATA[Justin Collins]]></name>
@@ -12,6 +12,450 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Sounds in DragonRuby]]></title>
+    <link href="https://blog.presidentbeef.com/blog/2022/01/31/sounds-in-dragonruby/"/>
+    <updated>2022-01-31T11:00:00-08:00</updated>
+    <id>https://blog.presidentbeef.com/blog/2022/01/31/sounds-in-dragonruby</id>
+    <content type="html"><![CDATA[<p>The sound API in <a href="https://dragonruby.itch.io/dragonruby-gtk">DragonRuby</a> is a little tricky because at first it seems similar to the sprite API (e.g. using <code>args.outputs</code>) but it diverges sharply when you want to have some more control.</p>
+
+<p>So let&#8217;s take a quick look at audio in DragonRuby!</p>
+
+<h3>Simple Music</h3>
+
+<p>As usual with DragonRuby, the simple stuff is simple.</p>
+
+<p>To play a looping sound, for example as background music, get a sound file in <code>.ogg</code> format and then add it on to <code>args.outputs.sounds</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">sounds</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;sounds/my_music.ogg&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The audio will loop forever.</p>
+
+<h3>Simple Sound Effects</h3>
+
+<p>Want to fire off a single sound effect?</p>
+
+<p>Get a sound file in <code>.wav</code> format and then add it on to <code>args.outputs.sounds</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">sounds</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;sounds/my_effect.wav&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The sound will play once.</p>
+
+<p><em>Wait so the API behaves differently based on the file format?</em></p>
+
+<p>Yep. A little odd but it works.</p>
+
+<h3>Adjusting the Volume Knob</h3>
+
+<p>Playing a sound effect in DragonRuby is pretty easy. But what if we need to adjust the volume or some other attribute of the audio? Or maybe loop a <code>.wav</code> or not loop a <code>.ogg</code> file?</p>
+
+<p>You might think, based on how sprites work in DragonRuby, you could do something like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># This does not work!</span>
+</span><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">sounds</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+</span><span class='line'>  <span class="ss">input</span><span class="p">:</span> <span class="s1">&#39;sounds/my_music.ogg&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">gain</span><span class="p">:</span> <span class="mi">0</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span>      <span class="c1"># Half volume</span>
+</span><span class='line'>  <span class="ss">looping</span><span class="p">:</span> <span class="kp">false</span>  <span class="c1"># Don&#39;t loop</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>But this does not work.</p>
+
+<p>Instead, you need to use an entirely different interface: <code>args.audio</code>.</p>
+
+<p><code>args.audio</code> is a hash table of sounds.</p>
+
+<p>To add a new sound, assign it with a name:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">audio</span><span class="o">[</span><span class="ss">:music</span><span class="o">]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="ss">input</span><span class="p">:</span> <span class="s1">&#39;sounds/my_music.ogg&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">gain</span><span class="p">:</span> <span class="mi">0</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">looping</span><span class="p">:</span> <span class="kp">false</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To adjust an attribute of the audio, access it by the same name:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># Turn up the volume</span>
+</span><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">audio</span><span class="o">[</span><span class="ss">:music</span><span class="o">].</span><span class="n">gain</span> <span class="o">=</span> <span class="mi">0</span><span class="o">.</span><span class="mi">75</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To pause a sound:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">audio</span><span class="o">[</span><span class="ss">:music</span><span class="o">].</span><span class="n">paused</span> <span class="o">=</span> <span class="kp">true</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To completely remove a sound:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">audio</span><span class="o">.</span><span class="n">delete</span> <span class="ss">:music</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>More Music Manipulation</h3>
+
+<p>This is the full set of options for audio from <a href="http://docs.dragonruby.org/#--docs---gtk--args#audio-">the documentation</a>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">audio</span><span class="o">[</span><span class="ss">:my_music</span><span class="o">]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="ss">input</span><span class="p">:</span> <span class="s1">&#39;sounds/my_music.ogg&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">x</span><span class="p">:</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="ss">y</span><span class="p">:</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="ss">z</span><span class="p">:</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span>   <span class="c1"># Relative position to the listener, x, y, z from -1.0 to 1.0</span>
+</span><span class='line'>  <span class="ss">gain</span><span class="p">:</span> <span class="mi">1</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span>                <span class="c1"># Volume (0.0 to 1.0)</span>
+</span><span class='line'>  <span class="ss">pitch</span><span class="p">:</span> <span class="mi">1</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span>               <span class="c1"># Pitch of the sound (1.0 = original pitch)</span>
+</span><span class='line'>  <span class="ss">paused</span><span class="p">:</span> <span class="kp">false</span><span class="p">,</span>            <span class="c1"># Set to true to pause</span>
+</span><span class='line'>  <span class="ss">looping</span><span class="p">:</span> <span class="kp">false</span><span class="p">,</span>           <span class="c1"># Set to true to loop</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That&#8217;s it!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[DragonRuby: Render Targets]]></title>
+    <link href="https://blog.presidentbeef.com/blog/2022/01/24/dragon-ruby-render-targets/"/>
+    <updated>2022-01-24T11:00:00-08:00</updated>
+    <id>https://blog.presidentbeef.com/blog/2022/01/24/dragon-ruby-render-targets</id>
+    <content type="html"><![CDATA[<p>Next up in my notes on <a href="https://dragonruby.itch.io/dragonruby-gtk">DragonRuby</a>: render targets!</p>
+
+<p>Weirdly, the <a href="http://docs.dragonruby.org/#----advanced-rendering---simple-render-targets---main-rb">documentation on DragonRuby&#8217;s render targets</a> is limited to example code. Personally, I prefer prose when I am trying to learn&#8230; so here we are!</p>
+
+<p>In DragonRuby, a render target is like an infinite canvas you can render as many regular sprites onto as you want, then manipulate the whole thing as if it is one sprite.</p>
+
+<p>This is especially good for things like tiled backgrounds that are built once and do not change.</p>
+
+<p>Let&#8217;s take an example.</p>
+
+<h2>Clouds!</h2>
+
+<p>Let&#8217;s start off very simple and build up.</p>
+
+<p>First, here&#8217;s all the code to render a single 250x250 pixel image to the screen:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+</span><span class='line'>  <span class="n">clouds</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>    <span class="ss">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">y</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">h</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">w</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">path</span><span class="p">:</span> <span class="s1">&#39;sprites/cloud.png&#39;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">sprites</span> <span class="o">&lt;&lt;</span> <span class="n">clouds</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/o4bpadbxwln2zp3gsuai.png" alt="Single cloud tile" /></p>
+
+<h3>More Clouds</h3>
+
+<p>Cool, but I&#8217;d like to fill the whole window with clouds, so I&#8217;m going to tile them.</p>
+
+<p>The code below makes a 6x3 grid of the cloud image.</p>
+
+<p>(In DragonRuby, the screen is always 1280x720. Our grid is 1500x750 but I&#8217;m not trying to be too precise with the numbers here.)</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+</span><span class='line'>  <span class="n">clouds</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="mi">6</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
+</span><span class='line'>    <span class="mi">3</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">y</span><span class="o">|</span>
+</span><span class='line'>      <span class="n">clouds</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="ss">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">y</span><span class="p">:</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">h</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">w</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">path</span><span class="p">:</span> <span class="s1">&#39;sprites/cloud.png&#39;</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">sprites</span> <span class="o">&lt;&lt;</span> <span class="n">clouds</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/o99o7jjmnfxupewak1n9.png" alt="Screen full of blue clouds" /></p>
+
+<p>Ah&#8230; blue clouds. Nice.</p>
+
+<p>On every tick, the code builds up an array of 18 sprites (images) and renders it out to the screen.</p>
+
+<p>(There are a number of ways to make this more efficient - check out the <a href="https://dev.to/presidentbeef/series/16166">previous posts</a> in this series for different ways to &#8220;cache&#8221; the sprite information.)</p>
+
+<h3>Render Targets</h3>
+
+<p>But in this post we are talking about render targets - which is a way of rendering a bunch of sprites (or any other renderable thing) just once, and then treating the whole group of sprites as a single sprite. This is <em>faster</em>, simpler, and enables some neat effects.</p>
+
+<p>The code only needs minor changes to switch the cloud grid to using a render target instead:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># Move cloud grid creation into a helper method</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">make_clouds</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">clouds</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="mi">6</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
+</span><span class='line'>    <span class="mi">3</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">y</span><span class="o">|</span>
+</span><span class='line'>      <span class="n">clouds</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="ss">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">y</span><span class="p">:</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">h</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">w</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">path</span><span class="p">:</span> <span class="s1">&#39;sprites/cloud.png&#39;</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># Similar to `args.outputs`,</span>
+</span><span class='line'>  <span class="c1"># render targets have `.sprites`, `.solids`, etc.</span>
+</span><span class='line'>  <span class="c1"># The argument will be used as the path below</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">render_target</span><span class="p">(</span><span class="ss">:clouds</span><span class="p">)</span><span class="o">.</span><span class="n">sprites</span> <span class="o">&lt;&lt;</span> <span class="n">clouds</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>  <span class="c1"># Set up the render target on the first tick</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">tick_count</span> <span class="o">==</span> <span class="mi">0</span>
+</span><span class='line'>    <span class="n">make_clouds</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># Output a single sprite</span>
+</span><span class='line'>  <span class="c1"># located at 0,0 and the size of the whole grid</span>
+</span><span class='line'>  <span class="c1"># created in `make_clouds`</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="ss">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">y</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">w</span><span class="p">:</span> <span class="mi">250</span> <span class="o">*</span> <span class="mi">6</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">h</span><span class="p">:</span> <span class="mi">250</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">path</span><span class="p">:</span> <span class="ss">:clouds</span> <span class="c1"># Name of the render target!</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For convenience, the code above moves the creation of the cloud grid and the render target into a helper method which gets called on the first tick of the game.</p>
+
+<p><code>args.render_target(:clouds)</code> automatically creates a new render target named <code>:clouds</code> if it does not already exist. Then we can render things to it just as if it were <code>args.outputs</code>.</p>
+
+<p>Interestingly, render targets do not seem to have an innate width or height. In order to avoid unintentional scaling, you will need to &#8220;know&#8221; how big the render target is. In this case, we know it is a 6x3 grid of 250x250 images, so the size is fairly straightforward. I left the math in to make it clearer.</p>
+
+<p>Finally, we reference the render target similarly to an image file, but pass in the name of the render target as the <code>:path</code> instead of an actual file path.</p>
+
+<h2>Static Sprites, Too!</h2>
+
+<p><a href="https://blog.presidentbeef.com/blog/2022/01/08/dragon-ruby-static-outputs/">As explored in a different post</a>, we can use <code>static_sprites</code> to &#8220;render&#8221; the sprite <em>once</em>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># No changes here</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">make_clouds</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">clouds</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="mi">6</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
+</span><span class='line'>    <span class="mi">3</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">y</span><span class="o">|</span>
+</span><span class='line'>      <span class="n">clouds</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="ss">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">y</span><span class="p">:</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">h</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">w</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">path</span><span class="p">:</span> <span class="s1">&#39;sprites/cloud.png&#39;</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">render_target</span><span class="p">(</span><span class="ss">:clouds</span><span class="p">)</span><span class="o">.</span><span class="n">sprites</span> <span class="o">&lt;&lt;</span> <span class="n">clouds</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">tick_count</span> <span class="o">==</span> <span class="mi">0</span>
+</span><span class='line'>    <span class="n">make_clouds</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># Create the clouds sprite once</span>
+</span><span class='line'>    <span class="c1"># and keep it in `args.state`.</span>
+</span><span class='line'>    <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">clouds</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>      <span class="ss">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">y</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">w</span><span class="p">:</span> <span class="mi">250</span> <span class="o">*</span> <span class="mi">6</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">h</span><span class="p">:</span> <span class="mi">250</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">path</span><span class="p">:</span> <span class="ss">:clouds</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># Add the clouds sprite just once</span>
+</span><span class='line'>    <span class="c1"># as a &quot;static&quot; sprite</span>
+</span><span class='line'>    <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">static_sprites</span> <span class="o">&lt;&lt;</span> <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">clouds</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And now we can move the clouds around just by changing the attributes on the render target.</p>
+
+<p>Adding a little bit of code at the end of <code>tick</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">clouds</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="no">Math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">tick_count</span> <span class="o">/</span> <span class="mi">20</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="o">-</span> <span class="mi">100</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>(The calculation and numbers aren&#8217;t really important here, I just fiddled around until something looked decent.)</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/hw1qpqotbcg6pfpqo2bq.gif" alt="Clouds moving back and forth" /></p>
+
+<p>Oh hey! Those extra pixels on the sides of the cloud grid actually came in handy.</p>
+
+<h3>What Else?</h3>
+
+<p>Remember, the entire render target is like one sprite now. That means all the regular sprite attributes (e.g. color, size, blending, flipping, rotation) can be applied to the entire thing at once.</p>
+
+<p><em>Wait, did you say rotation?</em></p>
+
+<p>Sure, let&#8217;s make ourselves dizzy.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">clouds</span><span class="o">.</span><span class="n">angle</span> <span class="o">=</span> <span class="p">(</span><span class="no">Math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">tick_count</span> <span class="o">/</span> <span class="mi">120</span><span class="p">)</span> <span class="o">*</span> <span class="mi">180</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/g5n2ug9ehwbn8yzh2orq.gif" alt="Spinning clouds" /></p>
+
+<p>Okay, that&#8217;s as deep as we&#8217;ll go on render targets in this post!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[DragonRuby: Object-Oriented Starter]]></title>
@@ -3374,115 +3818,6 @@ results = DB.execute(query)
 <p><img src="https://blog.presidentbeef.com/images/blog/inject-some-sql.png" alt="Query Example" /></p>
 
 <p>The resulting information is available at <a href="http://rails-sqli.org">rails-sqli.org</a>, including examples of how SQL injection can occur and the resulting queries. This is basically a big list of what <em>not</em> to do when using ActiveRecord. Again, please feel free to <a href="https://github.com/presidentbeef/inject-some-sql">contribute</a> so that the list can be as authoritative as possible and help everyone avoid SQL injection in Rails.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Faster Call Indexing in Brakeman]]></title>
-    <link href="https://blog.presidentbeef.com/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3/"/>
-    <updated>2012-11-28T11:49:00-08:00</updated>
-    <id>https://blog.presidentbeef.com/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3</id>
-    <content type="html"><![CDATA[<h2>Background</h2>
-
-<p>About a month ago, an <a href="https://github.com/presidentbeef/brakeman/issues/171">issue</a> was reported where <a href="http://brakemanscanner.org">Brakeman</a> taking a ridiculously long time on the &#8220;call indexing&#8221; step. At the time, I was pessimistic about opportunities to improve the performance of call indexing, since it is a pretty simple operation.</p>
-
-<h3>Call Indexing</h3>
-
-<p>The majority of the checks performed by Brakeman involve finding and examining method calls (e.g., SQL queries). In order to make these checks faster, Brakeman scans an app once and then saves information about each method call in a data structure called the &#8220;call index&#8221;. This makes searching for specific method calls very fast.</p>
-
-<p>The call index allows search for methods by name and also by the class of the target. For example, it is possible to search for all calls to <code>open</code> on <code>File</code>. It also allows searching via regular expressions for methods and targets.</p>
-
-<h2>Investigation</h2>
-
-<p>I happened to notice a Rails application in my collection which also seemed to take a long time indexing calls. So I ran it through <a href="https://github.com/tmm1/perftools.rb">perftools.rb</a> to see if there was anything interesting going on.</p>
-
-<p>This is the result:</p>
-
-<p><a href="https://blog.presidentbeef.com/images/blog/brakeman-scan-1.8.2.pdf"><img src="https://blog.presidentbeef.com/images/blog/brakeman-scan-1.8.2.png" alt="Brakeman 1.8.2 scan" /></a></p>
-
-<p>The large amount of time spent in the garbage collector (60%) was high even for Brakeman. But then something else caught my eye:</p>
-
-<p><img src="https://blog.presidentbeef.com/images/blog/call-indexing-1.8.2.png" alt="Call indexing in 1.8.2" /></p>
-
-<p>This scan spent 4.7% of its time converting <code>Sexp</code>s to strings while indexing calls. This seemed excessive.</p>
-
-<p>This is the entirety of the call indexing code:</p>
-
-<figure class='code'><figcaption><span>call_index.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="k">def</span> <span class="nf">index_calls</span> <span class="n">calls</span>
-</span><span class='line'>    <span class="n">calls</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">call</span><span class="o">|</span>
-</span><span class='line'>      <span class="vi">@methods</span> <span class="o">&lt;&lt;</span> <span class="n">call</span><span class="o">[</span><span class="ss">:method</span><span class="o">].</span><span class="n">to_s</span>
-</span><span class='line'>      <span class="vi">@targets</span> <span class="o">&lt;&lt;</span> <span class="n">call</span><span class="o">[</span><span class="ss">:target</span><span class="o">].</span><span class="n">to_s</span>
-</span><span class='line'>      <span class="vi">@calls_by_method</span><span class="o">[</span><span class="n">call</span><span class="o">[</span><span class="ss">:method</span><span class="o">]]</span> <span class="o">&lt;&lt;</span> <span class="n">call</span>
-</span><span class='line'>      <span class="vi">@calls_by_target</span><span class="o">[</span><span class="n">call</span><span class="o">[</span><span class="ss">:target</span><span class="o">]]</span> <span class="o">&lt;&lt;</span> <span class="n">call</span>
-</span><span class='line'>    <span class="k">end</span>
-</span><span class='line'>  <span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>@methods</code> and <code>@targets</code> are sets which contain the string versions of all the methods and method targets. This is <em>exclusively</em> used to search for methods and targets via regular expressions.</p>
-
-<p>The call method will always be a symbol&#8230;but what about the target? It turns out that while much of the time it is a symbol, if a sane value like <code>:File</code> or <code>:@something</code> cannot be found, then it will be the entire <code>Sexp</code>! This is where Brakeman was wasting time calling <code>Sexp#to_s</code>.</p>
-
-<p>The quick fix was to only store symbol targets in the <code>@targets</code> set, ignoring any other target values.</p>
-
-<h2>Results</h2>
-
-<p>Scanning the same application with Brakeman 1.8.3 has this result:</p>
-
-<p><a href="https://blog.presidentbeef.com/images/blog/brakeman-scan-1.8.3.pdf"><img src="https://blog.presidentbeef.com/images/blog/brakeman-scan-1.8.3.png" alt="Brakeman 1.8.3 scan" /></a></p>
-
-<p>Garbage collection time dropped from 60% to 42%. While still very high, this is a good sign. Time spent indexing calls has dropped from 5.4% to 1.8% and the calls to <code>Sexp#to_s</code> have vanished.</p>
-
-<p>The total scan time dropped from 3.5 minutes to about 2 minutes. For the original reporter, scan times went from <a href="https://github.com/presidentbeef/brakeman/issues/171#issuecomment-10344355">78 minutes to 40 <em>seconds</em></a>.</p>
-
-<h2>More Improvements</h2>
-
-<p>Looking through Brakeman, it does not currently use the &#8220;search via regex&#8221; feature for the call index. So the method and target name sets can be removed entirely.</p>
-
-<p>Going even further, nowhere does Brakeman search for targets by any values other than symbols. Note in the graph below that <code>Array#eql?</code> was sampled 1,330 times during call indexing:</p>
-
-<p><img src="https://blog.presidentbeef.com/images/blog/call-indexing-hashing-sexp.png" alt="Call indexing hashing" /></p>
-
-<p>Since <code>Sexp</code>s are subclassed from <code>Array</code>, it is clear that these calls are generated when using the <code>call[:target]</code> as a hash key (line 6 above). Again, the current Brakeman code only searches for call targets by symbol, never by a full <code>Sexp</code>. There is no reason to the call targets that are <code>Sexp</code>s.</p>
-
-<p>This is the modified call indexing code:</p>
-
-<figure class='code'><figcaption><span>Modified call_index.rb</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="k">def</span> <span class="nf">index_calls</span> <span class="n">calls</span>
-</span><span class='line'>    <span class="n">calls</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">call</span><span class="o">|</span>
-</span><span class='line'>      <span class="vi">@calls_by_method</span><span class="o">[</span><span class="n">call</span><span class="o">[</span><span class="ss">:method</span><span class="o">]]</span> <span class="o">&lt;&lt;</span> <span class="n">call</span>
-</span><span class='line'>
-</span><span class='line'>      <span class="k">unless</span> <span class="n">call</span><span class="o">[</span><span class="ss">:target</span><span class="o">].</span><span class="n">is_a?</span> <span class="no">Sexp</span>
-</span><span class='line'>        <span class="vi">@calls_by_target</span><span class="o">[</span><span class="n">call</span><span class="o">[</span><span class="ss">:target</span><span class="o">]]</span> <span class="o">&lt;&lt;</span> <span class="n">call</span>
-</span><span class='line'>      <span class="k">end</span>
-</span><span class='line'>    <span class="k">end</span>
-</span><span class='line'>  <span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>With this code in place, call indexing does not even show up under perftools. Speed improvements vary by project, but this should at least shave off a few seconds. <a href="https://github.com/presidentbeef/brakeman/pull/189#issuecomment-10768297">YMMV</a>.</p>
-
-<h2>Wrapping Up</h2>
-
-<p>Some quick profiling led me to performance improvements where I really did not expect to find them. Sadly, this is one of the cleanest, simplest parts of Brakeman, so I know there are many other instances where Brakeman can be improved. Prior to the introduction of the call index in Brakeman 1.0, I was trying to keep Brakeman scans under 20 minutes (on large applications). Now I worry when scans take longer than a few minutes.</p>
-
-<p>97% of the open source Rails applications I use as test cases can be scanned in less than 30 seconds. Unfortunately, this probably does not reflect scan times for large, commercial applications. Please <a href="https://github.com/presidentbeef/brakeman/issues">report</a> any long-running scans! It may lead to more speed improvements like the ones above.</p>
 ]]></content>
   </entry>
   

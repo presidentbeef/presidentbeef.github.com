@@ -9,7 +9,7 @@
   <meta name="author" content="Justin Collins">
 
   
-  <meta name="description" content="I enjoy playing with the DragonRuby Game Toolkit, but the documentation and many of the examples are very much intended for non-Rubyists. &hellip;">
+  <meta name="description" content="The sound API in DragonRuby is a little tricky because at first it seems similar to the sprite API (e.g. using args.outputs) but it diverges sharply &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -33,7 +33,7 @@
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:site" content="@presidentbeef" />
 <meta name="twitter:title" content="Justin Collins' Blugh" />
-<meta name="description" content="I enjoy playing with the DragonRuby Game Toolkit, but the documentation and many of the examples are very much intended for non-Rubyists. &hellip;">
+<meta name="description" content="The sound API in DragonRuby is a little tricky because at first it seems similar to the sprite API (e.g. using args.outputs) but it diverges sharply &hellip;">
 
   
   <script type="text/javascript">
@@ -73,6 +73,504 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2022/01/31/sounds-in-dragonruby/">Sounds in DragonRuby</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2022-01-31T11:00:00-08:00" pubdate data-updated="true">Jan 31<span>st</span>, 2022</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>The sound API in <a href="https://dragonruby.itch.io/dragonruby-gtk">DragonRuby</a> is a little tricky because at first it seems similar to the sprite API (e.g. using <code>args.outputs</code>) but it diverges sharply when you want to have some more control.</p>
+
+<p>So let&#8217;s take a quick look at audio in DragonRuby!</p>
+
+<h3>Simple Music</h3>
+
+<p>As usual with DragonRuby, the simple stuff is simple.</p>
+
+<p>To play a looping sound, for example as background music, get a sound file in <code>.ogg</code> format and then add it on to <code>args.outputs.sounds</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">sounds</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;sounds/my_music.ogg&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The audio will loop forever.</p>
+
+<h3>Simple Sound Effects</h3>
+
+<p>Want to fire off a single sound effect?</p>
+
+<p>Get a sound file in <code>.wav</code> format and then add it on to <code>args.outputs.sounds</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">sounds</span> <span class="o">&lt;&lt;</span> <span class="s1">&#39;sounds/my_effect.wav&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The sound will play once.</p>
+
+<p><em>Wait so the API behaves differently based on the file format?</em></p>
+
+<p>Yep. A little odd but it works.</p>
+
+<h3>Adjusting the Volume Knob</h3>
+
+<p>Playing a sound effect in DragonRuby is pretty easy. But what if we need to adjust the volume or some other attribute of the audio? Or maybe loop a <code>.wav</code> or not loop a <code>.ogg</code> file?</p>
+
+<p>You might think, based on how sprites work in DragonRuby, you could do something like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># This does not work!</span>
+</span><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">sounds</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+</span><span class='line'>  <span class="ss">input</span><span class="p">:</span> <span class="s1">&#39;sounds/my_music.ogg&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">gain</span><span class="p">:</span> <span class="mi">0</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span>      <span class="c1"># Half volume</span>
+</span><span class='line'>  <span class="ss">looping</span><span class="p">:</span> <span class="kp">false</span>  <span class="c1"># Don&#39;t loop</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>But this does not work.</p>
+
+<p>Instead, you need to use an entirely different interface: <code>args.audio</code>.</p>
+
+<p><code>args.audio</code> is a hash table of sounds.</p>
+
+<p>To add a new sound, assign it with a name:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">audio</span><span class="o">[</span><span class="ss">:music</span><span class="o">]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="ss">input</span><span class="p">:</span> <span class="s1">&#39;sounds/my_music.ogg&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">gain</span><span class="p">:</span> <span class="mi">0</span><span class="o">.</span><span class="mi">5</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">looping</span><span class="p">:</span> <span class="kp">false</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To adjust an attribute of the audio, access it by the same name:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># Turn up the volume</span>
+</span><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">audio</span><span class="o">[</span><span class="ss">:music</span><span class="o">].</span><span class="n">gain</span> <span class="o">=</span> <span class="mi">0</span><span class="o">.</span><span class="mi">75</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To pause a sound:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">audio</span><span class="o">[</span><span class="ss">:music</span><span class="o">].</span><span class="n">paused</span> <span class="o">=</span> <span class="kp">true</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To completely remove a sound:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">audio</span><span class="o">.</span><span class="n">delete</span> <span class="ss">:music</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>More Music Manipulation</h3>
+
+<p>This is the full set of options for audio from <a href="http://docs.dragonruby.org/#--docs---gtk--args#audio-">the documentation</a>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">audio</span><span class="o">[</span><span class="ss">:my_music</span><span class="o">]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="ss">input</span><span class="p">:</span> <span class="s1">&#39;sounds/my_music.ogg&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="ss">x</span><span class="p">:</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="ss">y</span><span class="p">:</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span> <span class="ss">z</span><span class="p">:</span> <span class="mi">0</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span>   <span class="c1"># Relative position to the listener, x, y, z from -1.0 to 1.0</span>
+</span><span class='line'>  <span class="ss">gain</span><span class="p">:</span> <span class="mi">1</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span>                <span class="c1"># Volume (0.0 to 1.0)</span>
+</span><span class='line'>  <span class="ss">pitch</span><span class="p">:</span> <span class="mi">1</span><span class="o">.</span><span class="mi">0</span><span class="p">,</span>               <span class="c1"># Pitch of the sound (1.0 = original pitch)</span>
+</span><span class='line'>  <span class="ss">paused</span><span class="p">:</span> <span class="kp">false</span><span class="p">,</span>            <span class="c1"># Set to true to pause</span>
+</span><span class='line'>  <span class="ss">looping</span><span class="p">:</span> <span class="kp">false</span><span class="p">,</span>           <span class="c1"># Set to true to loop</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That&#8217;s it!</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2022/01/24/dragon-ruby-render-targets/">DragonRuby: Render Targets</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2022-01-24T11:00:00-08:00" pubdate data-updated="true">Jan 24<span>th</span>, 2022</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Next up in my notes on <a href="https://dragonruby.itch.io/dragonruby-gtk">DragonRuby</a>: render targets!</p>
+
+<p>Weirdly, the <a href="http://docs.dragonruby.org/#----advanced-rendering---simple-render-targets---main-rb">documentation on DragonRuby&#8217;s render targets</a> is limited to example code. Personally, I prefer prose when I am trying to learn&#8230; so here we are!</p>
+
+<p>In DragonRuby, a render target is like an infinite canvas you can render as many regular sprites onto as you want, then manipulate the whole thing as if it is one sprite.</p>
+
+<p>This is especially good for things like tiled backgrounds that are built once and do not change.</p>
+
+<p>Let&#8217;s take an example.</p>
+
+<h2>Clouds!</h2>
+
+<p>Let&#8217;s start off very simple and build up.</p>
+
+<p>First, here&#8217;s all the code to render a single 250x250 pixel image to the screen:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+</span><span class='line'>  <span class="n">clouds</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>    <span class="ss">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">y</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">h</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">w</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">path</span><span class="p">:</span> <span class="s1">&#39;sprites/cloud.png&#39;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">sprites</span> <span class="o">&lt;&lt;</span> <span class="n">clouds</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/o4bpadbxwln2zp3gsuai.png" alt="Single cloud tile" /></p>
+
+<h3>More Clouds</h3>
+
+<p>Cool, but I&#8217;d like to fill the whole window with clouds, so I&#8217;m going to tile them.</p>
+
+<p>The code below makes a 6x3 grid of the cloud image.</p>
+
+<p>(In DragonRuby, the screen is always 1280x720. Our grid is 1500x750 but I&#8217;m not trying to be too precise with the numbers here.)</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+</span><span class='line'>  <span class="n">clouds</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="mi">6</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
+</span><span class='line'>    <span class="mi">3</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">y</span><span class="o">|</span>
+</span><span class='line'>      <span class="n">clouds</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="ss">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">y</span><span class="p">:</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">h</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">w</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">path</span><span class="p">:</span> <span class="s1">&#39;sprites/cloud.png&#39;</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">sprites</span> <span class="o">&lt;&lt;</span> <span class="n">clouds</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/o99o7jjmnfxupewak1n9.png" alt="Screen full of blue clouds" /></p>
+
+<p>Ah&#8230; blue clouds. Nice.</p>
+
+<p>On every tick, the code builds up an array of 18 sprites (images) and renders it out to the screen.</p>
+
+<p>(There are a number of ways to make this more efficient - check out the <a href="https://dev.to/presidentbeef/series/16166">previous posts</a> in this series for different ways to &#8220;cache&#8221; the sprite information.)</p>
+
+<h3>Render Targets</h3>
+
+<p>But in this post we are talking about render targets - which is a way of rendering a bunch of sprites (or any other renderable thing) just once, and then treating the whole group of sprites as a single sprite. This is <em>faster</em>, simpler, and enables some neat effects.</p>
+
+<p>The code only needs minor changes to switch the cloud grid to using a render target instead:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># Move cloud grid creation into a helper method</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">make_clouds</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">clouds</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="mi">6</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
+</span><span class='line'>    <span class="mi">3</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">y</span><span class="o">|</span>
+</span><span class='line'>      <span class="n">clouds</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="ss">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">y</span><span class="p">:</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">h</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">w</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">path</span><span class="p">:</span> <span class="s1">&#39;sprites/cloud.png&#39;</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># Similar to `args.outputs`,</span>
+</span><span class='line'>  <span class="c1"># render targets have `.sprites`, `.solids`, etc.</span>
+</span><span class='line'>  <span class="c1"># The argument will be used as the path below</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">render_target</span><span class="p">(</span><span class="ss">:clouds</span><span class="p">)</span><span class="o">.</span><span class="n">sprites</span> <span class="o">&lt;&lt;</span> <span class="n">clouds</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>  <span class="c1"># Set up the render target on the first tick</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">tick_count</span> <span class="o">==</span> <span class="mi">0</span>
+</span><span class='line'>    <span class="n">make_clouds</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="c1"># Output a single sprite</span>
+</span><span class='line'>  <span class="c1"># located at 0,0 and the size of the whole grid</span>
+</span><span class='line'>  <span class="c1"># created in `make_clouds`</span>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+</span><span class='line'>    <span class="ss">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">y</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">w</span><span class="p">:</span> <span class="mi">250</span> <span class="o">*</span> <span class="mi">6</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">h</span><span class="p">:</span> <span class="mi">250</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>
+</span><span class='line'>    <span class="ss">path</span><span class="p">:</span> <span class="ss">:clouds</span> <span class="c1"># Name of the render target!</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For convenience, the code above moves the creation of the cloud grid and the render target into a helper method which gets called on the first tick of the game.</p>
+
+<p><code>args.render_target(:clouds)</code> automatically creates a new render target named <code>:clouds</code> if it does not already exist. Then we can render things to it just as if it were <code>args.outputs</code>.</p>
+
+<p>Interestingly, render targets do not seem to have an innate width or height. In order to avoid unintentional scaling, you will need to &#8220;know&#8221; how big the render target is. In this case, we know it is a 6x3 grid of 250x250 images, so the size is fairly straightforward. I left the math in to make it clearer.</p>
+
+<p>Finally, we reference the render target similarly to an image file, but pass in the name of the render target as the <code>:path</code> instead of an actual file path.</p>
+
+<h2>Static Sprites, Too!</h2>
+
+<p><a href="https://blog.presidentbeef.com/blog/2022/01/08/dragon-ruby-static-outputs/">As explored in a different post</a>, we can use <code>static_sprites</code> to &#8220;render&#8221; the sprite <em>once</em>.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># No changes here</span>
+</span><span class='line'><span class="k">def</span> <span class="nf">make_clouds</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">clouds</span> <span class="o">=</span> <span class="o">[]</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="mi">6</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
+</span><span class='line'>    <span class="mi">3</span><span class="o">.</span><span class="n">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">y</span><span class="o">|</span>
+</span><span class='line'>      <span class="n">clouds</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+</span><span class='line'>        <span class="ss">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">y</span><span class="p">:</span> <span class="n">y</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">h</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">w</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span>
+</span><span class='line'>        <span class="ss">path</span><span class="p">:</span> <span class="s1">&#39;sprites/cloud.png&#39;</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>    <span class="k">end</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">render_target</span><span class="p">(</span><span class="ss">:clouds</span><span class="p">)</span><span class="o">.</span><span class="n">sprites</span> <span class="o">&lt;&lt;</span> <span class="n">clouds</span>
+</span><span class='line'><span class="k">end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">tick_count</span> <span class="o">==</span> <span class="mi">0</span>
+</span><span class='line'>    <span class="n">make_clouds</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># Create the clouds sprite once</span>
+</span><span class='line'>    <span class="c1"># and keep it in `args.state`.</span>
+</span><span class='line'>    <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">clouds</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>      <span class="ss">x</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">y</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">w</span><span class="p">:</span> <span class="mi">250</span> <span class="o">*</span> <span class="mi">6</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">h</span><span class="p">:</span> <span class="mi">250</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>
+</span><span class='line'>      <span class="ss">path</span><span class="p">:</span> <span class="ss">:clouds</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="c1"># Add the clouds sprite just once</span>
+</span><span class='line'>    <span class="c1"># as a &quot;static&quot; sprite</span>
+</span><span class='line'>    <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">static_sprites</span> <span class="o">&lt;&lt;</span> <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">clouds</span>
+</span><span class='line'>  <span class="k">end</span>
+</span><span class='line'><span class="k">end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And now we can move the clouds around just by changing the attributes on the render target.</p>
+
+<p>Adding a little bit of code at the end of <code>tick</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">clouds</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="no">Math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">tick_count</span> <span class="o">/</span> <span class="mi">20</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="o">-</span> <span class="mi">100</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>(The calculation and numbers aren&#8217;t really important here, I just fiddled around until something looked decent.)</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/hw1qpqotbcg6pfpqo2bq.gif" alt="Clouds moving back and forth" /></p>
+
+<p>Oh hey! Those extra pixels on the sides of the cloud grid actually came in handy.</p>
+
+<h3>What Else?</h3>
+
+<p>Remember, the entire render target is like one sprite now. That means all the regular sprite attributes (e.g. color, size, blending, flipping, rotation) can be applied to the entire thing at once.</p>
+
+<p><em>Wait, did you say rotation?</em></p>
+
+<p>Sure, let&#8217;s make ourselves dizzy.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='ruby'><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">state</span><span class="o">.</span><span class="n">clouds</span><span class="o">.</span><span class="n">angle</span> <span class="o">=</span> <span class="p">(</span><span class="no">Math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">tick_count</span> <span class="o">/</span> <span class="mi">120</span><span class="p">)</span> <span class="o">*</span> <span class="mi">180</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/g5n2ug9ehwbn8yzh2orq.gif" alt="Spinning clouds" /></p>
+
+<p>Okay, that&#8217;s as deep as we&#8217;ll go on render targets in this post!</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>
@@ -2308,467 +2806,6 @@ they will not be interpreted as code.</p>
 <p><a href="https://cheatsheetseries.owasp.org/cheatsheets/Injection_Prevention_Cheat_Sheet.html">OWASP Injection Prevention Cheatsheet</a></p>
 
 <p><a href="https://youtu.be/g_24036NDhM">Taking on the King: Killing Injection Vulnerabilities</a></p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2019/08/04/reviving-an-hp660lx-in-2019/">Reviving an HP 660LX in 2019</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2019-08-04T09:52:00-07:00" pubdate data-updated="true">Aug 4<span>th</span>, 2019</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>It started off as a joke&#8230;</p>
-
-<blockquote class="twitter-tweet" data-dnt="true" data-link-color="#E81C4F"><p lang="en" dir="ltr">Just setting up my burner machine for <a href="https://twitter.com/defcon?ref_src=twsrc%5Etfw">@defcon</a> <a href="https://t.co/Dz9pjCBTCo">pic.twitter.com/Dz9pjCBTCo</a></p>&mdash; Justin Collins (@presidentbeef) <a href="https://twitter.com/presidentbeef/status/1144761345847336960?ref_src=twsrc%5Etfw">June 29, 2019</a></blockquote>
-
-
-<p> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script></p>
-
-<p>I had spent some time <em>several years ago</em> trying to get Linux running on this machine via the (defunct) JLime project,
-so I had some of the pieces available to actually get this little &#8220;pocket computer&#8221; going again - mainly
-compatible CompactFlash cards and an external card reader.
-But I was mostly joking.</p>
-
-<p>Then I starting thinking how funny it would be to actually sit in a talk and take notes at <a href="https://defcon.org/">DEF CON</a> on an ancient &#8220;laptop&#8221;&#8230;</p>
-
-<h3>Battery Power</h3>
-
-<p>The reason I was mostly joking is because the batteries in the 660LX were not working at all.
-So, what was I going to do? Plug it into the wall? That&#8217;s just sad, not funny.</p>
-
-<p>I started looking around online for replacement batteries for this machine from 1998.
-Despite visiting several rather shady websites, for some reason I was unable to find anyone selling twenty-year-old
-laptop batteries.
-Some sites claimed to offer a replacement, but from the pictures it was clear they would not work.
-The only real possibilities I found were complete sets - a 660LX, manual, cables, etc.
-I already had a 660LX, acquired for free, so I really didn&#8217;t want to spend $100+ on another one!
-Also, kind of ruins the joke to do so.</p>
-
-<p><em>(Side note: the 660LX has a button battery for backup power. Searching for &#8220;HP 660LX battery&#8221; will return sites trying to sell
-you a little CR2032 battery.)</em></p>
-
-<p>Now, I will admit my mental model of a laptop battery was a block of chemical goop inside of some plastic wrap with some wires coming out of it.
-After ungracefully disassembling the 660LX battery, I found inside it was just two smaller batteries?!</p>
-
-<p><a href="/images/blog/hp_660lx/hp660lx_battery_open.jpg"><img src="/images/blog/hp_660lx/hp660lx_battery_open.jpg" alt="Open battery pack of HP 660LX" /></a></p>
-
-<p>The batteries said &#8220;US18650S SONY ENERGYTEC&#8221; on them.</p>
-
-<p><a href="/images/blog/hp_660lx/hp_660lx_old_batteries.jpg"><img src="/images/blog/hp_660lx/hp_660lx_old_batteries.jpg" alt="Sony 18650S Batteries" /></a></p>
-
-<p>While I didn&#8217;t find those exact batteries, some investigation showed the 18650 battery in general is extremely common.</p>
-
-<p>There are two kinds of 18650 - one with &#8220;caps&#8221; (that little nub on the top) and one without.
-It seems the ones with caps are safer, as they have an internal circuit to keep them from blowing up.
-However, as you can see above, I needed the kind without caps. Presumably the little circuit board
-regulates charging the batteries.</p>
-
-<p>The Internet suggested sticking to &#8220;brand name&#8221; batteries, but weirdly Amazon does not carry any of those.
-I took a chance on a pack of batteries which reviewers suggested looked like &#8220;genuine&#8221; Samsung batteries.</p>
-
-<p><a href="/images/blog/hp_660lx/samsung_18650-30Q_batteries.jpg"><img src="/images/blog/hp_660lx/samsung_18650-30Q_batteries.jpg" alt="Samsung 18650 batteries" /></a></p>
-
-<p>I carefully ripped the old batteries out. The leads from the batteries to the little circuit board were
-actually soldered to the batteries, so I pried them off with a screwdriver. Probably not a great idea
-unless they are really, truly dead.</p>
-
-<p>With some effort, I shoved the new batteries back in the case and sandwiched the wires back in as well.
-I didn&#8217;t bother actually attaching/gluing/soldering anything.</p>
-
-<p>I did, however, scare myself when I generated a terrifying electric arc as I
-tried to use a screwdriver to squeeze everything back into the battery case.</p>
-
-<p><a href="/images/blog/hp_660lx/hp660lx_batteries_replaced.jpg"><img src="/images/blog/hp_660lx/hp660lx_batteries_replaced.jpg" alt="HP 660LX batteries replaced" /></a></p>
-
-<p>I may have damaged the case just a tiny bit when I gently pried it open,
-contributing to it looking slightly sketchy when I tried to close it back up.</p>
-
-<p><a href="/images/blog/hp_660lx/hp660lx_battery_together.jpg"><img src="/images/blog/hp_660lx/hp660lx_battery_together.jpg" alt="HP 660LX battery put back together" /></a></p>
-
-<p>But, who cares how it looks&#8230;does it work??</p>
-
-<p><a href="/images/blog/hp_660lx/hp660lx_running_on_new_batteries.jpg"><img src="/images/blog/hp_660lx/hp660lx_running_on_new_batteries.jpg" alt="HP 660LX running on battery power" /></a></p>
-
-<p><strong>YES!</strong></p>
-
-<p>Hahahaha now I can walk around using my relic with no wires!</p>
-
-<h3>Software Updates</h3>
-
-<p>Nowadays, a device that can&#8217;t connect to anything does not seem like much fun.</p>
-
-<p>Of course I wanted to hook this Windows CE 2.0 machine up to the Internet!</p>
-
-<p>The HP 660LX has a &#8220;PC CARD&#8221; expansion slot where you can slap in an Ethernet or wireless card,
-but of course it is ancient and you have to be careful about compatibility.</p>
-
-<p>Enter <a href="https://www.hpcfactor.com/">HPC: Factor</a>! This is a website/forum full of useful information.
-For £10 you can get access to a ton of file downloads (software, drivers, updates) for a year.
-Totally worth it.</p>
-
-<p>One thing I learned quickly is that you need the service pack for Windows CE 2.0 and the Network Service Pack
-in order to have a chance at getting a wireless card to work.</p>
-
-<p>At this point, I had been transferring files to the 660LX via a compact flash card (which, at 8GB, probably blew the little machine&#8217;s <em>mind</em>).
-However, most software for Windows CE requires installation via ActiveSync.</p>
-
-<p><a href="/images/blog/hp_660lx/kingston_cf_8gb_card.jpg"><img src="/images/blog/hp_660lx/kingston_cf_8gb_card.jpg" alt="Kingston CompactFlash card" /></a></p>
-
-<p>What is ActiveSync? Well, originally these &#8220;pocket computers&#8221; weren&#8217;t meant to be tiny laptops.
-They were more like little helpers you use while you are away from your main machine, then you sync up
-files, calendars, email, etc. when you went back to your desk.</p>
-
-<p>ActiveSync was the software used to sync between a pocket computer and your main machine.</p>
-
-<p>Now, for Windows CE 2.0, the recommended version of ActiveSync is 3.8. The very <em>newest</em> operating system
-supported by ActiveSync 3.8 is Windows XP.</p>
-
-<p>By pure luck, I had an old Windows XP laptop and I was able to install ActiveSync!</p>
-
-<p><strong>BUT</strong>&#8230; you need a special serial cable to hook up the 660LX.
-At first I poked around eBay, but no luck. Yet, in the back of my mind,
-I was <em>pretty</em> sure I still had that cable somewhere. I searched all around my office and
-dug through my big box of (mostly useless) cables,
-but still no luck.</p>
-
-<p>Just when I gave up (of course) I found it!! Yay!!</p>
-
-<p><strong>BUT</strong>&#8230; turns out I don&#8217;t have a serial port on my Windows XP laptop.</p>
-
-<p>I thought about trying a Windows XP virtual machine on my main Linux box, but it doesn&#8217;t have a serial port, either!
-None of my machines had an infrared port, either.</p>
-
-<p>After first buying the wrong cable on Amazon, I got an RS-232 to USB adapter and a tiny, tiny CD with drivers.
-Luckily, the laptop has a CD drive, so I was able to actually install the proper drivers.</p>
-
-<p><a href="/images/blog/hp_660lx/usb_to_serial_cable.jpg"><img src="/images/blog/hp_660lx/usb_to_serial_cable.jpg" alt="USB to serial cable" /></a></p>
-
-<p>After an uncomfortable amount of configuration twiddling&#8230; they connected!!</p>
-
-<p><a href="/images/blog/hp_660lx/active_sync_connected.jpg"><img src="/images/blog/hp_660lx/active_sync_connected.jpg" alt="ActiveSync is connected" /></a></p>
-
-<p>I was then able to install Windows CE 2.0 SP1 and the CE Network Service Pack.</p>
-
-<p><a href="/images/blog/hp_660lx/install_ce_sp1.jpg"><img src="/images/blog/hp_660lx/install_ce_sp1.jpg" alt="Installing Windows CE SP1" /></a></p>
-
-<h3>Networking</h3>
-
-<p>One of my criteria for this project was to <em>not spend much money on a joke</em>.</p>
-
-<p>After spending some time looking around, I bought a $20 wireless adapter off of eBay.
-$20 was really right at the limit of my per-item budget.</p>
-
-<p>In the meantime, though, I found out there was another way to access the Internet.</p>
-
-<p>Turns out you can &#8220;share&#8221; the networking connection on the main machine with the 660LX
-over the serial cable, via ActiveSync.</p>
-
-<p>The only weird bit is that you need to run a proxy server on the main machine to route
-the connection to the Internet.</p>
-
-<p>In the modern world, that is not a problem. In the land of Windows XP, however, I was not sure I would be able to get something working.
-I found <a href="https://www.youngzsoft.net/ccproxy/windows-proxy-server.htm">CCProxy</a>, which did work, despite its awful and confusing interface.</p>
-
-<p>Configured the proxy for &#8220;The Internet&#8221; on the 660LX and&#8230;</p>
-
-<p><a href="/images/blog/hp_660lx/hp660lx_accessing_google.jpg"><img src="/images/blog/hp_660lx/hp660lx_accessing_google.jpg" alt="Accessing Google via Pocket Explorer" /></a></p>
-
-<p>Wow! The Internet!</p>
-
-<p>Sadly&#8230; or not so sadly&#8230; the world has moved to HTTPS and to stronger protocols than what
-lowly Pocket Explorer supports. Thus, most of the web is entirely inaccessible on the device.</p>
-
-<p><a href="/images/blog/hp_660lx/hp660lx_failure_to_access_github.jpg"><img src="/images/blog/hp_660lx/hp660lx_failure_to_access_github.jpg" alt="Failure to access sites over HTTPS" /></a></p>
-
-<p>As a result, when the eBay seller canceled my order for the wireless adapter, I figured &#8220;meh&#8221;.
-Even if you can get WiFi working (which would likely require connecting to a totally unsecured network),
-there&#8217;s not much of the web that one can even visit.</p>
-
-<p>Yes, it would be possible to use an SSL stripper, etc., but I didn&#8217;t want to go through the hassle of setting
-that up on Windows XP.</p>
-
-<h3>Wrapping Up</h3>
-
-<p><a href="/images/blog/hp_660lx/the_whole_setup.jpg"><img src="/images/blog/hp_660lx/the_whole_setup.jpg" alt="The whole setup" /></a></p>
-
-<p>This turned into more of a narrative than a how-to guide.
-Maybe I&#8217;ll do another write-up with the details.
-In the meantime, I can try to answer questions about specifics.</p>
-</div>
-  
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/2018/11/28/finding-ruby-performance-hotspots-via-allocation-stats/">Finding Ruby Performance Hotspots via Allocation Stats</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2018-11-28T11:45:00-08:00" pubdate data-updated="true">Nov 28<span>th</span>, 2018</time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><a href="https://github.com/seattlerb/ruby_parser/">RubyParser</a> is a library written by <a href="http://www.zenspider.com/">Ryan Davis</a> for parsing Ruby code and producing an abstract syntax tree. It is used by <a href="https://brakemanscanner.org/">Brakeman</a> and several other static analysis gems.</p>
-
-<p>Recently I was poking around to see if there was any low-hanging fruit for performance improvements.
-At first, I was interested in the generated parsers. Racc outputs some <em>crazy</em> arrays of state machine changes.
-Instead of generating arrays of integers, it outputs arrays of strings, then splits those strings into integers which it loads into the final array.
-I thought for sure skipping this and starting with the final array of integers would be faster, but&#8230;somehow it wasn&#8217;t.</p>
-
-<p>I moved on to thinking about <a href="https://wyeworks.com/blog/2015/12/1/immutable-strings-in-ruby-2-dot-3">frozen string literals</a>, which led me to checking String allocations.</p>
-
-<h3>Measuring String Allocations</h3>
-
-<p>I found the <a href="https://github.com/srawlins/allocation_stats">allocation_stats</a> gem very useful for this.</p>
-
-<p>I set up a test like this to read in a file and parse it:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="nb">require</span> <span class="s1">&#39;ruby_parser&#39;</span>
-</span><span class='line'><span class="nb">require</span> <span class="s1">&#39;allocation_stats&#39;</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">f</span> <span class="o">=</span> <span class="no">File</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="no">ARGV</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">rp</span> <span class="o">=</span> <span class="no">RubyParser</span><span class="o">.</span><span class="n">new</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">stats</span> <span class="o">=</span> <span class="no">AllocationStats</span><span class="o">.</span><span class="n">trace</span> <span class="k">do</span>
-</span><span class='line'>  <span class="n">rp</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="no">ARGV</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span>
-</span><span class='line'><span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'><span class="nb">puts</span> <span class="n">stats</span><span class="o">.</span><span class="n">allocations</span><span class="p">(</span><span class="n">alias_paths</span><span class="p">:</span> <span class="kp">true</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="ss">class</span><span class="p">:</span> <span class="nb">String</span><span class="p">)</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span><span class="ss">:sourcefile</span><span class="p">,</span> <span class="ss">:sourceline</span><span class="p">)</span><span class="o">.</span><span class="n">sort_by_count</span><span class="o">.</span><span class="n">to_text</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This outputs a report like this (truncated here):</p>
-
-<pre><code>                    sourcefile                      sourceline  count
---------------------------------------------------  ----------  -----
-&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_parser.rb                 20  70686
-&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_parser_extras.rb        1361  58154
-&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_parser_extras.rb        1362  54672
-&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_lexer.rb                 373  19019
-&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_lexer.rb                 770  12005
-&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_lexer.rex.rb             109   8252
-&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_parser_extras.rb        1015   6818
-</code></pre>
-
-<p>Right away, these look like some juicy targets.</p>
-
-<h3>Version Creation</h3>
-
-<p>Let&#8217;s take a look at the first one:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Parser</span> <span class="o">&lt;</span> <span class="ss">Racc</span><span class="p">:</span><span class="ss">:Parser</span>
-</span><span class='line'>  <span class="kp">include</span> <span class="no">RubyParserStuff</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">inherited</span> <span class="n">x</span>
-</span><span class='line'>    <span class="ss">RubyParser</span><span class="p">:</span><span class="ss">:VERSIONS</span> <span class="o">&lt;&lt;</span> <span class="n">x</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">version</span>
-</span><span class='line'>    <span class="no">Parser</span> <span class="o">&gt;</span> <span class="nb">self</span> <span class="ow">and</span> <span class="nb">self</span><span class="o">.</span><span class="n">name</span><span class="o">[</span><span class="sr">/(?:V|Ruby)(\d+)/</span><span class="p">,</span> <span class="mi">1</span><span class="o">].</span><span class="n">to_i</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>On line 8 you can see the <code>Parser.version</code> method. RubyParser is actually not just one parser, but multiple parsers for different versions of Ruby.
-So there is a <code>RubyParser</code> class but also <code>Ruby18Parser</code>, <code>Ruby19Parser</code>, etc. <em>and</em> <code>RubyParser::V18</code>, <code>RubyParser::V19</code>, etc.
-To figure out the version of the current class, the code above grabs the version from the class name itself.</p>
-
-<p>The problem is this code is called <em>a lot</em> (70k+ in the example above) to make version-specific decisions during the lexing phase.
-This is <a href="https://github.com/presidentbeef/ruby_parser/commit/7274aa6df023981fc3c375a9d22bcde781f2cc3f">fairly easy to fix</a>.</p>
-
-<p>In my testing, this <strong>reduced string allocations by ~25% and parse time by 5-10%.</strong>
-One thing I have noticed - and you may also find if you go chasing object allocations in Ruby programs - is that reducing allocations doesn&#8217;t necessarily help with peak memory use or run time.
-It seems the Ruby VM has gotten pretty good at allocating and garbage collecting objects efficiently.</p>
-
-<h3>Debug Code</h3>
-
-<p>Let&#8217;s take a look at the next two large number of String allocations:</p>
-
-<pre><code>                    sourcefile                      sourceline  count
---------------------------------------------------  ----------  -----
-&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_parser_extras.rb        1361  58154
-&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_parser_extras.rb        1362  54672
-</code></pre>
-
-<p>Interesting: just two lines apart, with over 100k allocations between them.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">push</span> <span class="n">val</span>
-</span><span class='line'>  <span class="vi">@stack</span><span class="o">.</span><span class="n">push</span> <span class="n">val</span>
-</span><span class='line'>  <span class="n">c</span> <span class="o">=</span> <span class="nb">caller</span><span class="o">.</span><span class="n">first</span>
-</span><span class='line'>  <span class="n">c</span> <span class="o">=</span> <span class="nb">caller</span><span class="o">[</span><span class="mi">1</span><span class="o">]</span> <span class="k">if</span> <span class="n">c</span> <span class="o">=~</span> <span class="sr">/expr_result/</span>
-</span><span class='line'>  <span class="nb">warn</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">_stack(push): </span><span class="si">#{</span><span class="n">val</span><span class="si">}</span><span class="s2"> at line </span><span class="si">#{</span><span class="n">c</span><span class="o">.</span><span class="n">clean_caller</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">debug</span>
-</span><span class='line'>  <span class="kp">nil</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>The two lines of interest are 3 and 4 - the assignments to the local variable <code>c</code>, which pull information from <code>caller</code>.
-<code>caller</code> is a fairly expensive method, since it needs to generate a stack trace for the current method call.</p>
-
-<p>Upon a closer look, it&#8217;s clear the <code>c</code> variable is only used in the message on the following line, and that message is only used if the <code>debug</code> flag is set.
-This means we can wrap all that code in a condition, like this:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">push</span> <span class="n">val</span>
-</span><span class='line'>  <span class="vi">@stack</span><span class="o">.</span><span class="n">push</span> <span class="n">val</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">if</span> <span class="n">debug</span>
-</span><span class='line'>    <span class="n">c</span> <span class="o">=</span> <span class="nb">caller</span><span class="o">.</span><span class="n">first</span>
-</span><span class='line'>    <span class="n">c</span> <span class="o">=</span> <span class="nb">caller</span><span class="o">[</span><span class="mi">1</span><span class="o">]</span> <span class="k">if</span> <span class="n">c</span> <span class="o">=~</span> <span class="sr">/expr_result/</span>
-</span><span class='line'>    <span class="nb">warn</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">_stack(push): </span><span class="si">#{</span><span class="n">val</span><span class="si">}</span><span class="s2"> at line </span><span class="si">#{</span><span class="n">c</span><span class="o">.</span><span class="n">clean_caller</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="kp">nil</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>This change <strong>saves 38-50% on string allocations and 20-26% on parse time.</strong></p>
-
-<h3>Reading Lines</h3>
-
-<p>Skipping down a few unavoidable string allocations, there&#8217;s this one:</p>
-
-<pre><code>                    sourcefile                      sourceline  count
---------------------------------------------------  ----------  -----
-&lt;GEM:ruby_parser-3.11.0&gt;/lib/ruby_parser_extras.rb        1015   6818
-</code></pre>
-
-<p>Here&#8217;s the code:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">header</span> <span class="o">=</span> <span class="n">str</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">first</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>RubyParser checks the first couple lines of a file for any comments setting the encoding for the file. The trouble is that calling <code>String#lines</code> will split the entire string up when we only need the first two lines.</p>
-
-<p>Grabbing only the first two lines ends up being pretty trivial thanks to Ruby&#8217;s standard approach of returning enumerators for enumeration methods if a block is not supplied:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">header</span> <span class="o">=</span> <span class="n">str</span><span class="o">.</span><span class="n">each_line</span><span class="o">.</span><span class="n">first</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p><code>String#each_line</code> will lazily return the lines from the string, so it only does the work needed.</p>
-
-<p>Sadly, this didn&#8217;t do much for overall string allocations and parse time since this method is only called once, but I think it&#8217;s a clear improvement to only grab the two lines needed.</p>
-
-<h3>Freezing Strings</h3>
-
-<p>Finally, back to the original idea. By the time I made it back to freezing string literals, I was feeling pretty lazy, so I just threw the frozen string header on <a href="https://github.com/seattlerb/ruby_parser/blob/dd2adeca68471a2de7a8d541fb145972f3e3494f/lib/ruby_lexer.rb"><code>ruby_lexer.rb</code></a>:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="c1"># frozen_string_literal: true</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Running the tests showed only one method where frozen string literals did not work, so these strings needed to be <code>dup</code>ed.</p>
-
-<p>String allocations were reduced by 24-30%, but with almost no parse time change. Probably because these were tiny, tiny strings.</p>
-
-<h3>Final Metrics</h3>
-
-<p>With these four changes, <strong>string allocations were reduced by 75-83% and parse time was reduced by 30-37%.</strong> The test suite for RubyParser ran 33% faster on my machine.</p>
-
-<p>I did not see a huge decrease in peak memory use. Maybe 3%. My guess is this is because the String representation in Ruby is fairly well-optimized already (e.g. copy-on-write).</p>
-
-<p>For Brakeman, parsing is a decent part of the run time (30-60% even), so a faster RubyParser definitely makes Brakeman scans faster. From a few test scans, I saw as much as a 30% improvement in total scan time.</p>
-
-<h3>Final Changes</h3>
-
-<p>The final version of the changes applied by Ryan are in <a href="https://github.com/seattlerb/ruby_parser/commit/358e5a058e1eca75c6d6ab075ae31c2cc44827a5">this commit</a>.</p>
-
-<p>I expect these improvements will be in the next RubyParser and Brakeman releases.</p>
 </div>
   
   
