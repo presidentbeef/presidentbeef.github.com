@@ -111,12 +111,18 @@
         <lastmod>2022-02-02T20:24:57-08:00</lastmod>
     </url>
     <url>
+        <loc>
+            https://blog.presidentbeef.com/blog/2022/02/17/automatically-partitioning-cloudflare-logs-for-athena/
+        </loc>
+        <lastmod>2022-02-17T20:34:12-08:00</lastmod>
+    </url>
+    <url>
         <loc>https://blog.presidentbeef.com/about/</loc>
         <lastmod>2020-05-11T07:39:00-07:00</lastmod>
     </url>
     <url>
         <loc>https://blog.presidentbeef.com/blog/archives/</loc>
-        <lastmod>2022-02-02T20:24:57-08:00</lastmod>
+        <lastmod>2022-02-17T20:34:12-08:00</lastmod>
     </url>
     <url>
         <loc>https://blog.presidentbeef.com/404.html</loc>
@@ -124,6 +130,6 @@
     </url>
     <url>
         <loc>https://blog.presidentbeef.com/</loc>
-        <lastmod>2022-02-02T20:24:57-08:00</lastmod>
+        <lastmod>2022-02-17T20:34:12-08:00</lastmod>
     </url>
 </urlset>
