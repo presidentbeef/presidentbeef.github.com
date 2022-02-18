@@ -9,7 +9,7 @@
   <meta name="author" content="Justin Collins">
 
   
-  <meta name="description" content="Background About a month ago, an issue was reported where Brakeman taking a ridiculously long time on the &#8220;call indexing&#8221; step. At the &hellip;">
+  <meta name="description" content="SQL injection (SQLi) is any situation in which a user can manipulate a database query in an unintended manner. Consequences of SQL injection &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -33,7 +33,7 @@
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:site" content="@presidentbeef" />
 <meta name="twitter:title" content="Justin Collins' Blugh" />
-<meta name="description" content="Background About a month ago, an issue was reported where Brakeman taking a ridiculously long time on the &#8220;call indexing&#8221; step. At the &hellip;">
+<meta name="description" content="SQL injection (SQLi) is any situation in which a user can manipulate a database query in an unintended manner. Consequences of SQL injection &hellip;">
 
   
   <script type="text/javascript">
@@ -73,6 +73,91 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/02/08/avoid-sql-injection-in-rails/">Avoiding SQL Injection in Rails</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-02-08T09:45:00-08:00" pubdate data-updated="true">Feb 8<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>SQL injection (SQLi) is any situation in which a user can manipulate a database query in an unintended manner. Consequences of SQL injection vulnerabilites range from data leaks, to authentication bypass, to root access on a database server. In short, it is a very big deal.</p>
+
+<p>Most Rails applications interact with a database through ActiveRecord, the default and convenient Object Relational Mapping (ORM) layer which comes with Rails.
+Generally, use of ORMs is safer than not. They can provide abstraction and safety and allow developers to avoid manually building SQL queries. They can embody best practices and prevent careless handling of external input.</p>
+
+<p>Instead of unsafe code like</p>
+
+<pre><code>query = "SELECT * FROM users WHERE name = '#{name}' AND password = '#{password'} LIMIT 1"
+results = DB.execute(query)
+</code></pre>
+
+<p>You can have safer, simpler code like</p>
+
+<pre><code>User.where(:name =&gt; name, :password =&gt; :password).first
+</code></pre>
+
+<p>My impression is many people assume the Rails framework will protect them as long as they avoid the &#8220;obviously dangerous&#8221; methods, like <code>find_by_sql</code>.</p>
+
+<p>Unfortunately, ActiveRecord is unsafe more often than it is safe. It does provide parameterization of queries (the API documentation for which can be <a href="http://api.rubyonrails.org/classes/ActiveRecord/Base.html">found here</a>) for some methods, there are many methods for which it does not. While these methods are not intended to be used with user input, the truth is that has never stopped anyone.</p>
+
+<p>To make it clear how dangerous it can be to use ActiveRecord, consider <a href="http://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F">ActiveRecord::FinderMethods#exists?</a> which queries the database and returns <code>true</code> if a matching record exists. The argument can be a primary key (either integer or string, if a string it will be sanitized), an array consisting of a template string and values to safely interpolate, or a hash of column-value pairs (which will be sanitized).</p>
+
+<p>Here is an example of using <code>exists?</code> to determine if a given user exists:</p>
+
+<pre><code>User.exists? params[:user_id]
+</code></pre>
+
+<p>This looks harmless, since <code>params[:user_id]</code> is a string, and strings will be sanitized. In fact, the documentation clearly points out not to pass in conditions as strings, because they will be escaped.</p>
+
+<p>However, there is no gaurantee <code>params[:user_id]</code> is a string. An attacker could send a request with <code>?user_id[]=some_attack_string</code>, which Rails will turn into an array <code>["some_attack_string"]</code>. Now the argument is an array, the first element of which is not escaped.</p>
+
+<p>To avoid this problem, the user input should be converted to the expected type:</p>
+
+<pre><code>User.exists? params[:user_id].to_i
+</code></pre>
+
+<p>Or use a hash:</p>
+
+<pre><code>User.exists? :id =&gt; params[:user_id]
+</code></pre>
+
+<p>This should be the approach for all uses of user input. Do not assume <em>anything</em> about values from external sources or what safety mechanisms a method might have.</p>
+
+<p>While working on <a href="http://brakemanscanner.org/">Brakeman</a>, I thought it would be useful to put together a list of all the unsafe ways one can use ActiveRecord.</p>
+
+<p>To make it easier on myself, I built the list into a Rails application so I could easily test, verify, and record any findings. The source is <a href="https://github.com/presidentbeef/inject-some-sql">available here</a> for those who would like try out the examples. The application is a single page of all the queries and example injections. From there one can submit queries and see the results:</p>
+
+<p><img src="/images/blog/inject-some-sql.png" alt="Query Example" /></p>
+
+<p>The resulting information is available at <a href="http://rails-sqli.org">rails-sqli.org</a>, including examples of how SQL injection can occur and the resulting queries. This is basically a big list of what <em>not</em> to do when using ActiveRecord. Again, please feel free to <a href="https://github.com/presidentbeef/inject-some-sql">contribute</a> so that the list can be as authoritative as possible and help everyone avoid SQL injection in Rails.</p>
+</div>
+  
+  
+
+
+    </article>
   
   
     <article>

@@ -4,7 +4,7 @@
   <title><![CDATA[Justin Collins' Blugh]]></title>
   <link href="https://blog.presidentbeef.com/atom.xml" rel="self"/>
   <link href="https://blog.presidentbeef.com/"/>
-  <updated>2022-02-02T20:25:36-08:00</updated>
+  <updated>2022-02-17T21:11:44-08:00</updated>
   <id>https://blog.presidentbeef.com/</id>
   <author>
     <name><![CDATA[Justin Collins]]></name>
@@ -12,6 +12,372 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Automatically Partitioning Cloudflare Logs for Athena]]></title>
+    <link href="https://blog.presidentbeef.com/blog/2022/02/17/automatically-partitioning-cloudflare-logs-for-athena/"/>
+    <updated>2022-02-17T21:00:00-08:00</updated>
+    <id>https://blog.presidentbeef.com/blog/2022/02/17/automatically-partitioning-cloudflare-logs-for-athena</id>
+    <content type="html"><![CDATA[<p>If you are using Cloudflare, it can be helpful to <a href="https://developers.cloudflare.com/logs/get-started/enable-destinations/aws-s3">configure Cloudflare to push request logs to S3</a>. Otherwise, the Cloudflare dashboard provides only a limited view into your data (72 hours at a time and sampled data instead of full logs).</p>
+
+<p>Once the Cloudflare request logs are in S3, they can be queried using <a href="https://aws.amazon.com/athena/">Athena</a>. <a href="https://duffn.medium.com/analyzing-cloudflare-logs-with-aws-athena-19c1399c91e3">This blog post</a> even provides a nice <code>CREATE TABLE</code> command to set up the table in Athena.</p>
+
+<p>However, there is a problem. When performing a query in Athena, it <em>might</em> have to scan <em>all</em> of the logs in S3, even if you try to limit the query. This can be slow and costly, as Athena queries are charged per byte scanned.</p>
+
+<p>The only way to really limit the amount of data scanned is to <a href="https://docs.aws.amazon.com/athena/latest/ug/partitions.html">partition the data</a>.</p>
+
+<p>This post assumes you have already set up Cloudflare to push logs to an S3 bucker, configured a database in Athena to access, and then realized those logs will grow forever, along with your query times.</p>
+
+<p>(If you just want the &#8220;how to&#8221; without the exposition, jump down to &#8220;Setting Up Partitions for Cloudflare Logs&#8221;.)</p>
+
+<h3>Partitioning</h3>
+
+<p>Most commonly, you will want to look at logs from a specific time period, so it makes sense to partition the logs by date.</p>
+
+<p>Most of the partitioning documentation suggests the files (or in this case, S3 objects) include a <code>column=value</code> key pair in the name. The <code>column</code> can then be used as a partition.</p>
+
+<p>Unfortunately, Cloudflare does not allow customizing the format of the file names it produces.</p>
+
+<p><em>Fortunately</em>, the file names do include date/time information. The logs are grouped by date and time range:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>s3://mah_s3_bucket/20210812/20210812T223000Z_20210812T224000Z_9af500e2.log.gz</span></code></pre></td></tr></table></div></figure>
+
+
+<p>So all we need to do is grab that date &#8220;folder&#8221; name and that&#8217;s our partition! Easy, right?</p>
+
+<p>No, wrong. This is AWS. <em>Nothing is easy.</em></p>
+
+<h3>Use a Recurring Job?</h3>
+
+<p>Several of the AWS documentation pages suggest using <code>ALTER TABLE</code> to <a href="https://docs.aws.amazon.com/athena/latest/ug/alter-table-add-partition.html"><code>ADD PARTITION</code>s</a>.</p>
+
+<p>Something like this:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">cloudflare_logs</span> <span class="k">ADD</span>
+</span><span class='line'>  <span class="n">PARTITION</span> <span class="p">(</span><span class="n">dt</span> <span class="o">=</span> <span class="s1">&#39;2021-08-12&#39;</span><span class="p">)</span> <span class="k">LOCATION</span> <span class="s1">&#39;s3://mah_log_bucket/20210812/&#39;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>But since the logs will grow every day, we&#8217;ll need to add new a new partition every 24 hours. It is not possible to &#8220;predefine&#8221; the partitions.</p>
+
+<p>This requires setting up a recurring job&#8230; somewhere&#8230; to periodically define the new partitions. So now we have to pull in <em>another</em> AWS service to make S3 and Athena work nicely?! No thanks!</p>
+
+<h3>Partition Projection</h3>
+
+<p>At the bottom of the page about partitions, there is a paragraph about &#8221;<a href="https://docs.aws.amazon.com/athena/latest/ug/partitions.html#partitions-partition-projection">partition projection</a>&#8221; that sounds promising:</p>
+
+<blockquote><p>To avoid having to manage partitions, you can use partition projection. Partition projection is an option for highly partitioned tables whose structure is known in advance.</p></blockquote>
+
+<p>Yes, this is what we want! But how does it work?</p>
+
+<p>Essentially like this:</p>
+
+<p>We must define a column, its type, start and end values, and the interval between those values. Athena will then be able to extrapolate all the possible values.</p>
+
+<p>Then we define a pattern to pull the value out of each S3 object <em>name</em>. This allows Athena to figure out which objects (logs) are associated with which partition value.</p>
+
+<p>For example, the partition <code>20210812</code> will be associated with <code>s3://mah_s3_bucket/20210812/20210812T223000Z_20210812T224000Z_9af500e2.log.gz</code></p>
+
+<p>Once that&#8217;s all done, we can query based on the partition as if it were a column, like:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">cloudflare_logs</span>
+</span><span class='line'><span class="k">WHERE</span> <span class="n">log_date</span> <span class="o">&gt;=</span> <span class="s1">&#39;20210812&#39;</span>
+</span><span class='line'>  <span class="k">AND</span> <span class="n">log_date</span> <span class="o">&lt;</span> <span class="s1">&#39;20210901&#39;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h2>Setting Up Partitions for Cloudflare Logs</h2>
+
+<p>Here are the steps that <em>must</em> be taken to set up the partitions:</p>
+
+<ol>
+<li>Add the partition &#8220;column&#8221; when creating the table</li>
+<li>Set several properties on the table to define the projection</li>
+<li>Set the partition pattern to match against object names</li>
+<li>Enable projection</li>
+</ol>
+
+
+<p>(Actually, 2-4 are all the same: set (totally unvalidated) key-value properties on the table.)</p>
+
+<p>Fortunately, all of this can be accomplished with one giant Athena command:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">CREATE</span> <span class="k">EXTERNAL</span> <span class="k">TABLE</span> <span class="o">`</span><span class="n">YOUR_TABLE_NAME</span><span class="o">`</span><span class="p">(</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">botscore</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">botscoresrc</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">cachecachestatus</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">cacheresponsebytes</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">cacheresponsestatus</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">clientasn</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">clientcountry</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">clientdevicetype</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">clientip</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">clientipclass</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">clientrequestbytes</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">clientrequesthost</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">clientrequestmethod</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">clientrequestpath</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">clientrequestprotocol</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">clientrequestreferer</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">clientrequesturi</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">clientrequestuseragent</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">clientsslcipher</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">clientsslprotocol</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">clientsrcport</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">edgecolocode</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">edgecoloid</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">edgeendtimestamp</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">edgepathingop</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">edgepathingsrc</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">edgepathingstatus</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">edgeratelimitaction</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">edgeratelimitid</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">edgerequesthost</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">edgeresponsebytes</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">edgeresponsecontenttype</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">edgeresponsestatus</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">edgeserverip</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">edgestarttimestamp</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">firewallmatchesactions</span><span class="o">`</span> <span class="nb">array</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">firewallmatchesruleids</span><span class="o">`</span> <span class="nb">array</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">firewallmatchessources</span><span class="o">`</span> <span class="nb">array</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">originip</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">originresponsestatus</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">originresponsetime</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">originsslprotocol</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">rayid</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">wafaction</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">wafflags</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">wafmatchedvar</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">wafprofile</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">wafruleid</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">wafrulemessage</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">workersubrequest</span><span class="o">`</span> <span class="nb">boolean</span><span class="p">,</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">zoneid</span><span class="o">`</span> <span class="nb">bigint</span><span class="p">)</span>
+</span><span class='line'><span class="n">PARTITIONED</span> <span class="k">BY</span> <span class="p">(</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">YOUR_COLUMN_NAME</span><span class="o">`</span> <span class="n">string</span><span class="p">)</span>
+</span><span class='line'><span class="k">ROW</span> <span class="n">FORMAT</span> <span class="n">SERDE</span>
+</span><span class='line'>  <span class="s1">&#39;org.openx.data.jsonserde.JsonSerDe&#39;</span>
+</span><span class='line'><span class="n">STORED</span> <span class="k">AS</span> <span class="n">INPUTFORMAT</span>
+</span><span class='line'>  <span class="s1">&#39;org.apache.hadoop.mapred.TextInputFormat&#39;</span>
+</span><span class='line'><span class="n">OUTPUTFORMAT</span>
+</span><span class='line'>  <span class="s1">&#39;org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat&#39;</span>
+</span><span class='line'><span class="k">LOCATION</span>
+</span><span class='line'>  <span class="s1">&#39;s3://YOUR_BUCKET_NAME/&#39;</span>
+</span><span class='line'><span class="n">TBLPROPERTIES</span> <span class="p">(</span>
+</span><span class='line'>  <span class="s1">&#39;projection.enabled&#39;</span><span class="o">=</span><span class="s1">&#39;TRUE&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="s1">&#39;projection.YOUR_COLUMN_NAME.format&#39;</span><span class="o">=</span><span class="s1">&#39;yyyyMMdd&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="s1">&#39;projection.YOUR_COLUMN_NAME.interval&#39;</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="s1">&#39;projection.YOUR_COLUMN_NAME.interval.unit&#39;</span><span class="o">=</span><span class="s1">&#39;DAYS&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="s1">&#39;projection.YOUR_COLUMN_NAME.range&#39;</span><span class="o">=</span><span class="s1">&#39;YOUR_START_DATE,NOW&#39;</span><span class="p">,</span>
+</span><span class='line'>  <span class="s1">&#39;projection.YOUR_COLUMN_NAME.type&#39;</span><span class="o">=</span><span class="s1">&#39;date&#39;</span><span class="p">,</span>
+</span><span class='line'>
+</span><span class='line'> <span class="s1">&#39;storage.location.template&#39;</span><span class="o">=</span><span class="s1">&#39;s3://YOUR_BUCKET_NAME/${YOUR_COLUMN_NAME}/&#39;</span>
+</span><span class='line'><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>These are the pieces related to partitioning:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="n">PARTITIONED</span> <span class="k">BY</span> <span class="p">(</span>
+</span><span class='line'>  <span class="o">`</span><span class="n">YOUR_COLUMN_NAME</span><span class="o">`</span> <span class="n">string</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This tells Athena to set up a column for the partition.</p>
+
+<p>(The type of the partition column <strong>must</strong> be <code>string</code>, even though the projection type <strong>must</strong> be <code>date</code>. Does this make any sense? <strong>NO</strong>.)</p>
+
+<p>Then the table properties.</p>
+
+<p>Turn on projection:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="s1">&#39;projection.enabled&#39;</span><span class="o">=</span><span class="s1">&#39;TRUE&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Set the column type to date:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="s1">&#39;projection.YOUR_COLUMN_NAME.type&#39;</span><span class="o">=</span><span class="s1">&#39;date&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This is so Athena knows how to interpolate values.</p>
+
+<p>Define the date format to match:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="s1">&#39;projection.YOUR_COLUMN_NAME.format&#39;</span><span class="o">=</span><span class="s1">&#39;yyyyMMdd&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Set the interval for the values to one day:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="s1">&#39;projection.YOUR_COLUMN_NAME.interval&#39;</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">,</span>
+</span><span class='line'><span class="s1">&#39;projection.YOUR_COLUMN_NAME.interval.unit&#39;</span><span class="o">=</span><span class="s1">&#39;DAYS&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Set the range for the values:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="s1">&#39;projection.YOUR_COLUMN_NAME.range&#39;</span><span class="o">=</span><span class="s1">&#39;YOUR_START_DATE,NOW&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>NOW</code> is a special value so the end of the range will always be the current day.</p>
+
+<p>This sets a template to extract the date string from the object name, using the date template defined above, and setting the value in the column name specified for the projection:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="s1">&#39;storage.location.template&#39;</span><span class="o">=</span><span class="s1">&#39;s3://YOUR_BUCKET_NAME/${YOUR_COLUMN_NAME}/&#39;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you are unfamiliar with Athena, it&#8217;s good to know that deleting/creating tables is low impact. If the table is already created, it is not a big deal to delete it and start over.</p>
+
+<p>Here are the important bits above that you will need to change:</p>
+
+<ul>
+<li><code>YOUR_TABLE_NAME</code> is whatever you want to name the table. Something like <code>cloudflare_logs</code> would probably make sense.</li>
+<li><code>YOUR_COLUMN_NAME</code> is whatever you want to name the projection &#8220;column&#8221;. Could be <code>dt</code> like in the AWS docs, or <code>log_date</code> or whatever you want.</li>
+<li><code>YOUR_BUCKET_NAME</code> is the name of the S3 bucket.</li>
+<li><code>YOUR START_DATE</code> is the date of the first log. Something like <code>20210101</code>.</li>
+</ul>
+
+
+<p>The table should now indicate it is partitioned:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/z17sufwwkndnfbygh7xm.png" alt="Table name with text 'partitioned' next to it" /></p>
+
+<p>And the partition should show up as a column:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/2k9ixdqd6820stqrvetr.png" alt="Column name with text 'string (partitioned)' next to it" /></p>
+
+<h3>Using Date Partitions</h3>
+
+<p>To test if partitions are working as expected, a quick query like this will work:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="k">DISTINCT</span><span class="p">(</span><span class="n">YOUR_COLUMN_NAME</span><span class="p">)</span>
+</span><span class='line'><span class="k">FROM</span> <span class="ss">&quot;YOUR_TABLE_NAME&quot;</span>
+</span><span class='line'><span class="k">LIMIT</span> <span class="mi">10</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The expected output is several dates for which there are logs.</p>
+
+<p>Once that is confirmed, the partition column can be used like any other column. Since the values is a basic ISO date format, comparison operators can be safely used even though the column is really just a string.</p>
+
+<p>For a single day:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">YOUR_TABLE</span>
+</span><span class='line'><span class="k">WHERE</span> <span class="n">YOUR_COLUMN_NAME</span> <span class="o">=</span> <span class="ss">&quot;20200101&quot;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For an inclusive range:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">YOUR_TABLE</span>
+</span><span class='line'><span class="k">WHERE</span> <span class="n">YOUR_COLUMN_NAME</span> <span class="o">&gt;=</span> <span class="ss">&quot;20200101&quot;</span>
+</span><span class='line'>  <span class="k">AND</span> <span class="n">YOUR_COLUMN_NAME</span> <span class="o">&lt;=</span> <span class="ss">&quot;20210101&quot;</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>And now your queries can be faster and cheaper!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Sounds in DragonRuby]]></title>
@@ -3760,64 +4126,6 @@ Perhaps it will be useful to you!</p>
 </span><span class='line'> <span class="o">=&gt;</span> <span class="no">Bignum</span>
 </span></code></pre></td></tr></table></div></figure>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Avoiding SQL Injection in Rails]]></title>
-    <link href="https://blog.presidentbeef.com/blog/2013/02/08/avoid-sql-injection-in-rails/"/>
-    <updated>2013-02-08T09:45:00-08:00</updated>
-    <id>https://blog.presidentbeef.com/blog/2013/02/08/avoid-sql-injection-in-rails</id>
-    <content type="html"><![CDATA[<p>SQL injection (SQLi) is any situation in which a user can manipulate a database query in an unintended manner. Consequences of SQL injection vulnerabilites range from data leaks, to authentication bypass, to root access on a database server. In short, it is a very big deal.</p>
-
-<p>Most Rails applications interact with a database through ActiveRecord, the default and convenient Object Relational Mapping (ORM) layer which comes with Rails.
-Generally, use of ORMs is safer than not. They can provide abstraction and safety and allow developers to avoid manually building SQL queries. They can embody best practices and prevent careless handling of external input.</p>
-
-<p>Instead of unsafe code like</p>
-
-<pre><code>query = "SELECT * FROM users WHERE name = '#{name}' AND password = '#{password'} LIMIT 1"
-results = DB.execute(query)
-</code></pre>
-
-<p>You can have safer, simpler code like</p>
-
-<pre><code>User.where(:name =&gt; name, :password =&gt; :password).first
-</code></pre>
-
-<p>My impression is many people assume the Rails framework will protect them as long as they avoid the &#8220;obviously dangerous&#8221; methods, like <code>find_by_sql</code>.</p>
-
-<p>Unfortunately, ActiveRecord is unsafe more often than it is safe. It does provide parameterization of queries (the API documentation for which can be <a href="http://api.rubyonrails.org/classes/ActiveRecord/Base.html">found here</a>) for some methods, there are many methods for which it does not. While these methods are not intended to be used with user input, the truth is that has never stopped anyone.</p>
-
-<p>To make it clear how dangerous it can be to use ActiveRecord, consider <a href="http://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F">ActiveRecord::FinderMethods#exists?</a> which queries the database and returns <code>true</code> if a matching record exists. The argument can be a primary key (either integer or string, if a string it will be sanitized), an array consisting of a template string and values to safely interpolate, or a hash of column-value pairs (which will be sanitized).</p>
-
-<p>Here is an example of using <code>exists?</code> to determine if a given user exists:</p>
-
-<pre><code>User.exists? params[:user_id]
-</code></pre>
-
-<p>This looks harmless, since <code>params[:user_id]</code> is a string, and strings will be sanitized. In fact, the documentation clearly points out not to pass in conditions as strings, because they will be escaped.</p>
-
-<p>However, there is no gaurantee <code>params[:user_id]</code> is a string. An attacker could send a request with <code>?user_id[]=some_attack_string</code>, which Rails will turn into an array <code>["some_attack_string"]</code>. Now the argument is an array, the first element of which is not escaped.</p>
-
-<p>To avoid this problem, the user input should be converted to the expected type:</p>
-
-<pre><code>User.exists? params[:user_id].to_i
-</code></pre>
-
-<p>Or use a hash:</p>
-
-<pre><code>User.exists? :id =&gt; params[:user_id]
-</code></pre>
-
-<p>This should be the approach for all uses of user input. Do not assume <em>anything</em> about values from external sources or what safety mechanisms a method might have.</p>
-
-<p>While working on <a href="http://brakemanscanner.org/">Brakeman</a>, I thought it would be useful to put together a list of all the unsafe ways one can use ActiveRecord.</p>
-
-<p>To make it easier on myself, I built the list into a Rails application so I could easily test, verify, and record any findings. The source is <a href="https://github.com/presidentbeef/inject-some-sql">available here</a> for those who would like try out the examples. The application is a single page of all the queries and example injections. From there one can submit queries and see the results:</p>
-
-<p><img src="https://blog.presidentbeef.com/images/blog/inject-some-sql.png" alt="Query Example" /></p>
-
-<p>The resulting information is available at <a href="http://rails-sqli.org">rails-sqli.org</a>, including examples of how SQL injection can occur and the resulting queries. This is basically a big list of what <em>not</em> to do when using ActiveRecord. Again, please feel free to <a href="https://github.com/presidentbeef/inject-some-sql">contribute</a> so that the list can be as authoritative as possible and help everyone avoid SQL injection in Rails.</p>
 ]]></content>
   </entry>
   
