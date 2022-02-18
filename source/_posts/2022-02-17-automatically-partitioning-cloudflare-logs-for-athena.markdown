@@ -14,7 +14,7 @@ However, there is a problem. When performing a query in Athena, it _might_ have 
 
 The only way to really limit the amount of data scanned is to [partition the data](https://docs.aws.amazon.com/athena/latest/ug/partitions.html).
 
-This post assumes you have already set up Cloudflare to push logs to an S3 bucker, configured a database in Athena to access, and then realized those logs will grow forever, along with your query times.
+This post assumes you have already set up Cloudflare to push logs to an S3 bucket, configured a database in Athena to access it, and then realized those logs will grow forever, along with your query times.
 
 (If you just want the "how to" without the exposition, jump down to "Setting Up Partitions for Cloudflare Logs".)
 
