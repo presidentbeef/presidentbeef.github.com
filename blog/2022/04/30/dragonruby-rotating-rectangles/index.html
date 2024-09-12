@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>DragonRuby: Rotating Rectangles | Justin’s Blurgh</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="DragonRuby: Rotating Rectangles" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="In DragonRuby, one of the drawing primitives is a “solid” - a rectangle, actually." />
+<meta property="og:description" content="In DragonRuby, one of the drawing primitives is a “solid” - a rectangle, actually." />
+<link rel="canonical" href="https://blog.presidentbeef.com/blog/2022/04/30/dragonruby-rotating-rectangles/" />
+<meta property="og:url" content="https://blog.presidentbeef.com/blog/2022/04/30/dragonruby-rotating-rectangles/" />
+<meta property="og:site_name" content="Justin’s Blurgh" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2022-04-30T10:51:00-06:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="DragonRuby: Rotating Rectangles" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2022-04-30T10:51:00-06:00","datePublished":"2022-04-30T10:51:00-06:00","description":"In DragonRuby, one of the drawing primitives is a “solid” - a rectangle, actually.","headline":"DragonRuby: Rotating Rectangles","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.presidentbeef.com/blog/2022/04/30/dragonruby-rotating-rectangles/"},"url":"https://blog.presidentbeef.com/blog/2022/04/30/dragonruby-rotating-rectangles/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://blog.presidentbeef.com/feed.xml" title="Justin&apos;s Blurgh" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Justin&#39;s Blurgh</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/archives/">Archives</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">DragonRuby: Rotating Rectangles</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2022-04-30T10:51:00-06:00" itemprop="datePublished">Apr 30, 2022
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>In <a href="https://dragonruby.itch.io/dragonruby-gtk">DragonRuby</a>, one of the drawing primitives is a “solid” - a rectangle, actually.</p>
+
+<p>Rectangles are defined by the origin point of the bottom-right corner (<code class="language-plaintext highlighter-rouge">x</code>, <code class="language-plaintext highlighter-rouge">y</code>) and a size in height/width (<code class="language-plaintext highlighter-rouge">h</code>, <code class="language-plaintext highlighter-rouge">w</code>).</p>
+
+<p>For example, this code paints a black rectangle in roughly the middle of the screen:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">solids</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="mi">490</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="mi">310</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="mi">100</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/ejiyfwz8sz2t9eypvgs7.png" alt="DragonRuby window with a black rectangle in the middle" /></p>
+
+<p>Rectangles are simple and (presumably) fast. But what if we want to put the rectangle at an angle? Or spin it around?</p>
+
+<p>For sprites, there is an <code class="language-plaintext highlighter-rouge">angle</code> attribute. Will that work for rectangles? Unfortunately, no.</p>
+
+<p>We could make a rectangle image and use it in a sprite, but that seems wasteful. I don’t know if resizing a sprite is very resource-intensive, but I’m sure it takes more cycles than changing the size of a simple rectangle.</p>
+
+<p>Fortunately, there is a middle way.</p>
+
+<p>From the 2.26 release notes (and yes, this is the only place I could find this functionality formally documented, though it is used in examples):</p>
+
+<blockquote>
+  <p>** [API] Pre-defined ~:pixel~ render target now available.
+   Before ~(boot|tick)~ are invoked, a white solid with a size of 1280x1280
+   is added as a render target. You can use this predefined render target to
+   create solids and get ~args.outputs.sprites~ related capabilities.</p>
+</blockquote>
+
+<p>In other words, it is possible to create an equivalent rectangle to the above like this:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="mi">490</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="mi">310</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="mi">100</span><span class="p">,</span>
+    <span class="ss">r: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">g: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">b: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">path: :pixel</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>The key piece is <code class="language-plaintext highlighter-rouge">path: :pixel</code> and creating a sprite instead of a solid.</p>
+
+<p>As is mentioned above, the <code class="language-plaintext highlighter-rouge">:pixel</code> <a href="https://dev.to/presidentbeef/dragonruby-render-targets-437k">render target</a> is white, so to get exactly the same results as before the color is set to black. If no <code class="language-plaintext highlighter-rouge">r</code><code class="language-plaintext highlighter-rouge">g</code><code class="language-plaintext highlighter-rouge">b</code> values were specified, it would be a white rectangle.</p>
+
+<p>Now, can we rotate this rectangle?</p>
+
+<p>Sure!</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="mi">490</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="mi">310</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="mi">100</span><span class="p">,</span>
+    <span class="ss">r: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">g: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">b: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">path: :pixel</span><span class="p">,</span>
+    <span class="ss">angle: </span><span class="mi">45</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/iri546i42cs9waajgo91.png" alt="Image description" /></p>
+
+<p>(By the way, angles in DragonRuby are in degrees.)</p>
+
+<h3 id="spinning-round-and-round">Spinning Round and Round</h3>
+
+<p>Here is an example of spinning the rectangle around:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+      <span class="ss">x: </span><span class="mi">490</span><span class="p">,</span>
+      <span class="ss">y: </span><span class="mi">310</span><span class="p">,</span>
+      <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>
+      <span class="ss">h: </span><span class="mi">100</span><span class="p">,</span>
+      <span class="ss">r: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">g: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">b: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">path: :pixel</span><span class="p">,</span>
+      <span class="ss">angle: </span><span class="n">args</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">%</span> <span class="mi">360</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/9ghaj7ac17cnpxwgs3yy.gif" alt="Black rectangle spinning around its center" /></p>
+
+<p>This is great and all, but what if you’d rather have it spin around like this?</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/jm0zj01nnjw22xrpv6mo.gif" alt="Black rectangle spinning around a corner" /></p>
+
+<p>With some sleuthing, you might find the <code class="language-plaintext highlighter-rouge">angle_anchor_x</code> and <code class="language-plaintext highlighter-rouge">angle_anchor_y</code> attributes. And you would be forgiven for thinking those refer to points on the coordinate grid. But they do not!</p>
+
+<p>Instead, <code class="language-plaintext highlighter-rouge">angle_anchor_x</code> and <code class="language-plaintext highlighter-rouge">angle_anchor_y</code> are <em>percentages relative to the sprite itself</em>.</p>
+
+<p>In other words, if both anchors are set to <code class="language-plaintext highlighter-rouge">0.5</code> (the default), the center of the rotation will be the middle of the sprite (half of the width and half of the height).</p>
+
+<p><code class="language-plaintext highlighter-rouge">0</code>,<code class="language-plaintext highlighter-rouge">0</code> is the bottom-left corner of the sprite, as shown above:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+      <span class="ss">x: </span><span class="mi">490</span><span class="p">,</span>
+      <span class="ss">y: </span><span class="mi">310</span><span class="p">,</span>
+      <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>
+      <span class="ss">h: </span><span class="mi">100</span><span class="p">,</span>
+      <span class="ss">r: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">g: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">b: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">path: :pixel</span><span class="p">,</span>
+      <span class="ss">angle: </span><span class="n">args</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">%</span> <span class="mi">360</span><span class="p">,</span>
+      <span class="ss">angle_anchor_x: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">angle_anchor_y: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Anchor values between <code class="language-plaintext highlighter-rouge">0</code> and <code class="language-plaintext highlighter-rouge">1</code> will be inside the sprite. But values greater than <code class="language-plaintext highlighter-rouge">1</code> or less than <code class="language-plaintext highlighter-rouge">0</code> will be outside the sprite.</p>
+
+<p>Here is a little reference:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/fwlbn5o29zou5qvpf7ug.png" alt="Angle anchors on a black rectangle" /></p>
+
+<p>Happy rectangle rotating!</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/l8rjfdi9tcvz26iuc9de.gif" alt="Five colorful rotating rectangles" /></p>
+
+  </div><a class="u-url" href="/blog/2022/04/30/dragonruby-rotating-rectangles/" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Justin&#39;s Blurgh</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/presidentbeef"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">presidentbeef</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

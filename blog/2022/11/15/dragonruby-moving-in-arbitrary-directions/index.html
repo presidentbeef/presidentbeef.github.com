@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>DragonRuby: Moving in Arbitrary Directions | Justin’s Blurgh</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="DragonRuby: Moving in Arbitrary Directions" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="In a previous post we looked at rotating rectangles in DragonRuby." />
+<meta property="og:description" content="In a previous post we looked at rotating rectangles in DragonRuby." />
+<link rel="canonical" href="https://blog.presidentbeef.com/blog/2022/11/15/dragonruby-moving-in-arbitrary-directions/" />
+<meta property="og:url" content="https://blog.presidentbeef.com/blog/2022/11/15/dragonruby-moving-in-arbitrary-directions/" />
+<meta property="og:site_name" content="Justin’s Blurgh" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2022-11-15T14:09:00-07:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="DragonRuby: Moving in Arbitrary Directions" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2022-11-15T14:09:00-07:00","datePublished":"2022-11-15T14:09:00-07:00","description":"In a previous post we looked at rotating rectangles in DragonRuby.","headline":"DragonRuby: Moving in Arbitrary Directions","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.presidentbeef.com/blog/2022/11/15/dragonruby-moving-in-arbitrary-directions/"},"url":"https://blog.presidentbeef.com/blog/2022/11/15/dragonruby-moving-in-arbitrary-directions/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://blog.presidentbeef.com/feed.xml" title="Justin&apos;s Blurgh" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Justin&#39;s Blurgh</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/archives/">Archives</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">DragonRuby: Moving in Arbitrary Directions</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2022-11-15T14:09:00-07:00" itemprop="datePublished">Nov 15, 2022
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>In a <a href="https://dev.to/presidentbeef/dragonruby-rotating-rectangles-2i9e">previous post</a> we looked at rotating rectangles in <a href="https://dragonruby.org/toolkit/game">DragonRuby</a>.</p>
+
+<p>Now let’s take that one step further to try turning <em>and moving</em>!</p>
+
+<p>In this post, we’ll look at very simple movement of a spaceship.</p>
+
+<h2 id="setup">Setup</h2>
+
+<p>First, let’s get the state all ready.</p>
+
+<p>The code below puts the sprite of a ship in the middle of the screen.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="c1"># Setting up initial state</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">w</span> <span class="o">||=</span> <span class="mi">50</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">h</span> <span class="o">||=</span> <span class="mi">50</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">x</span> <span class="o">||=</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span> <span class="o">-</span> <span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">w</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">y</span> <span class="o">||=</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span> <span class="o">-</span> <span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">h</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span> <span class="o">||=</span> <span class="mi">0</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">||=</span> <span class="mi">0</span>
+
+  <span class="c1"># Show the ship</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">x</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">y</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">w</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">h</span><span class="p">,</span>
+    <span class="ss">path: </span><span class="s1">'sprites/ship.png'</span><span class="p">,</span>
+    <span class="ss">angle: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/g7kchjbljua9wcgss3sm.png" alt="Simple ship in the middle of the window" /></p>
+
+<p>Not too exciting thus far, but we’ll make it better.</p>
+
+<h2 id="rotation">Rotation</h2>
+
+<p>For rotation, we’ll turn the ship <code class="language-plaintext highlighter-rouge">2.5</code> degrees when the left or right arrow keys are pressed or held down.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="c1"># Setting up initial state</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">w</span> <span class="o">||=</span> <span class="mi">50</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">h</span> <span class="o">||=</span> <span class="mi">50</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">x</span> <span class="o">||=</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span> <span class="o">-</span> <span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">w</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">y</span> <span class="o">||=</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span> <span class="o">-</span> <span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">h</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span> <span class="o">||=</span> <span class="mi">0</span> 
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">||=</span> <span class="mi">0</span> 
+
+  <span class="c1"># Turn left and right</span>
+  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">inputs</span><span class="p">.</span><span class="nf">keyboard</span><span class="p">.</span><span class="nf">right</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span> <span class="o">+=</span> <span class="mf">2.5</span>
+  <span class="k">elsif</span> <span class="n">args</span><span class="p">.</span><span class="nf">inputs</span><span class="p">.</span><span class="nf">keyboard</span><span class="p">.</span><span class="nf">left</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span> <span class="o">-=</span> <span class="mf">2.5</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Keep angle between 0 and 360</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span> <span class="o">%=</span> <span class="mi">360</span>
+
+  <span class="c1"># Show the ship</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">x</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">y</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">w</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">h</span><span class="p">,</span>
+    <span class="ss">path: </span><span class="s1">'sprites/ship.png'</span><span class="p">,</span>
+    <span class="ss">angle: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/e4fsmjga7et4merixxwr.gif" alt="Rotating spaceship" /></p>
+
+<p>Important to note DragonRuby puts <code class="language-plaintext highlighter-rouge">0</code> straight to the right or “due east”, with increasing angles rotating counter-clockwise.</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/alqymowrzfxmqp3trt0q.png" alt="Angles in DragonRuby" /></p>
+
+<h2 id="acceleration">Acceleration</h2>
+
+<p>Still keeping things simple, let’s accelerate the ship when the up arrow is held down and decelerate otherwise.</p>
+
+<p>For now we won’t worry about what direction the ship is heading.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="c1"># Setting up initial state</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">w</span> <span class="o">||=</span> <span class="mi">50</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">h</span> <span class="o">||=</span> <span class="mi">50</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">x</span> <span class="o">||=</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span> <span class="o">-</span> <span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">w</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">y</span> <span class="o">||=</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span> <span class="o">-</span> <span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">h</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span> <span class="o">||=</span> <span class="mi">0</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">||=</span> <span class="mi">0</span>
+
+  <span class="c1"># Accelerate with up arrow, otherwise decelerate</span>
+  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">inputs</span><span class="p">.</span><span class="nf">keyboard</span><span class="p">.</span><span class="nf">up</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">+=</span> <span class="mf">0.2</span>
+  <span class="k">else</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">-=</span> <span class="mf">0.1</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Keep speed between 0 and 10</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span><span class="p">.</span><span class="nf">clamp</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+
+  <span class="c1"># Turn left and right</span>
+  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">inputs</span><span class="p">.</span><span class="nf">keyboard</span><span class="p">.</span><span class="nf">right</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span> <span class="o">-=</span> <span class="mf">2.5</span>
+  <span class="k">elsif</span> <span class="n">args</span><span class="p">.</span><span class="nf">inputs</span><span class="p">.</span><span class="nf">keyboard</span><span class="p">.</span><span class="nf">left</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span> <span class="o">+=</span> <span class="mf">2.5</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Keep angle between 0 and 360</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span> <span class="o">%=</span> <span class="mi">360</span>
+
+  <span class="c1"># Go?</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">x</span> <span class="o">+=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span>
+
+  <span class="c1"># Show the ship</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">x</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">y</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">w</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">h</span><span class="p">,</span>
+    <span class="ss">path: </span><span class="s1">'sprites/ship.png'</span><span class="p">,</span>
+    <span class="ss">angle: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/tt45a5n5mfgkxvr6oa62.gif" alt="Ship moving to the right" /></p>
+
+<h2 id="moving-in-arbitrary-directions">Moving in Arbitrary Directions</h2>
+
+<p>We are almost there!</p>
+
+<p>In the code above, we only update the ship’s <code class="language-plaintext highlighter-rouge">x</code> position. This is just to make sure we have the acceleration/deceleration working how we’d like.</p>
+
+<p>But what we really want is to go in the direction the ship is pointing!</p>
+
+<p>To do so, we need to update both the <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> position, proportional to the angle and speed… ugh that sounds like we might need some math! Trigonometry even??</p>
+
+<p>Actually, DragonRuby comes to the rescue here! <code class="language-plaintext highlighter-rouge">Integer#vector</code> will return a unit vector (<code class="language-plaintext highlighter-rouge">[x, y]</code> where <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> are between <code class="language-plaintext highlighter-rouge">-1</code> and <code class="language-plaintext highlighter-rouge">1</code>) corresponding to the angle.</p>
+
+<p>For example:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mi">0</span><span class="p">.</span><span class="nf">vector</span> <span class="c1"># =&gt; [1.0, 0.0]</span>
+</code></pre></div></div>
+
+<p>So at an angle of 0 degrees, only the <code class="language-plaintext highlighter-rouge">x</code> direction is affected.</p>
+
+<p>But all we really need to know is that <code class="language-plaintext highlighter-rouge">angle.vector_x</code> and <code class="language-plaintext highlighter-rouge">angle.vector_y</code> will give us the “magnitude” we need to convert speed and angle to x and y distance:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">x</span> <span class="o">+=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">*</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span><span class="p">.</span><span class="nf">vector_x</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">y</span> <span class="o">+=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">*</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span><span class="p">.</span><span class="nf">vector_y</span>
+</code></pre></div></div>
+
+<p>Putting that into context:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="c1"># Setting up initial state</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">w</span> <span class="o">||=</span> <span class="mi">50</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">h</span> <span class="o">||=</span> <span class="mi">50</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">x</span> <span class="o">||=</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span> <span class="o">-</span> <span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">w</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">y</span> <span class="o">||=</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span> <span class="o">-</span> <span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">h</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span> <span class="o">||=</span> <span class="mi">0</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">||=</span> <span class="mi">0</span>
+
+  <span class="c1"># Accelerate with up arrow, otherwise decelerate</span>
+  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">inputs</span><span class="p">.</span><span class="nf">keyboard</span><span class="p">.</span><span class="nf">up</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">+=</span> <span class="mf">0.2</span>
+  <span class="k">else</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">-=</span> <span class="mf">0.1</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Keep speed between 0 and 10</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span><span class="p">.</span><span class="nf">clamp</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+
+  <span class="c1"># Turn left and right</span>
+  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">inputs</span><span class="p">.</span><span class="nf">keyboard</span><span class="p">.</span><span class="nf">right</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span> <span class="o">-=</span> <span class="mf">2.5</span>
+  <span class="k">elsif</span> <span class="n">args</span><span class="p">.</span><span class="nf">inputs</span><span class="p">.</span><span class="nf">keyboard</span><span class="p">.</span><span class="nf">left</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span> <span class="o">+=</span> <span class="mf">2.5</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Keep angle between 0 and 360</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span> <span class="o">%=</span> <span class="mi">360</span>
+
+  <span class="c1"># Go in the correct direction!</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">x</span> <span class="o">+=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">*</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span><span class="p">.</span><span class="nf">vector_x</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">y</span> <span class="o">+=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">*</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span><span class="p">.</span><span class="nf">vector_y</span>
+
+  <span class="c1"># Show the ship</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">x</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">y</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">w</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">h</span><span class="p">,</span>
+    <span class="ss">path: </span><span class="s1">'sprites/ship.png'</span><span class="p">,</span>
+    <span class="ss">angle: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/egud8xk5if4ecyj3najt.gif" alt="Spaceship flying around" /></p>
+
+<h2 id="staying-within-bounds">Staying Within Bounds</h2>
+
+<p>Just to round this out, let’s do Astroids-style wrap-around to keep the ship on the screen.</p>
+
+<p><code class="language-plaintext highlighter-rouge">args.grid.right</code> is the width of the screen and <code class="language-plaintext highlighter-rouge">args.grid.top</code> can be used for the height.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="c1"># Setting up initial state</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">w</span> <span class="o">||=</span> <span class="mi">50</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">h</span> <span class="o">||=</span> <span class="mi">50</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">x</span> <span class="o">||=</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span> <span class="o">-</span> <span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">w</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">y</span> <span class="o">||=</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span> <span class="o">-</span> <span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">h</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span> <span class="o">||=</span> <span class="mi">0</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">||=</span> <span class="mi">0</span>
+
+  <span class="c1"># Accelerate with up arrow, otherwise decelerate</span>
+  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">inputs</span><span class="p">.</span><span class="nf">keyboard</span><span class="p">.</span><span class="nf">up</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">+=</span> <span class="mf">0.2</span>
+  <span class="k">else</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">-=</span> <span class="mf">0.1</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Keep speed between 0 and 10</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span><span class="p">.</span><span class="nf">clamp</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+
+  <span class="c1"># Turn left and right</span>
+  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">inputs</span><span class="p">.</span><span class="nf">keyboard</span><span class="p">.</span><span class="nf">right</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span> <span class="o">-=</span> <span class="mf">2.5</span>
+  <span class="k">elsif</span> <span class="n">args</span><span class="p">.</span><span class="nf">inputs</span><span class="p">.</span><span class="nf">keyboard</span><span class="p">.</span><span class="nf">left</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span> <span class="o">+=</span> <span class="mf">2.5</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Keep angle between 0 and 360</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span> <span class="o">%=</span> <span class="mi">360</span>
+
+  <span class="c1"># Go in the right direction!</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">x</span> <span class="o">+=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">*</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span><span class="p">.</span><span class="nf">vector_x</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">y</span> <span class="o">+=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">speed</span> <span class="o">*</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span><span class="p">.</span><span class="nf">vector_y</span>
+
+  <span class="c1"># Wrap around to keep the ship on the screen</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">x</span> <span class="o">%=</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">right</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">y</span> <span class="o">%=</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">top</span>
+
+  <span class="c1"># Show the ship</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">x</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">y</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">w</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">h</span><span class="p">,</span>
+    <span class="ss">path: </span><span class="s1">'sprites/ship.png'</span><span class="p">,</span>
+    <span class="ss">angle: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">ship</span><span class="p">.</span><span class="nf">angle</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/n89ri46u96ug7y2e1f40.gif" alt="Spaceship flying around but warping between edges" /></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>And there we go. In less than 50 lines of code and with no complicated math, we can move an object around in arbitrary directions!</p>
+
+  </div><a class="u-url" href="/blog/2022/11/15/dragonruby-moving-in-arbitrary-directions/" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Justin&#39;s Blurgh</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/presidentbeef"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">presidentbeef</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Page 8 of 10 for Justin’s Blurgh</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Justin’s Blurgh" />
+<meta property="og:locale" content="en_US" />
+<link rel="canonical" href="https://blog.presidentbeef.com/blog/8/" />
+<meta property="og:url" content="https://blog.presidentbeef.com/blog/8/" />
+<meta property="og:site_name" content="Justin’s Blurgh" />
+<meta property="og:type" content="website" />
+<link rel="prev" href="https://blog.presidentbeef.com/blog/7/" />
+<link rel="next" href="https://blog.presidentbeef.com/blog/9/" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Justin’s Blurgh" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","headline":"Justin’s Blurgh","url":"https://blog.presidentbeef.com/blog/8/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://blog.presidentbeef.com/feed.xml" title="Justin&apos;s Blurgh" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Justin&#39;s Blurgh</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/archives/">Archives</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="blog-index">
+  
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2017/03/08/challenges-when-building-commercial-versions-of-oss/">Challenges When Building Commercial Versions of Open Source</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2017-03-08T21:53:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Mar 8th, 2017</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>It has been roughly three years since the ball began rolling on <a href="https://brakemanpro.com/">Brakeman Pro</a> (the commercial version of the <a href="http://brakemanscanner.org/">Brakeman</a> security tool for Ruby on Rails), and it has been a little over a year since Brakeman Pro actually <a href="https://brakemanpro.com/blog/announcement/2015/11/18/brakeman-pro-is-available">went on sale</a>. I have learned a ton in that time (and I am still having lessons beaten into me). There have been a ton of challenges going from an OSS project that was never meant to be a paid product to one people are actually buying. Here are just a couple I have much time thinking about:</p>
+
+<h2 id="the-free-version">The “Free” Version</h2>
+
+<p>Clearly, what makes building a commercial product on top of an OSS project different from just selling some software is the existing OSS project itself.</p>
+
+<p>With an OSS project, there is an opportunity to acquire a large number of people testing the software in many different environments. For a static analysis tool like Brakeman, testing on a wide variety of codebases is incredibly valuable. OSS with easy bug reporting and contributing (e.g. a GitHub repo) is not only very likely to receive bug reports and patches, but also suggestions for features and improvements. Brakeman does not receive a large number of code contributions, but bug reports and suggestions for new rules have driven a large chunk of Brakeman’s development.</p>
+
+<p>Being free and open source also makes it easier to advertise your project. People are more willing to promote free software and you can share it around social media with little fear of backlash. Not to mention it is vastly easier to give  conference talks about open source tools!</p>
+
+<p>Personally, I will forever be grateful to the OSS community. Being the main author of widely-used (within a small niche) software has propelled most of my career, led to me speaking all over the world, and has brought me acquaintances and friends I would not have otherwise. I am very glad Brakeman is open source and I would never want to change that.</p>
+
+<p>However, the existence of a “free” version, especially a successful one, has a serious drawback for a business. In particular, <strong>the “paid” version must now not only justify its utility, but also the <em>incremental</em> advantage over the free version.</strong> It has become abundantly clear the biggest competitor to Brakeman Pro is Brakeman OSS!</p>
+
+<p>The number one question I receive regarding Brakeman Pro is “What is the difference between Pro and the open source version?” Among other things, one very simple, easy-to-explain difference is the existence of a <a href="https://brakemanpro.com/features#dt">GUI</a>. However, most people want to know if it will “find more things.” This leads to considerable hedging from me because Pro probably will find <em>different</em> vulnerabilities while also reducing <em>some</em> false positives - the net outcome of which may be more or fewer overall warnings. Explaining why Pro may report different vulnerabilities quickly gets me lost in fine details of how the two tools work - at which point people’s eyes tend to glaze over.</p>
+
+<p>Trying to quantify the differences between the OSS and Pro versions is a losing battle for me. Potential customers try to add up all these little details and see if it comes out to enough of a difference to begin paying for software they are used to having for free. But, as a technical person, papering over the differences with hyperbolic qualitative statements can seem dishonest. I have yet to arrive at a good solution for this problem.</p>
+
+<h2 id="existing-user-base">Existing User Base</h2>
+
+<p>With a well-established OSS project comes another big advantage: the existing user base. These users already like the project and have found it useful! In a way, they have validated a market exists for the product. In the case of Brakeman, I have also felt a tremendous amount of goodwill from the community (for which, again, I am incredibly thankful).</p>
+
+<p>These users are going to be the <em>very first</em> people in line to try the commercial product.* They will already be familiar with the OSS version - therefore communicating and justifying the <em>additional</em> value of the commercial version will be critical. The good news is they already know what the product does and have found it valuable. In some cases (but not very many, I’ve found) they may even purchase the product just to support the OSS version. In most cases, though, people need to justify why they are spending budget on this particular software instead of using the free version.</p>
+
+<p><strong>If you are like me, you may also find this existing user base to be a source of stress.</strong> Marketing to OSS users often feels scummy, but it also makes no sense not to promote the commercial tool to the people already using the free version! For quite a while I did not want to take advantage of the existing audience at all. I have only made very small steps in that direction, preceded by a lot of thought. The last thing I want to do is alienate the community or burn any of the goodwill Brakeman has.</p>
+
+<p>One way to push customers towards the commercial version is to make the OSS version obviously <em>worse</em>. But while it would make selling the commercial version easier, not working on or supporting the OSS version is unthinkable. Even the appearance of doing so could turn a community against you. When your potential customers are mostly developers the support of the developer community has extreme value. Besides the business aspect, I personally would have a hard time dealing with loss of the community when the community has done so much for me.</p>
+
+<p>That leaves making the commercial version <em>so much better</em> than the OSS version the additional value is ridiculously obvious and people happily pay for it. Sadly (gladly?), many people have let me know “the free version of Brakeman is really good and already does all I need.” Making the Pro version <em>extra awesome</em> without hurting the OSS version is an ongoing struggle which I continue to hope will resolve itself over time as we continue to improve Pro.</p>
+
+<p>Like many things, the existing user base for an OSS project has both advantages and disadvantages which need to be considered and kept in mind if one is going to turn the project into a commercial product.</p>
+
+<h2 id="as-a-security-tool">As a Security Tool…</h2>
+
+<p>This probably does not apply to very many projects, but as a security tool Brakeman has additional issues related to those above. With every feature that might be exclusive to Pro, I must consider - <strong>“Am I making the world <em>less safe</em> by not adding this feature to the OSS version?”</strong> The answers to this question likely lead me to make terrible business decisions. In the end I can live without Brakeman Pro being a successful business, but consciously compromising my integrity and potentially the security of applications is not something I could personally handle.</p>
+
+<p>As a result, the features that tend to go into Pro but not the OSS version are noisier, slower, or focused on ease of use and not actual vulnerability discovery. I believe more false positives (but potentially more true positives) are acceptable in the Pro version because we make it easy to triage and ignore them. Slower features are also much more acceptable in the Pro version - the OSS version needs to be fast and lean. (Sometimes these features also end up in OSS, just off by default. “Off by default” means they might as well not exist for most users.)</p>
+
+<h2 id="conclusions">Conclusions</h2>
+
+<p>If you are considering taking an open source project and building a commercial tool on top of it, I hope this little post has given you some (perhaps less obvious?) issues to ponder. For Brakeman users, I hope this explains a little bit of the thinking I have done while trying to balance between OSS and Pro.</p>
+
+<p>Note that this blog post is actually an example of the first two issues above: I had to tell you about the “free” version to talk about the Pro version and at the same time you probably feel like this is a bit of an advertisement for the Pro version!</p>
+
+<p>(I think I have to plug my product here now? <a href="https://brakemanpro.com/">Brakeman Pro is a static analysis security tool for Ruby on Rails applications</a>. <a href="https://brakemanpro.com/purchase/pricing">Try it out for free</a>.)</p>
+
+<hr />
+
+<p>* <em>One of the early mistakes I made with Brakeman Pro was not realizing who the first customers would be. I thought the people most willing to *buy* a tool would be security auditors, and so the tool and pricing were targeted at *security professionals*. Unfortunately, the much larger market and initial user base for Brakeman are developers. Brakeman Pro should have made developers our top priority from the beginning just like Brakeman OSS does.</em></p>
+
+</div>
+
+
+    </article>
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2016/08/09/bundling-gem-dependencies-inside-ruby-gems/">Bundling Dependencies inside Ruby Gems</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2016-08-09T08:53:00-06:00" pubdate data-updated="true" style="color: #a2a2a2">Aug 9th, 2016</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3 id="backstory">Backstory</h3>
+
+<p>I recently decided to distribute the <a href="http://brakemanscanner.org/">Brakeman</a> gem with all its dependencies included.
+This was the culmination of a lot of frustration with <a href="https://github.com/presidentbeef/brakeman/issues/659">Bundler</a>, <a href="https://github.com/presidentbeef/brakeman/issues/709">version conflicts</a>, <a href="https://github.com/presidentbeef/brakeman/issues/767#issuecomment-180964293">RubyGem bugs</a>, and trying to maintain compatibility with older versions of Ruby <a href="https://github.com/presidentbeef/brakeman/pull/602#issuecomment-69494355">while libraries did not</a>.</p>
+
+<p>Brakeman is most often used as an <em>application</em>, not a library. Yet most Rubyists are used to including <em>all</em> dependencies in a <code class="language-plaintext highlighter-rouge">Gemfile</code> for use with Bundler.
+Doing so causes Brakeman’s dependencies to be mixed in with users’ application dependencies, which doesn’t make sense and causes a lot of anguish.</p>
+
+<p>I liken it to having to worry about whether or not your Rails application’s dependencies conflict with your browser’s. It shouldn’t matter.</p>
+
+<p>However, Bundler does not have a way to isolate dependencies for applications like Brakeman, and Bundler is the best way to manage dependencies so we are stuck with it.</p>
+
+<p>Since Brakeman is not normally loaded into users’ applications (and I recommend against doing so), its dependencies are separate and should not really matter to the end user.
+To this end, I wanted to distribute Brakeman with all its dependencies already inside the gem.</p>
+
+<h3 id="bundling-dependencies">Bundling Dependencies</h3>
+
+<p>Conveniently, Bundler already has a way to do this: <code class="language-plaintext highlighter-rouge">bundle install --standalone</code>.
+This generates a <code class="language-plaintext highlighter-rouge">bundle</code> directory with two subdirectories <code class="language-plaintext highlighter-rouge">bundler</code> and <code class="language-plaintext highlighter-rouge">ruby</code>.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">bundler</code> directory just has one file: <code class="language-plaintext highlighter-rouge">setup.rb</code>. This file adds the bundled gems to the load path. We’ll come back to this file later.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">ruby</code> directory has everything you need to run Bundler, along with all of the bundled gems and their executables.
+The path to the gems looks something like <code class="language-plaintext highlighter-rouge">ruby/2.3.0/gems/rake-10.1.1/</code>.
+Note this includes the Ruby version and the gem’s version.
+When <code class="language-plaintext highlighter-rouge">setup.rb</code> sets up the library paths, it chooses dynamically based on the running Ruby implementation and version (which is not what we want, see below).</p>
+
+<h3 id="adding-dependencies">Adding Dependencies</h3>
+
+<p>All the dependencies are now there in the <code class="language-plaintext highlighter-rouge">bundle/</code> directory, but it’s still assumed you will be using Bundler.
+I would prefer to just load the dependencies myself.</p>
+
+<p>To do so, the Brakeman build script removes the <code class="language-plaintext highlighter-rouge">bundle/bundler/setup.rb</code> file and generates its own <code class="language-plaintext highlighter-rouge">load.rb</code> using similar logic.
+However, it does not build paths dependent on the running Ruby version because we don’t know what the end user will be using.
+Instead, it just globs the paths as they are and loads those.</p>
+
+<p>In Brakeman itself, it loads <code class="language-plaintext highlighter-rouge">bundle/load.rb</code> <a href="https://github.com/presidentbeef/brakeman/blob/fb4f9de160fd97a2b72d5e01c16058718941ec3d/lib/brakeman.rb#L431-L439">lazily</a> if the file exists. I do not use it in normal testing or development.
+In general, all that is needed is to <code class="language-plaintext highlighter-rouge">require</code> the <code class="language-plaintext highlighter-rouge">load.rb</code> file inside your code somewhere.</p>
+
+<h3 id="building-the-gem">Building the Gem</h3>
+
+<p>All that is left to do is add the bundled gems to the Brakeman gem itself.</p>
+
+<p>Note that Brakeman’s Gemfile relies on its gemspec, but the gemspec needs to rely on the bundled gems, leading to a circular dependency.</p>
+
+<p>This simple code is all that is required in the gemspec:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>if File.exist? 'bundle/load.rb'
+  s.files += Dir['bundle/ruby/*/gems/**/*'] + ['bundle/load.rb']
+else
+  # add dependencies as normal
+end
+</code></pre></div></div>
+
+<h3 id="pros">Pros</h3>
+
+<p>The main advantage of this approach is not polluting application dependencies!
+No more version conflicts! No more worries that weird Bundler or gem bugs will break users’ installs.</p>
+
+<p>In theory it also makes it easier to distribute Brakeman as a standalone application, if someone were interested in that.</p>
+
+<h3 id="cons">Cons</h3>
+
+<p>The main problem, of course, is that this hides the dependencies.
+If you add Brakeman as a dependency and then either load it programmatically or run it with Rake, you may get mysterious library conflicts.
+To avoid this, use the “<a href="https://rubygems.org/gems/brakeman-lib">brakeman-lib</a>” gem, which is the same as the main Brakeman gem but does not bundle dependencies.</p>
+
+<p>It also locks dependencies to a specific version such that updating dependencies requires a new release.
+This can be good (avoid breaking with new versions) but it can also be bad if a library has a bug or vulnerability.</p>
+
+<h3 id="code">Code</h3>
+
+<p>The script I use to build the main Brakeman gem is <a href="https://github.com/presidentbeef/brakeman/blob/fb4f9de160fd97a2b72d5e01c16058718941ec3d/build.rb">here</a>.</p>
+
+<p>Here’s the annotated version:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#!/usr/bin/env ruby
+puts 'Packaging Brakeman gem...'
+
+# Clean up any existing build artifacts
+system 'rm -rf bundle Gemfile.lock brakeman-*.gem' and
+
+# Generate gem bundle in ./bundle
+system 'BM_PACKAGE=true bundle install --standalone'
+
+abort "No bundle installed" unless Dir.exist? 'bundle'
+
+# Remove the setup.rb file we don't use
+File.delete "bundle/bundler/setup.rb"
+Dir.delete "bundle/bundler"
+
+# Generate new file to set load paths
+# Code below is a little confusing because it is generating code
+File.open "bundle/load.rb", "w" do |f|
+
+  # Set path at runtime
+  f.puts "path = File.expand_path('../..', __FILE__)"
+
+  # Add each gem's lib/ directory to the load path (again at runtime)
+  Dir["bundle/ruby/**/lib"].each do |dir|
+    f.puts %Q[$:.unshift "\#{path}/#{dir}"]
+  end
+end
+
+# Build the gem
+system "BM_PACKAGE=true gem build brakeman.gemspec"
+</code></pre></div></div>
+
+<p>When bundling gems and building the gem, the script sets the <code class="language-plaintext highlighter-rouge">BM_PACKAGE</code> variable so that development dependencies <a href="https://github.com/presidentbeef/brakeman/blob/fb4f9de160fd97a2b72d5e01c16058718941ec3d/brakeman.gemspec#L22">are not included</a> in the bundled gems.</p>
+</div>
+
+
+    </article>
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2016/06/12/automatically-lock-old-closed-github-issues/">Automatically Lock Old Closed GitHub Issues</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2016-06-12T22:27:00-06:00" pubdate data-updated="true" style="color: #a2a2a2">Jun 12th, 2016</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I am not sure this is a problem everyone has, but I grew tired of people commenting on old, resolved GitHub issues.
+Almost every time someone would comment “I have this problem, too” it would actually be a different issue. Then I’d
+go through the routine of asking them to open a new issue with details about their specific problem.
+Sometimes they would, and sometimes they’d never come back.</p>
+
+<p>Fortunately, right around the time I decided I should do something about this annoyance, <a href="https://developer.github.com/changes/2016-02-11-issue-locking-api/">GitHub released an API</a>
+to lock issues. (<a href="https://github.com/blog/1847-locking-conversations">Locking issues or pull requests</a> prevents any new comments except from repo collaborators.)</p>
+
+<p>So I put together a little gem called <a href="https://github.com/presidentbeef/github-auto-locker">github-auto-locker</a> to fetch and lock old, closed issues.</p>
+
+<p>To install it (requires Ruby):</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gem install github-auto-locker
+</code></pre></div></div>
+
+<p>Then run:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>github-auto-locker USER REPO TOKEN [age in days]
+</code></pre></div></div>
+
+<p>For example, I run this to lock resolved issues over 60 days old:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>github-auto-locker presidentbeef brakeman N0TM1R34L70K3N 60
+</code></pre></div></div>
+
+<p>The default is 120 days.</p>
+
+<p>I’ve been running it periodically myself since February without any complaints.
+Perhaps it will be useful to you!</p>
+</div>
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/9/">&larr; Older</a>
+    
+    
+    <a class="next" href="/blog/7/">Newer &rarr;</a>
+    
+  </div>
+</div>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Justin&#39;s Blurgh</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/presidentbeef"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">presidentbeef</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

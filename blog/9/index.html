@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Page 9 of 10 for Justin’s Blurgh</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Justin’s Blurgh" />
+<meta property="og:locale" content="en_US" />
+<link rel="canonical" href="https://blog.presidentbeef.com/blog/9/" />
+<meta property="og:url" content="https://blog.presidentbeef.com/blog/9/" />
+<meta property="og:site_name" content="Justin’s Blurgh" />
+<meta property="og:type" content="website" />
+<link rel="prev" href="https://blog.presidentbeef.com/blog/8/" />
+<link rel="next" href="https://blog.presidentbeef.com/blog/10/" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Justin’s Blurgh" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","headline":"Justin’s Blurgh","url":"https://blog.presidentbeef.com/blog/9/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://blog.presidentbeef.com/feed.xml" title="Justin&apos;s Blurgh" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Justin&#39;s Blurgh</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/archives/">Archives</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="blog-index">
+  
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2014/02/28/simple-readers-writer-lock-gem/">Simple Readers-Writer Lock Gem</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2014-02-28T08:53:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Feb 28th, 2014</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>A <a href="http://en.wikipedia.org/wiki/Readers%E2%80%93writer_lock">readers-writer lock</a> can be used to allow many concurrent read-only operations on a resource but ensure exclusive access for modifying operations performed by “writers”. For my purposes, I needed a readers-writer lock at the thread level, basically to control access to a shared array. In my scenario, the array is accessed through a server which may server many clients at once. Some requests will be to read elements from the array, while other requests might be adding elements to the array. There is no reason to restrict reads to one client at a time, but elements need to be added while no other client is reading or writing to the array.</p>
+
+<p><a href="https://github.com/presidentbeef/rwlock">My implementation</a> is very simple (the entire <code class="language-plaintext highlighter-rouge">RWLock</code> class is 25 lines of code) because it relies on Ruby’s <a href="http://rdoc.info/stdlib/thread/SizedQueue">SizedQueue</a> class. <code class="language-plaintext highlighter-rouge">SizedQueue</code> provides a thread-safe queue with a maximum size. If a thread attempts to add elements to a queue that is full, it will be blocked until an element is removed from the queue to make room. This is a key piece of funtionality used for the readers-writer lock implementation.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">RWLock</code> class only really needs to provide two methods: one to provide read access, and one to provide write access. Since this is Ruby, the methods will take a block to execute the reading/writing code:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">RWLock</span>
+  <span class="k">def</span> <span class="nf">read_sync</span>
+    <span class="c1">#lock magic</span>
+    <span class="k">yield</span>
+    <span class="c1">#lock magic</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">write_sync</span>
+    <span class="c1">#lock magic</span>
+    <span class="k">yield</span>
+    <span class="c1">#lock magic</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>The internal state of the lock will be a <code class="language-plaintext highlighter-rouge">SizedQueue</code> and a <code class="language-plaintext highlighter-rouge">Mutex</code>.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="k">def</span> <span class="nf">initialize</span> <span class="n">max_size</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="vi">@write_lock</span> <span class="o">=</span> <span class="no">Mutex</span><span class="p">.</span><span class="nf">new</span>
+    <span class="vi">@q</span> <span class="o">=</span> <span class="no">SizedQueue</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">max_size</span><span class="p">)</span>
+  <span class="k">end</span>
+</code></pre></div></div>
+
+<p>The <code class="language-plaintext highlighter-rouge">SizedQueue</code> will essentially be used as a counting semaphore. Each time a reader enters <code class="language-plaintext highlighter-rouge">read_sync</code>, the lock will push an element onto the queue. What the element actually is doesn’t matter, but I used <code class="language-plaintext highlighter-rouge">true</code> because it’s cheap. If the queue is full, the reader will block until a space has opened up.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="k">def</span> <span class="nf">read_sync</span>
+    <span class="vi">@q</span><span class="p">.</span><span class="nf">push</span> <span class="kp">true</span>
+    <span class="k">yield</span>
+  <span class="k">ensure</span>
+    <span class="vi">@q</span><span class="p">.</span><span class="nf">pop</span>
+  <span class="k">end</span>
+</code></pre></div></div>
+
+<p>When a writer calls <code class="language-plaintext highlighter-rouge">write_sync</code>, it synchronizes on the mutex to prevent multiple concurrent writers. Then it adds <em>n</em> elements to the queue, where <em>n</em> is equal to the maximum size of the queue.</p>
+
+<p>This has two effects: first, the writer is forced to wait for all current readers to finish. Second, it essentially prevents any new readers from gaining access (there is a small chance one will sneak in, but the writer will still have to wait for it).</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="k">def</span> <span class="nf">write_sync</span>
+    <span class="vi">@write_lock</span><span class="p">.</span><span class="nf">synchronize</span> <span class="k">do</span>
+      <span class="vi">@q</span><span class="p">.</span><span class="nf">max</span><span class="p">.</span><span class="nf">times</span> <span class="p">{</span> <span class="vi">@q</span><span class="p">.</span><span class="nf">push</span> <span class="kp">true</span> <span class="p">}</span>
+
+      <span class="k">begin</span>
+        <span class="k">yield</span>
+      <span class="k">ensure</span>
+        <span class="vi">@q</span><span class="p">.</span><span class="nf">clear</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+</code></pre></div></div>
+
+<p>Once the writer is finished, the queue is cleared, allowing all waiting readers to jump in. It is most likely waiting readers will get in before waiting writers, since the write mutex is held while the queue is emptied, but no effort is made to guarantee that one way or another. In practice, though, this seems to balance well between readers and writers.</p>
+
+<p>One obvious downside of this overall approach is the <code class="language-plaintext highlighter-rouge">SizedQueue</code> limits the number of concurrent readers. A larger queue will cause writers to wait longer (assuming many readers) while a smaller queue may cause readers to wait on other readers. The upside is readers cannot monopolize the resource and cause writer starvation.</p>
+
+<p>Unfortunately, <code class="language-plaintext highlighter-rouge">SizedQueue#clear</code> has been broken forever, since it was simply inherited from <code class="language-plaintext highlighter-rouge">Queue</code> and didn’t actually notify waiting threads that the queue is empty. For some reason, this does not appear to matter in Ruby 1.8, but in Ruby 1.9 and 2.0 it caused a deadlock.</p>
+
+<p>This has been fixed in Ruby 1.9.3p545 and 2.1.1. For broken versions, the <code class="language-plaintext highlighter-rouge">RWLock</code> gem monkey-patches <code class="language-plaintext highlighter-rouge">SizedQueue</code> to fix the behavior. Unfortunately, Ruby 2.0 also had a bug in <code class="language-plaintext highlighter-rouge">SizedQueue#push</code>, so it is completely incompatible. The code does work under JRuby, but there are faster implementations using Java primitives.</p>
+
+<p>RWLock is available as <a href="https://rubygems.org/gems/rwlock">a gem</a> and of course the <a href="https://github.com/presidentbeef/rwlock">code is on GitHub</a>.</p>
+</div>
+
+
+    </article>
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2013/11/01/testing-brakeman/">Testing Brakeman Against 253 Rails Apps</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2013-11-01T07:54:00-06:00" pubdate data-updated="true" style="color: #a2a2a2">Nov 1st, 2013</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Here is some information about how <a href="http://brakemanscanner.org/">Brakeman</a> is tested!</p>
+
+<h3 id="basic-testing-and-continuous-integration">Basic Testing and Continuous Integration</h3>
+
+<p>Brakeman does have a few unit tests…pitifully few. In fact, Brakeman had no tests at all until version <a href="https://github.com/presidentbeef/brakeman/blob/master/CHANGES#L490">0.5.2</a>, nearly a year after Brakeman’s initial public release. Unit testing Brakeman remains difficult, since much of the code relies on data built up from scanning an entire Rails application.</p>
+
+<p>As such, the majority of tests in Brakeman rely on scanning <a href="https://github.com/presidentbeef/brakeman/tree/master/test/apps">sample applications</a> and checking the resulting reports for an expected set of warnings. There are tests for the presence and absence of specific warnings, as well as checking for the specific number of warnings and an absence of reported errors. Since writing tests is pretty tedious, there is <a href="https://github.com/presidentbeef/brakeman/blob/master/test/to_test.rb">a script</a> which generates the Ruby code to asserts the presence of reported warnings. This script takes the same arguments as Brakeman, so it’s simple to generate a set of tests for a specific scenario.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">test_information_disclosure_local_request_config</span>
+  <span class="n">assert_warning</span> <span class="ss">:type</span> <span class="o">=&gt;</span> <span class="ss">:warning</span><span class="p">,</span>
+    <span class="ss">:warning_code</span> <span class="o">=&gt;</span> <span class="mi">61</span><span class="p">,</span>
+    <span class="ss">:fingerprint</span> <span class="o">=&gt;</span> <span class="s2">"081f5d87a244b41d3cf1d5994cb792d2cec639cd70e4e306ffe1eb8abf0f32f7"</span><span class="p">,</span>
+    <span class="ss">:warning_type</span> <span class="o">=&gt;</span> <span class="s2">"Information Disclosure"</span><span class="p">,</span>
+    <span class="ss">:message</span> <span class="o">=&gt;</span> <span class="sr">/^Detailed\ exceptions\ are\ enabled\ in\ produ/</span><span class="p">,</span>
+    <span class="ss">:confidence</span> <span class="o">=&gt;</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="ss">:relative_path</span> <span class="o">=&gt;</span> <span class="s2">"config/environments/production.rb"</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>The tests run on <a href="https://travis-ci.org/presidentbeef/brakeman">Travis CI</a> which is integrated with GitHub. This is especially helpful for testing compatibility with Ruby 1.8.7, which many Rails applications still run on and Brakeman will probably continue supporting for a long time.</p>
+
+<h3 id="regression-testing-with-a-wide-net">Regression Testing with a Wide Net</h3>
+
+<p>Unfortunately, the sample applications Brakeman uses for tests are quite limited, not real, and generally just test very specific warnings or previous bugs. To gain higher confidence that Brakeman is not too broken, Brakeman is run against a set of 253 open source Rails applications I have managed to scrape together. (If you have an open source application to add to this test set, please let me know!)</p>
+
+<p>The scans are run on my personal machine - six jobs in parallel, which takes about nine minutes total. After puttering around with a few different approaches, I ended up simply using the <a href="http://rdoc.info/stdlib/thread/Queue">Queue</a> class from Ruby’s standard library as the job queue. In a Frankenstein combination, a shell script starts up a JRuby process, which builds the Brakeman gem and then runs six threads for scan jobs. Each job launches Brakeman as an external process running under MRI 1.9.3 and, if successful, produces a JSON report. The JSON report is then augmented with some information about the Brakeman commit and the app that was scanned.</p>
+
+<p>When all the apps have been scanned, the JSON reports are tarred up and sent to a server. I use <a href="https://www.digitalocean.com/?refcode=35d9e7aec070">DigitalOcean</a> (referral link!) because I needed an Ubuntu setup and their API lets me use some handy <a href="https://github.com/presidentbeef/my_ocean">scripts</a> to spin the server up and down whenever I need it (and only pay for when it’s up).</p>
+
+<p>On the server, the reports are unpacked and imported into a <a href="http://rethinkdb.com/">RethinkDB</a> database. Since RethinkDB stores JSON documents, it’s simple to dump the JSON reports from Brakeman in there. I just have two tables: one just contains commit SHAs and their timestamps, and the other contains the actual reports. I have secondary indexes on the reports to efficiently look them up by the name of the Rails app or the Brakeman SHA.</p>
+
+<p>A small <a href="http://www.sinatrarb.com/">Sinatra</a> app serves up some basic graphs and allows two commits to be compared:</p>
+
+<p><img src="/images/blog/brakeman-graphs.png" alt="Brakeman Graphs" title="Ugly, I know" /></p>
+
+<p>This “system” is not open source at the moment, but probably will be in the future when I’ve removed hard-coded stuff.</p>
+
+<p>Anyhow, since I have all these reports, I can share some data…but just be forewarned you can’t really draw any conclusions from it!</p>
+
+<h3 id="numbers">Numbers!</h3>
+
+<p>This is the RethinkDB query for warnings per category, in JavaScript since I ran it in the web UI:</p>
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">r</span><span class="p">.</span><span class="nx">db</span><span class="p">(</span><span class="dl">"</span><span class="s2">brakeman</span><span class="dl">"</span><span class="p">).</span>
+  <span class="nx">table</span><span class="p">(</span><span class="dl">"</span><span class="s2">reports</span><span class="dl">"</span><span class="p">).</span>
+  <span class="nx">getAll</span><span class="p">(</span><span class="dl">"</span><span class="s2">25a41dfcd9171695e731533c50de573c71c63deb</span><span class="dl">"</span><span class="p">,</span> <span class="p">{</span><span class="na">index</span><span class="p">:</span> <span class="dl">"</span><span class="s2">brakeman_sha</span><span class="dl">"</span><span class="p">}).</span>
+  <span class="nx">concatMap</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">rep</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="nx">rep</span><span class="p">(</span><span class="dl">"</span><span class="s2">brakeman_report</span><span class="dl">"</span><span class="p">)(</span><span class="dl">"</span><span class="s2">warnings</span><span class="dl">"</span><span class="p">)</span> <span class="p">}).</span>
+  <span class="nx">groupBy</span><span class="p">(</span><span class="dl">"</span><span class="s2">warning_type</span><span class="dl">"</span><span class="p">,</span> <span class="nx">r</span><span class="p">.</span><span class="nx">count</span><span class="p">).</span>
+  <span class="nx">orderBy</span><span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nx">desc</span><span class="p">(</span><span class="dl">"</span><span class="s2">reduction</span><span class="dl">"</span><span class="p">))</span>
+</code></pre></div></div>
+
+<table>
+  <tr>
+    <th>
+      <strong>Warning Category</strong>
+    </th>
+    <th>
+      <strong>Count</strong>
+    </th>
+  </tr>
+  <tr>
+    <td>
+      Cross Site Scripting
+    </td>
+    <td>
+      6669
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Mass Assignment
+    </td>
+    <td>
+      3385
+    </td>
+  </tr>
+  <tr>
+    <td>
+      SQL Injection
+    </td>
+    <td>
+      1353
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Remote Code Execution
+    </td>
+    <td>
+      458
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Denial of Service
+    </td>
+    <td>
+      440
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Redirect
+    </td>
+    <td>
+      232
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Format Validation
+    </td>
+    <td>
+      230
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Attribute Restriction
+    </td>
+    <td>
+      205
+    </td>
+  </tr>
+  <tr>
+    <td>
+      File Access
+    </td>
+    <td>
+      200
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Session Setting
+    </td>
+    <td>
+      169
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Dynamic Render Path
+    </td>
+    <td>
+      140
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Command Injection
+    </td>
+    <td>
+      116
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Cross-Site Request Forgery
+    </td>
+    <td>
+      96
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Default Routes
+    </td>
+    <td>
+      67
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Response Splitting
+    </td>
+    <td>
+      44
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Dangerous Eval
+    </td>
+    <td>
+      43
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Dangerous Send
+    </td>
+    <td>
+      33
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Nested Attributes
+    </td>
+    <td>
+      5
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Information Disclosure
+    </td>
+    <td>
+      2
+    </td>
+  </tr>
+  <tr>
+    <td>
+      Authentication
+    </td>
+    <td>
+      2
+    </td>
+  </tr>
+</table>
+<p><br /></p>
+
+<p>Some educated guesses about these numbers:</p>
+
+<ul>
+  <li>Mass assignment numbers are likely high because they include warnings about dangerous attributes that are whitelisted.</li>
+  <li>Remote code injection is mostly uses of <code class="language-plaintext highlighter-rouge">constantize</code> and similar methods.</li>
+  <li>Most denial of service warnings are calls to <code class="language-plaintext highlighter-rouge">to_sym</code> on parameters</li>
+  <li>Response splitting is interesting because it is only reported in regards to <a href="https://groups.google.com/d/msg/rubyonrails-security/b_yTveAph2g/jKe6OuRC47sJ">CVE-2011-3186</a> which was fixed in Rails 2.3.13.</li>
+</ul>
+
+<p>This last point made me curious about the Rails versions in use by the applications. Keeping in mind these apps are not necessarily up-to-date, they represent at least 37 different versions! Some were reported as unknown versions.</p>
+
+<p>Here are the top ten:</p>
+<table>
+  <tr>
+    <th>
+      <strong>Rails Version</strong>
+    </th>
+    <th>
+      <strong>Count</strong>
+    </th>
+  </tr>
+  <tr>
+    <td>
+      3.2.13
+    </td>
+    <td>
+      26
+    </td>
+  </tr>
+  <tr>
+    <td>
+      2.3.5
+    </td>
+    <td>
+      19
+    </td>
+  </tr>
+  <tr>
+    <td>
+      3.0.3
+    </td>
+    <td>
+      18
+    </td>
+  </tr>
+  <tr>
+    <td>
+      3.2.14
+    </td>
+    <td>
+      14
+    </td>
+  </tr>
+  <tr>
+    <td>
+      4.0.0
+    </td>
+    <td>
+      11
+    </td>
+  </tr>
+  <tr>
+    <td>
+      3.2.12
+    </td>
+    <td>
+      9
+    </td>
+  </tr>
+  <tr>
+    <td>
+      2.3.8
+    </td>
+    <td>
+      8
+    </td>
+  </tr>
+  <tr>
+    <td>
+      3.2.11
+    </td>
+    <td>
+      8
+    </td>
+  </tr>
+  <tr>
+    <td>
+      3.0.0
+    </td>
+    <td>
+      7
+    </td>
+  </tr>
+  <tr>
+    <td>
+      3.1.0
+    </td>
+    <td>
+      6
+    </td>
+  </tr>
+</table>
+<p><br /></p>
+
+<p>With so many applications and nearly 14,000 warnings, there is a lot more information to go through here.</p>
+
+<p>For now this process is used to help test new Brakeman code and avoid regressions. It’s stopped quite a few bugs from going out!</p>
+</div>
+
+
+    </article>
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2013/09/02/fast-compact-sparse-bitsets/">Fast Compact Sparse Bit Sets</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2013-09-02T14:49:00-06:00" pubdate data-updated="true" style="color: #a2a2a2">Sep 2nd, 2013</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Imagine you need a relatively compact data structure for quickly checking membership of mostly-consecutive non-negative integers. (If this sounds really specific, it is because it is precisely what I needed for a particular project.)</p>
+
+<p>The Ruby standard library contains a <a href="http://rdoc.info/stdlib/set/1.9.3/Set">Set</a> class which may be a good starting point. Set is actually implemented as a Hash with the Set elements as keys and <code class="language-plaintext highlighter-rouge">true</code> as the values. Thus the overhead for storing a value in the Set is essentially only the value itself since all keys point to the same <code class="language-plaintext highlighter-rouge">true</code> object. Assuming a 64-bit machine, the overhead will be 64 bits per value. This seems reasonable, but given the specific limitations of the values we wish to store, perhaps we can do better?</p>
+
+<h3 id="bit-sets">Bit Sets</h3>
+
+<p>A bit set is a compact data structure of binary values where membership is indicated by setting a bit to 1. The position of the bit indicates the element value. For example, the second bit from the right might be used to indicate whether or not the value 1 is in the set.</p>
+
+<p>One method to determine membership is to AND the bit set with a mask with only the desired bit set to 1. If the result is 0, the value is not in the set. If it is any other result (actually the mask itself, but the zero check is sufficinet), the value is a member of the set.</p>
+
+<p>In Ruby, this looks like</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">bitset</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">num</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span>
+</code></pre></div></div>
+
+<p>For example, to check if the value 4 is in the set, we use the mask <code class="language-plaintext highlighter-rouge">00010000</code> (the 5th bit from the right is set to 1) which is the decimal value <code class="language-plaintext highlighter-rouge">8</code>:</p>
+
+<p><img src="/images/blog/bitset-example1.png" alt="Bit Set Checking Example 1" /></p>
+
+<p>Since the result is zero, we know the value 4 is not in the set.</p>
+
+<p>If we check for the value <code class="language-plaintext highlighter-rouge">6</code>, the result is not zero, indicating the value is a member of the set:</p>
+
+<p><img src="/images/blog/bitset-example2.png" alt="Bit Set Checking Example 2" /></p>
+
+<p>Now, instead of 64 bits per value, it only requires a single bit! Now we just need to put a lot of bits together, either by using a long string or a bunch of integers in an array.</p>
+
+<h3 id="sparse-bit-sets">Sparse Bit Sets</h3>
+
+<p>The problem with a long binary string or an array of integers is that membership is entirely position-based. To store the value <code class="language-plaintext highlighter-rouge">1000</code>, the data structure requires 1001 bits, all but one of which is set to 0. This is quite inefficient, especially for very large values.</p>
+
+<p>One solution is to create a sparse bit set by combining a hash table with bit sets as values. The hash table keys provide fast look up of the correct bit set, then the bit set is checked for the desired element. The keys indicate the lowest value stored in the bit set (e.g., the decimal key <code class="language-plaintext highlighter-rouge">4</code> pointing to the binary bit set <code class="language-plaintext highlighter-rouge">00000001</code> would mean the value <code class="language-plaintext highlighter-rouge">4</code> is in the set).</p>
+
+<p>Below is an example of a hash table using integer keys and 8 bit integers for the bit sets:</p>
+
+<p><img src="/images/blog/sparse-bitset-example.png" alt="Sparse Bit Set Example" /></p>
+
+<p>The average overhead is <code class="language-plaintext highlighter-rouge">⌊(m * n) / w⌋ + m</code> bits, where <em>m</em> is the number of values (assumed to be consecutive), <em>w</em> is the number of bits per bit set, and <em>n</em> is the number of bits per key. In 64-bit Ruby, if we use integers for the bit sets, <em>n</em> = 64 and <em>w</em> = 62<a href="#footnote">*</a>. This works out to an average of 2 bits per value in the set. Of course, a single value incurs the overhead of both the key and the bit set: 128 bits! But if there are many consecutive values, the cost per value begins to shrink. For example, the numbers 0 to 61 can be stored in a single bit set, so 62 values can be stored in the 128 bits and we are back to about 2 bits per value.</p>
+
+<p>Note that while it is best to use consecutive values which fit neatly into the bit sets (in this case, runs of 62 integers), the sequences can start and end at arbitrary points with only a little “wasted” overhead. To store just the number <code class="language-plaintext highlighter-rouge">1000</code>, we now only need 128 bits, not 1001.</p>
+
+<p>On top of the space savings, the membership checks remain fast. Still assuming 64-bit Ruby, to determine if a value is in the table look up index <code class="language-plaintext highlighter-rouge">i = value / 61</code>. Then check the bit set with <code class="language-plaintext highlighter-rouge">bitset &amp; (1 &lt;&lt; (value % 61) != 0</code> as previously. (The divisor is 61 because there are 62 bits, but the values are 0 to 61).</p>
+
+<h3 id="space-efficiency">Space Efficiency</h3>
+
+<p>I have implemented a Ruby version of the data structure described above which I call the <a href="https://github.com/presidentbeef/dumb-numb-set">Dumb Numb Set</a> (DNS).</p>
+
+<p>To measure the space used by the bit sets, we compare the Marshal data size for the bit sets versus regular Hashes (using <code class="language-plaintext highlighter-rouge">true</code> for all values, just like a Ruby Set).</p>
+
+<p>These are the results for perfectly ordered data on a 64-bit version of Ruby 1.9.3 (size is number of bytes):</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    Items        Hash         DNS      %reduction
+    ---------------------------------------------
+       1   |           7  |        41   |-486%
+     100   |         307  |        61   |  80%
+      1k   |        4632  |       253   |  95%
+     10k   |       49632  |      2211   |  96%
+    100k   |      534098  |     24254   |  95%
+      1M   |     5934098  |    245565   |  96%
+     10M   |    59934098  |   2557080   |  96%
+    100M   |   683156884  |  26163639   |  96%
+      1B   |         ?    | 262229211   |   ?
+    ---------------------------------------------
+</code></pre></div></div>
+
+<p>At 1 billion items, my machine ran out of memory.</p>
+
+<p>For a single item, as expected, overhead in the DNS is quite high. But for as little as 100 items in the set, the DNS is considerably more compact.</p>
+
+<p>This is, however, the best case scenario for the DNS. Less perfectly dense values cause it to <a href="https://github.com/presidentbeef/dumb-numb-set#less-dense-data">be less efficient</a>. For <em>very</em> sparse values, a Hash/Set is probably a better choice.</p>
+
+<h3 id="even-better-space-efficiency">Even Better Space Efficiency</h3>
+
+<p>It may not surprise you to find out I was very interested in minimizing the serialized version of the sparse bit set for sending it over a network. In investigating easy but compact ways of doing so, I realized the Marshal data for Hashes and integers is not very compact, especially for large integers.</p>
+
+<p>Fortunately, there is an existing solution for this scenario called <a href="http://msgpack.org/">MessagePack</a>. For storing 1 million values, serialized size is reduced from 245,565 to 196,378 bytes (20%). The DNS will use MessagePack automatically if it is installed.</p>
+
+<h3 id="performance">Performance</h3>
+
+<p>Somewhat surprisingly, the DNS is quite fast even when compared to MRI Ruby’s Hash implementation.</p>
+
+<p>With MRI Ruby 1.9.3p448 (x86_64) and 1 million values:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>                               user     system      total        real
+Hash add random            0.540000   0.020000   0.560000 (  0.549499)
+DumbNumbSet add random     0.850000   0.020000   0.870000 (  0.864700)
+Hash add in order          0.540000   0.020000   0.560000 (  0.556441)
+DumbNumbSet add in order   0.490000   0.000000   0.490000 (  0.483713)
+Hash add shuffled          0.570000   0.020000   0.590000 (  0.589316)
+DumbNumbSet add shuffled   0.540000   0.010000   0.550000 (  0.538420)
+Hash look up               0.930000   0.010000   0.940000 (  0.940849)
+DNS look up                0.820000   0.000000   0.820000 (  0.818728)
+Hash remove                0.980000   0.030000   1.010000 (  0.999362)
+DNS remove                 0.950000   0.000000   0.950000 (  0.953170)
+</code></pre></div></div>
+
+<p>The only operation slower than a regular Hash is inserting many random values. All other operations are roughly equal.</p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>For my specific scenario, a simple custom data structure was just as fast as a built-in data structure, but required significantly less space for the expected use case.</p>
+
+<p>There are other solutions for this type of problem, but it should be noted I only really care about fast insertion, fast membership checks, and compact representation. Additionally, values may be very large, although I attempt to keep them within the Fixnum range for Ruby (i.e. less than 2<sup>62</sup> - 1). This rules out some implementations which require arrays the size of the maximum value!</p>
+
+<p>I also did not want to deal with compression schemes, of which there are quite a few, since my sets were going to be dynamic. I imagine there are very efficient implementations for fixed data sets.</p>
+
+<p><a name="footnote"></a></p>
+<h4 id="footnote-integer-size-in-ruby">Footnote: Integer Size in Ruby</h4>
+
+<p>Integers in 32-bit MRI Ruby only have 30 bits available, and in 64-bit MRI Ruby they only have 62 bits available:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ irb
+1.9.3p448 :001 &gt; ("1" * 62).to_i(2).class
+ =&gt; Fixnum 
+1.9.3p448 :002 &gt; ("1" * 63).to_i(2).class
+ =&gt; Bignum 
+</code></pre></div></div>
+</div>
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/10/">&larr; Older</a>
+    
+    
+    <a class="next" href="/blog/8/">Newer &rarr;</a>
+    
+  </div>
+</div>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Justin&#39;s Blurgh</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/presidentbeef"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">presidentbeef</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Page 10 of 10 for Justin’s Blurgh</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Justin’s Blurgh" />
+<meta property="og:locale" content="en_US" />
+<link rel="canonical" href="https://blog.presidentbeef.com/blog/10/" />
+<meta property="og:url" content="https://blog.presidentbeef.com/blog/10/" />
+<meta property="og:site_name" content="Justin’s Blurgh" />
+<meta property="og:type" content="website" />
+<link rel="prev" href="https://blog.presidentbeef.com/blog/9/" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Justin’s Blurgh" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","headline":"Justin’s Blurgh","url":"https://blog.presidentbeef.com/blog/10/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://blog.presidentbeef.com/feed.xml" title="Justin&apos;s Blurgh" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Justin&#39;s Blurgh</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/archives/">Archives</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="blog-index">
+  
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2013/02/08/avoid-sql-injection-in-rails/">Avoiding SQL Injection in Rails</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2013-02-08T09:45:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Feb 8th, 2013</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>SQL injection (SQLi) is any situation in which a user can manipulate a database query in an unintended manner. Consequences of SQL injection vulnerabilites range from data leaks, to authentication bypass, to root access on a database server. In short, it is a very big deal.</p>
+
+<p>Most Rails applications interact with a database through ActiveRecord, the default and convenient Object Relational Mapping (ORM) layer which comes with Rails.
+Generally, use of ORMs is safer than not. They can provide abstraction and safety and allow developers to avoid manually building SQL queries. They can embody best practices and prevent careless handling of external input.</p>
+
+<p>Instead of unsafe code like</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>query = "SELECT * FROM users WHERE name = '#{name}' AND password = '#{password'} LIMIT 1"
+results = DB.execute(query)
+</code></pre></div></div>
+
+<p>You can have safer, simpler code like</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>User.where(:name =&gt; name, :password =&gt; :password).first
+</code></pre></div></div>
+
+<p>My impression is many people assume the Rails framework will protect them as long as they avoid the “obviously dangerous” methods, like <code class="language-plaintext highlighter-rouge">find_by_sql</code>.</p>
+
+<p>Unfortunately, ActiveRecord is unsafe more often than it is safe. It does provide parameterization of queries (the API documentation for which can be <a href="http://api.rubyonrails.org/classes/ActiveRecord/Base.html">found here</a>) for some methods, there are many methods for which it does not. While these methods are not intended to be used with user input, the truth is that has never stopped anyone.</p>
+
+<p>To make it clear how dangerous it can be to use ActiveRecord, consider <a href="http://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F">ActiveRecord::FinderMethods#exists?</a> which queries the database and returns <code class="language-plaintext highlighter-rouge">true</code> if a matching record exists. The argument can be a primary key (either integer or string, if a string it will be sanitized), an array consisting of a template string and values to safely interpolate, or a hash of column-value pairs (which will be sanitized).</p>
+
+<p>Here is an example of using <code class="language-plaintext highlighter-rouge">exists?</code> to determine if a given user exists:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>User.exists? params[:user_id]
+</code></pre></div></div>
+
+<p>This looks harmless, since <code class="language-plaintext highlighter-rouge">params[:user_id]</code> is a string, and strings will be sanitized. In fact, the documentation clearly points out not to pass in conditions as strings, because they will be escaped.</p>
+
+<p>However, there is no gaurantee <code class="language-plaintext highlighter-rouge">params[:user_id]</code> is a string. An attacker could send a request with <code class="language-plaintext highlighter-rouge">?user_id[]=some_attack_string</code>, which Rails will turn into an array <code class="language-plaintext highlighter-rouge">["some_attack_string"]</code>. Now the argument is an array, the first element of which is not escaped.</p>
+
+<p>To avoid this problem, the user input should be converted to the expected type:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>User.exists? params[:user_id].to_i
+</code></pre></div></div>
+
+<p>Or use a hash:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>User.exists? :id =&gt; params[:user_id]
+</code></pre></div></div>
+
+<p>This should be the approach for all uses of user input. Do not assume <em>anything</em> about values from external sources or what safety mechanisms a method might have.</p>
+
+<p>While working on <a href="http://brakemanscanner.org/">Brakeman</a>, I thought it would be useful to put together a list of all the unsafe ways one can use ActiveRecord.</p>
+
+<p>To make it easier on myself, I built the list into a Rails application so I could easily test, verify, and record any findings. The source is <a href="https://github.com/presidentbeef/inject-some-sql">available here</a> for those who would like try out the examples. The application is a single page of all the queries and example injections. From there one can submit queries and see the results:</p>
+
+<p><img src="/images/blog/inject-some-sql.png" alt="Query Example" /></p>
+
+<p>The resulting information is available at <a href="http://rails-sqli.org">rails-sqli.org</a>, including examples of how SQL injection can occur and the resulting queries. This is basically a big list of what <em>not</em> to do when using ActiveRecord. Again, please feel free to <a href="https://github.com/presidentbeef/inject-some-sql">contribute</a> so that the list can be as authoritative as possible and help everyone avoid SQL injection in Rails.</p>
+</div>
+
+
+    </article>
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3/">Faster Call Indexing in Brakeman</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2012-11-28T11:49:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Nov 28th, 2012</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2 id="background">Background</h2>
+
+<p>About a month ago, an <a href="https://github.com/presidentbeef/brakeman/issues/171">issue</a> was reported where <a href="http://brakemanscanner.org">Brakeman</a> taking a ridiculously long time on the “call indexing” step. At the time, I was pessimistic about opportunities to improve the performance of call indexing, since it is a pretty simple operation.</p>
+
+<h3 id="call-indexing">Call Indexing</h3>
+
+<p>The majority of the checks performed by Brakeman involve finding and examining method calls (e.g., SQL queries). In order to make these checks faster, Brakeman scans an app once and then saves information about each method call in a data structure called the “call index”. This makes searching for specific method calls very fast.</p>
+
+<p>The call index allows search for methods by name and also by the class of the target. For example, it is possible to search for all calls to <code class="language-plaintext highlighter-rouge">open</code> on <code class="language-plaintext highlighter-rouge">File</code>. It also allows searching via regular expressions for methods and targets.</p>
+
+<h2 id="investigation">Investigation</h2>
+
+<p>I happened to notice a Rails application in my collection which also seemed to take a long time indexing calls. So I ran it through <a href="https://github.com/tmm1/perftools.rb">perftools.rb</a> to see if there was anything interesting going on.</p>
+
+<p>This is the result:</p>
+
+<p><a href="/images/blog/brakeman-scan-1.8.2.pdf"><img src="/images/blog/brakeman-scan-1.8.2.png" alt="Brakeman 1.8.2 scan" /></a></p>
+
+<p>The large amount of time spent in the garbage collector (60%) was high even for Brakeman. But then something else caught my eye:</p>
+
+<p><img src="/images/blog/call-indexing-1.8.2.png" alt="Call indexing in 1.8.2" /></p>
+
+<p>This scan spent 4.7% of its time converting <code class="language-plaintext highlighter-rouge">Sexp</code>s to strings while indexing calls. This seemed excessive.</p>
+
+<p>This is the entirety of the call indexing code:</p>
+
+<p>```ruby call_index.rb
+  def index_calls calls
+    calls.each do |call|
+      @methods « call[:method].to_s
+      @targets « call[:target].to_s
+      @calls_by_method[call[:method]] « call
+      @calls_by_target[call[:target]] « call
+    end
+  end</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+`@methods` and `@targets` are sets which contain the string versions of all the methods and method targets. This is *exclusively* used to search for methods and targets via regular expressions.
+
+The call method will always be a symbol...but what about the target? It turns out that while much of the time it is a symbol, if a sane value like `:File` or `:@something` cannot be found, then it will be the entire `Sexp`! This is where Brakeman was wasting time calling `Sexp#to_s`.
+
+The quick fix was to only store symbol targets in the `@targets` set, ignoring any other target values.
+
+## Results
+
+Scanning the same application with Brakeman 1.8.3 has this result:
+
+[![Brakeman 1.8.3 scan](/images/blog/brakeman-scan-1.8.3.png)](/images/blog/brakeman-scan-1.8.3.pdf)
+
+Garbage collection time dropped from 60% to 42%. While still very high, this is a good sign. Time spent indexing calls has dropped from 5.4% to 1.8% and the calls to `Sexp#to_s` have vanished. 
+
+The total scan time dropped from 3.5 minutes to about 2 minutes. For the original reporter, scan times went from [78 minutes to 40 *seconds*](https://github.com/presidentbeef/brakeman/issues/171#issuecomment-10344355).
+
+## More Improvements
+
+Looking through Brakeman, it does not currently use the "search via regex" feature for the call index. So the method and target name sets can be removed entirely.
+
+Going even further, nowhere does Brakeman search for targets by any values other than symbols. Note in the graph below that `Array#eql?` was sampled 1,330 times during call indexing:
+
+![Call indexing hashing](/images/blog/call-indexing-hashing-sexp.png)
+
+Since `Sexp`s are subclassed from `Array`, it is clear that these calls are generated when using the `call[:target]` as a hash key (line 6 above). Again, the current Brakeman code only searches for call targets by symbol, never by a full `Sexp`. There is no reason to the call targets that are `Sexp`s.
+
+This is the modified call indexing code:
+
+```ruby Modified call_index.rb
+  def index_calls calls
+    calls.each do |call|
+      @calls_by_method[call[:method]] &lt;&lt; call
+
+      unless call[:target].is_a? Sexp
+        @calls_by_target[call[:target]] &lt;&lt; call
+      end
+    end
+  end
+</code></pre></div></div>
+
+<p>With this code in place, call indexing does not even show up under perftools. Speed improvements vary by project, but this should at least shave off a few seconds. <a href="https://github.com/presidentbeef/brakeman/pull/189#issuecomment-10768297">YMMV</a>.</p>
+
+<h2 id="wrapping-up">Wrapping Up</h2>
+
+<p>Some quick profiling led me to performance improvements where I really did not expect to find them. Sadly, this is one of the cleanest, simplest parts of Brakeman, so I know there are many other instances where Brakeman can be improved. Prior to the introduction of the call index in Brakeman 1.0, I was trying to keep Brakeman scans under 20 minutes (on large applications). Now I worry when scans take longer than a few minutes.</p>
+
+<p>97% of the open source Rails applications I use as test cases can be scanned in less than 30 seconds. Unfortunately, this probably does not reflect scan times for large, commercial applications. Please <a href="https://github.com/presidentbeef/brakeman/issues">report</a> any long-running scans! It may lead to more speed improvements like the ones above.</p>
+</div>
+
+
+    </article>
+  
+  <div class="pagination">
+    
+    
+    <a class="next" href="/blog/9/">Newer &rarr;</a>
+    
+  </div>
+</div>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Justin&#39;s Blurgh</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/presidentbeef"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">presidentbeef</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

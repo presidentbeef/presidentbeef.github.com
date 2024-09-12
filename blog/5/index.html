@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Page 5 of 10 for Justin’s Blurgh</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Justin’s Blurgh" />
+<meta property="og:locale" content="en_US" />
+<link rel="canonical" href="https://blog.presidentbeef.com/blog/5/" />
+<meta property="og:url" content="https://blog.presidentbeef.com/blog/5/" />
+<meta property="og:site_name" content="Justin’s Blurgh" />
+<meta property="og:type" content="website" />
+<link rel="prev" href="https://blog.presidentbeef.com/blog/4/" />
+<link rel="next" href="https://blog.presidentbeef.com/blog/6/" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Justin’s Blurgh" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","headline":"Justin’s Blurgh","url":"https://blog.presidentbeef.com/blog/5/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://blog.presidentbeef.com/feed.xml" title="Justin&apos;s Blurgh" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Justin&#39;s Blurgh</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/archives/">Archives</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="blog-index">
+  
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2022/01/05/api-levels-in-dragonruby-game-toolkit/">API Levels in DragonRuby Game Toolkit</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2022-01-05T11:00:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Jan 5th, 2022</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><a href="https://dragonruby.org/toolkit/game">DragonRuby Game Toolkit (DRGTK)</a> is a 2D game engine built with <a href="https://mruby.org/">mRuby</a>, <a href="https://www.libsdl.org/">SDL</a>, and <a href="https://llvm.org/">LLVM</a>. It’s meant to be tiny, fast, and allow you to turn out games quickly using <a href="https://www.ruby-lang.org/">Ruby</a>.</p>
+
+<p>Unfortunately, since the documentation is focused on making games <em>quickly</em>, I sometimes get lost when trying to figure out how to do things that should be simple. DragonRuby seems to have borrowed Perl’s “<a href="https://en.wikipedia.org/wiki/There%27s_more_than_one_way_to_do_it">There’s more than one way to do it</a>” philosophy because for anything you want to do with the API there are <em>several</em> ways to do it.</p>
+
+<p>The documentation and examples tend to focus on the simplest forms (which is fine) but then require digging and experimentation to figure out the rest.</p>
+
+<p>To help explain/document the different API options, this post will go through different methods of rendering images (well, rectangles mostly).</p>
+
+<h2 id="api-levels">API Levels</h2>
+
+<h3 id="level-0---getting-started">Level 0 - Getting Started</h3>
+
+<p>The main object one interacts with in DragonRuby is canonically called <code class="language-plaintext highlighter-rouge">args</code> (always accessible with <code class="language-plaintext highlighter-rouge">$gtk.args</code>… because there’s more than one way!)</p>
+
+<p>To output <em>things</em>, like shapes, sprites, or sounds, you can use the “shovel” operator <code class="language-plaintext highlighter-rouge">&lt;&lt;</code> on <code class="language-plaintext highlighter-rouge">args.outputs</code> - like <code class="language-plaintext highlighter-rouge">args.outputs.sprites</code> or <code class="language-plaintext highlighter-rouge">args.outputs.sounds</code>.</p>
+
+<p>For these “basic” objects, you’ll need to shovel <em>things</em> in on every “tick” of the game engine.</p>
+
+<p>This is a complete DragonRuby example to output a rectangle:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">solids</span> <span class="o">&lt;&lt;</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">400</span><span class="p">]</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>So far, so good.</p>
+
+<p>(You can assume the rest of the examples below are inside a <code class="language-plaintext highlighter-rouge">tick</code> method if it’s not explicitly defined.)</p>
+
+<h3 id="level-1---arrays">Level 1 - Arrays</h3>
+
+<p>The documentation usually starts off by passing <em>things</em> to <code class="language-plaintext highlighter-rouge">args.outputs</code> as arrays - essentially positional arguments.</p>
+
+<p>For example:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">solids</span> <span class="o">&lt;&lt;</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">400</span><span class="p">]</span>
+</code></pre></div></div>
+
+<p>What does that do? I’m not quite sure!</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/p9aobr3f41cbih3kpa95.png" alt="A black rectangle on a gray background" /></p>
+
+<p>Okay - it shows a black rectangle on the screen. Not that exciting, but useful enough for our examples.</p>
+
+<p>The problem with using arrays though is remembering which index in the array is which attribute. On top of that, it’s not even recommended to pass in arrays because they are slow (for some reason).</p>
+
+<h3 id="level-2---hashes">Level 2 - Hashes</h3>
+
+<p>What is better than arrays? Hashes! (Hash tables/associative arrays for anyone not familiar with Ruby.)</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">solids</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+  <span class="ss">x: </span><span class="mi">100</span><span class="p">,</span>
+  <span class="ss">y: </span><span class="mi">200</span><span class="p">,</span>
+  <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>  <span class="c1"># width</span>
+  <span class="ss">h: </span><span class="mi">400</span>   <span class="c1"># height</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Okay, that’s way easier to understand!</p>
+
+<p>And there are more options, too:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">solids</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+  <span class="ss">x: </span><span class="mi">100</span><span class="p">,</span>
+  <span class="ss">y: </span><span class="mi">200</span><span class="p">,</span>
+  <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>
+  <span class="ss">h: </span><span class="mi">400</span><span class="p">,</span>
+  <span class="ss">r: </span><span class="mi">255</span><span class="p">,</span>  <span class="c1"># red</span>
+  <span class="ss">g: </span><span class="mi">200</span><span class="p">,</span>  <span class="c1"># green</span>
+  <span class="ss">b: </span><span class="mi">255</span><span class="p">,</span>  <span class="c1"># blue</span>
+  <span class="ss">a: </span><span class="mi">100</span><span class="p">,</span>  <span class="c1"># alpha</span>
+  <span class="ss">blendmode_enum: </span><span class="mi">0</span>  <span class="c1"># blend mode</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="level-3---primitives">Level 3 - Primitives</h3>
+
+<p>But there is yet another way… instead of using <code class="language-plaintext highlighter-rouge">args.outputs.solids</code>, <code class="language-plaintext highlighter-rouge">args.outputs.labels</code>, <code class="language-plaintext highlighter-rouge">args.outputs.sprites</code>, etc., we can output a hash to <code class="language-plaintext highlighter-rouge">args.outputs.primitives</code> but mark it as the right primitive “type”:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">primitives</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+  <span class="ss">x: </span><span class="mi">100</span><span class="p">,</span>
+  <span class="ss">y: </span><span class="mi">200</span><span class="p">,</span>
+  <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>
+  <span class="ss">h: </span><span class="mi">400</span><span class="p">,</span>
+  <span class="ss">r: </span><span class="mi">255</span><span class="p">,</span>  <span class="c1"># red</span>
+  <span class="ss">g: </span><span class="mi">200</span><span class="p">,</span>  <span class="c1"># green</span>
+  <span class="ss">b: </span><span class="mi">255</span><span class="p">,</span>  <span class="c1"># blue</span>
+  <span class="ss">a: </span><span class="mi">100</span><span class="p">,</span>  <span class="c1"># alpha</span>
+  <span class="ss">blendmode_enum: </span><span class="mi">0</span>  <span class="c1"># blend mode</span>
+<span class="p">}.</span><span class="nf">solid!</span>
+</code></pre></div></div>
+
+<p>Weird, but okay. Why might one want to do this? See the “Layers” section down below!</p>
+
+<h3 id="level-4---classes">Level 4 - Classes</h3>
+
+<p>Finally, probably the most natural for a Rubyist: just use a class!</p>
+
+<p>To do this, you <em>must</em> define all the methods expected for the type of primitive, plus define a method called <code class="language-plaintext highlighter-rouge">primitive_marker</code> that returns the type of primitive.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ACoolSolid</span>
+  <span class="nb">attr_reader</span> <span class="ss">:x</span><span class="p">,</span> <span class="ss">:y</span><span class="p">,</span> <span class="ss">:w</span><span class="p">,</span> <span class="ss">:h</span><span class="p">,</span> <span class="ss">:r</span><span class="p">,</span> <span class="ss">:g</span><span class="p">,</span> <span class="ss">:b</span><span class="p">,</span> <span class="ss">:a</span><span class="p">,</span> <span class="ss">:blendmode_enum</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span>
+    <span class="vi">@x</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="vi">@y</span> <span class="o">=</span> <span class="n">y</span>
+    <span class="vi">@w</span> <span class="o">=</span> <span class="n">w</span>
+    <span class="vi">@h</span> <span class="o">=</span> <span class="n">h</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">primitive_marker</span>
+    <span class="ss">:solid</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">primitives</span> <span class="o">&lt;&lt;</span> <span class="no">ACoolSolid</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Instead of defining a bunch of methods with <code class="language-plaintext highlighter-rouge">attr_reader</code>, you can use <code class="language-plaintext highlighter-rouge">attr_sprite</code> instead which is a DragonRuby shortcut method to do the same thing.</p>
+
+<h2 id="layers">Layers</h2>
+
+<p>DragonRuby renders outputs in this order (from back to front):</p>
+
+<ul>
+  <li>Solids</li>
+  <li>Sprites</li>
+  <li>Primitives</li>
+  <li>Labels</li>
+  <li>Lines</li>
+  <li>Borders</li>
+</ul>
+
+<p>For each “layer” the objects are rendered in FIFO order - the first things in the queue are rendered first.</p>
+
+<p>But wait… one of these things is not like the others. Doesn’t <code class="language-plaintext highlighter-rouge">primitives</code> just hold things like solids, sprites, labels…?</p>
+
+<p>Yes!</p>
+
+<p>But using <code class="language-plaintext highlighter-rouge">primitives</code> enables better control over render order.</p>
+
+<p>For example, what if we want to render a rectangle on top of a sprite? With the fixed rendering order above, it’s impossible! But by using <code class="language-plaintext highlighter-rouge">args.outputs.primitives</code> we can do it:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="n">a_solid</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="mi">100</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="mi">200</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="mi">400</span>
+  <span class="p">}.</span><span class="nf">solid!</span>
+
+  <span class="n">a_sprite</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="mi">100</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="mi">200</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="mi">500</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="mi">500</span><span class="p">,</span>
+    <span class="ss">path: </span><span class="s1">'metadata/icon.png'</span>
+  <span class="p">}.</span><span class="nf">sprite!</span>
+
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">primitives</span> <span class="o">&lt;&lt;</span> <span class="n">a_sprite</span> <span class="o">&lt;&lt;</span> <span class="n">a_solid</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>And here’s the proof:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/z1596wyp7n71lwya3f2c.png" alt="Screenshot showing a black rectangle on top of the DragonRuby logo" /></p>
+
+<h2 id="every-tick">Every Tick?</h2>
+
+<p><code class="language-plaintext highlighter-rouge">args.outputs.sprites</code>, etc. get cleared after each call to <code class="language-plaintext highlighter-rouge">tick</code>. So every tick we have to recreate all the objects and pass them in to <code class="language-plaintext highlighter-rouge">args.outputs</code>. Seems wasteful, right? Yes, it is!</p>
+
+<p>It’s somewhat odd that most DragonRuby examples show creating arrays or hashes for primitives each tick. It made me think somehow the rendering process was destructive - were the things added into <code class="language-plaintext highlighter-rouge">args.outputs</code> destroyed or modified in some way?</p>
+
+<p>Turns out, no. It is fine to create e.g. a sprite representation once and render the same object each time.</p>
+
+<p>Here we’ll use a global for demonstration purposes:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ACoolSolid</span>
+  <span class="nb">attr_reader</span> <span class="ss">:x</span><span class="p">,</span> <span class="ss">:y</span><span class="p">,</span> <span class="ss">:w</span><span class="p">,</span> <span class="ss">:h</span><span class="p">,</span> <span class="ss">:r</span><span class="p">,</span> <span class="ss">:g</span><span class="p">,</span> <span class="ss">:b</span><span class="p">,</span> <span class="ss">:a</span><span class="p">,</span> <span class="ss">:blendmode_enum</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span>
+    <span class="vi">@x</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="vi">@y</span> <span class="o">=</span> <span class="n">y</span>
+    <span class="vi">@w</span> <span class="o">=</span> <span class="n">w</span>
+    <span class="vi">@h</span> <span class="o">=</span> <span class="n">h</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">primitive_marker</span>
+    <span class="ss">:solid</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="vg">$a_solid</span> <span class="o">=</span> <span class="no">ACoolSolid</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">primitives</span> <span class="o">&lt;&lt;</span> <span class="vg">$a_solid</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<h3 id="but-wait">But Wait…</h3>
+
+<p>We are still shoveling an object into <code class="language-plaintext highlighter-rouge">args.outputs.primitives</code> each time. Surely that is unnecessary?</p>
+
+<p>Correct! There are <a href="http://docs.dragonruby.org/#------static_solids-"><em>static</em> versions</a> for each <code class="language-plaintext highlighter-rouge">args.outputs</code> (e.g. <code class="language-plaintext highlighter-rouge">args.outputs.static_solids</code>) that do <em>not</em> get cleared every tick.</p>
+
+<p>Naturally, this is more efficient than creating objects and updating the outputs 60 times per second.</p>
+
+<p>We’ll explore these options in a future post, but be aware they are available!</p>
+
+</div>
+
+
+    </article>
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2021/11/08/fixing-just-one-false-positive-in-brakeman/">Fixing Just One False Positive in Brakeman</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2021-11-08T11:30:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Nov 8th, 2021</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>A while ago, I came across a <a href="https://brakemanscanner.org/">Brakeman</a> false positive that I wanted to fix.</p>
+
+<p>For just one false positive, it became a bit of an epic journey.</p>
+
+<p>The code looked something like this:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Task</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">enum</span> <span class="ss">status: </span><span class="p">{</span>
+    <span class="ss">pending: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">success: </span><span class="mi">1</span><span class="p">,</span>
+    <span class="ss">failed: </span><span class="mi">3</span><span class="p">,</span>
+  <span class="p">}</span>
+  <span class="no">NOT_FAILURES</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'pending'</span><span class="p">,</span> <span class="s1">'success'</span><span class="p">].</span><span class="nf">freeze</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">TaskRunner</span>
+  <span class="k">def</span> <span class="nf">get_failures</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="no">Date</span><span class="p">.</span><span class="nf">beginning_of_quarter</span>
+    <span class="n">end_time</span> <span class="o">=</span> <span class="no">Date</span><span class="p">.</span><span class="nf">end_of_quarter</span>
+
+    <span class="n">no_failure_enums</span> <span class="o">=</span> <span class="no">Task</span><span class="p">.</span><span class="nf">statuses</span><span class="p">.</span><span class="nf">values_at</span><span class="p">(</span><span class="o">*</span><span class="no">Task</span><span class="o">::</span><span class="no">NOT_FAILURES</span><span class="p">)</span>
+
+    <span class="n">query</span> <span class="o">=</span> <span class="o">&lt;&lt;~</span><span class="no">QUERY</span><span class="sh">
+      SELECT COUNT(*)
+      FROM `tasks`
+      WHERE `tasks`.`status` NOT IN (</span><span class="si">#{</span><span class="n">no_failure_enums</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">','</span><span class="p">)</span><span class="si">}</span><span class="sh">)
+      AND `tasks`.`time_end` BETWEEN </span><span class="si">#{</span><span class="n">start_time</span><span class="si">}</span><span class="sh"> AND </span><span class="si">#{</span><span class="n">end_time</span><span class="si">}</span><span class="sh">
+</span><span class="no">    QUERY</span>
+
+    <span class="c1"># Line below triggers a SQL injection warning</span>
+    <span class="no">Task</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">select_all</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>(You can imagine in reality the query is a bit more complicated and justifies writing it this way.)</p>
+
+<p>This code results in an SQL injection warning from Brakeman:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Confidence: High
+Category: SQL Injection
+Check: SQL
+Message: Possible SQL injection
+Code: Task.connection.select_all("SELECT COUNT(*)\nFROM `filings`\nWHERE `filings`.`status` NOT IN (#{Task.statuses.values_at(*["pending", "success"]).join(",")})\nAND `filings`.`time_end` BETWEEN #{Date.beginning_of_quarter} AND #{Date.end_of_quarter}\n")
+File: app/models/task.rb
+Line: 25
+</code></pre></div></div>
+
+<p>This is a little hard to read, so let’s take a look at a better formatted version of the code Brakeman is complaining about:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Task</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">select_all</span><span class="p">(</span>
+  <span class="s2">"SELECT COUNT(*) \
+  FROM `filings` \
+  WHERE `filings`.`status` NOT IN (</span><span class="si">#{</span><span class="no">Task</span><span class="p">.</span><span class="nf">statuses</span><span class="p">.</span><span class="nf">values_at</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="s2">"pending"</span><span class="p">,</span> <span class="s2">"success"</span><span class="p">]).</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span><span class="si">}</span><span class="s2">) \
+  AND `filings`.`time_end` BETWEEN </span><span class="si">#{</span><span class="no">Date</span><span class="p">.</span><span class="nf">beginning_of_quarter</span><span class="si">}</span><span class="s2"> \
+  AND </span><span class="si">#{</span><span class="no">Date</span><span class="p">.</span><span class="nf">end_of_quarter</span><span class="si">}</span><span class="s2">"</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<p>Brakeman is warning about this SQL query because it is using string interpolation to unsafely add in values to the query. If an attacker could control those values, they could modify the SQL run by the database.</p>
+
+<p>In particular, it’s warning about</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Task</span><span class="p">.</span><span class="nf">statuses</span><span class="p">.</span><span class="nf">values_at</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="s2">"pending"</span><span class="p">,</span> <span class="s2">"success"</span><span class="p">]).</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+</code></pre></div></div>
+<p>(the value in <code class="language-plaintext highlighter-rouge">no_failure_enums.join(',')</code>).</p>
+
+<p>However, in this case, we know that <code class="language-plaintext highlighter-rouge">Task.statuses</code> is actually a constant - it’s defined using <a href="https://api.rubyonrails.org/v5.2.4.4/classes/ActiveRecord/Enum.html"><code class="language-plaintext highlighter-rouge">enum</code></a> in the <code class="language-plaintext highlighter-rouge">Task</code> class. This code is just grabbing the integer values for the given enums and joining them back into a comma-separated string.</p>
+
+<p>So how do we get Brakeman to understand that this value is actually safe?</p>
+
+<h2 id="splatted-arrays">Splatted Arrays</h2>
+
+<p>Let’s dive in!</p>
+
+<p>The call we care about:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Task</span><span class="p">.</span><span class="nf">statuses</span><span class="p">.</span><span class="nf">values_at</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="s2">"pending"</span><span class="p">,</span> <span class="s2">"success"</span><span class="p">]).</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>First up is <code class="language-plaintext highlighter-rouge">*["pending", "success"]</code>. This code converts an array of strings to individual method arguments (i.e., <code class="language-plaintext highlighter-rouge">values_at("pending", "success")</code>.</p>
+
+<p>This is pretty easy to handle. In the case where a splatted array is the only argument to a method, just use the elements of the array as the argument list. (Check out the <a href="https://github.com/presidentbeef/brakeman/pull/1564">pull request here</a>)</p>
+
+<p>This gets us to:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Task</span><span class="p">.</span><span class="nf">statuses</span><span class="p">.</span><span class="nf">values_at</span><span class="p">(</span><span class="s2">"pending"</span><span class="p">,</span> <span class="s2">"success"</span><span class="p">).</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Better!</p>
+
+<h2 id="hash-values">Hash Values</h2>
+
+<p>In this case, <code class="language-plaintext highlighter-rouge">values_at</code> is <a href="https://rdoc.info/stdlib/core/Hash:values_at"><code class="language-plaintext highlighter-rouge">Hash#values_at</code></a> - it returns an array of values from the hash table for the given keys.</p>
+
+<p>This is also not too difficult to implement. I went ahead and covered <code class="language-plaintext highlighter-rouge">Hash#values</code> at the same time. (Check out the <a href="https://github.com/presidentbeef/brakeman/pull/1595">pull request here</a>)</p>
+
+<p>Brakeman will now do something like this:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">h</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">a: </span><span class="mi">1</span><span class="p">,</span> <span class="ss">b: </span><span class="mi">2</span><span class="p">,</span> <span class="ss">c: </span><span class="mi">3</span> <span class="p">}</span>
+<span class="n">h</span><span class="p">.</span><span class="nf">values_at</span><span class="p">(</span><span class="ss">:a</span><span class="p">,</span> <span class="ss">:c</span><span class="p">)</span>  <span class="c1">#=&gt; [1, 3]</span>
+</code></pre></div></div>
+
+<p>Great! Back to our code sample, how does it look now?</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Task</span><span class="p">.</span><span class="nf">statuses</span><span class="p">.</span><span class="nf">values_at</span><span class="p">(</span><span class="s2">"pending"</span><span class="p">,</span> <span class="s2">"success"</span><span class="p">).</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Oh… it looks exactly the same because Brakeman has no idea what <code class="language-plaintext highlighter-rouge">Task.statuses</code> is.</p>
+
+<p>Okay, no problem. We just need to implement support for ActiveRecord’s <code class="language-plaintext highlighter-rouge">enum</code>.</p>
+
+<h2 id="detour">Detour!</h2>
+
+<p>Here I took a little detour. <code class="language-plaintext highlighter-rouge">Task.statuses</code> is a method that returns a hash value. Instead of just implementing that, I thought this would be a good time to support methods with single, simple return values.</p>
+
+<p>For example:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Dog</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">sound</span>
+    <span class="s1">'bark'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>If Brakeman could know that <code class="language-plaintext highlighter-rouge">Dog.sound</code> returns <code class="language-plaintext highlighter-rouge">'bark'</code>, I could implement enums as method definitions that return simple arrays or hashes. (More on this later!)</p>
+
+<p>To implement this functionality, I rewrote how Brakeman tracks methods (as real objects) and updated some method lookup code.</p>
+
+<p>The details aren’t particularly interesting, but the <a href="https://github.com/presidentbeef/brakeman/pull/1596">code changes are here</a>.</p>
+
+<h2 id="back-to-enums">Back to Enums</h2>
+
+<p>Calling <code class="language-plaintext highlighter-rouge">enum</code> essentially defines a bunch of methods.</p>
+
+<p>For example this code:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Task</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">enum</span> <span class="ss">status: </span><span class="p">{</span>
+    <span class="ss">pending: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">success: </span><span class="mi">1</span><span class="p">,</span>
+    <span class="ss">failed: </span><span class="mi">3</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Will define methods like</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Task</span><span class="p">.</span><span class="nf">statuses</span> <span class="c1"># the one we care about!</span>
+<span class="no">Task</span><span class="p">.</span><span class="nf">status</span>
+<span class="no">Task</span><span class="c1">#status</span>
+<span class="no">Task</span><span class="c1">#pending?</span>
+<span class="no">Task</span><span class="c1">#success?</span>
+<span class="c1"># ..etc.</span>
+</code></pre></div></div>
+
+<p>You can pass in an explicit hash mapping keys to values or just an array of keys and Rails will do the mapping.</p>
+
+<p>To implement this in Brakeman, we simulate the creation of the <code class="language-plaintext highlighter-rouge">status</code> and <code class="language-plaintext highlighter-rouge">statuses</code> methods:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Task</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">statuses</span>
+    <span class="p">{</span>
+      <span class="ss">pending: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">success: </span><span class="mi">1</span><span class="p">,</span>
+      <span class="ss">failed: </span><span class="mi">3</span><span class="p">,</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Then rely on the previous changes for <code class="language-plaintext highlighter-rouge">Task.statuses</code> now returning a hash.</p>
+
+<h2 id="another-detour">Another Detour</h2>
+
+<p>You might have noticed that the enum definition uses <code class="language-plaintext highlighter-rouge">status</code> but we need <code class="language-plaintext highlighter-rouge">statuses</code>.</p>
+
+<p>This required <a href="https://github.com/presidentbeef/brakeman/commit/c27f44ab8bf1d8dfad6c5e5908ba621ec067f9a7">a tiny tweak</a> to Brakeman’s extremely over-simplified <code class="language-plaintext highlighter-rouge">pluralize</code>.</p>
+
+<h2 id="back-to-the-false-positive">Back to the False Positive</h2>
+
+<p>Where are we now?</p>
+
+<p>With <code class="language-plaintext highlighter-rouge">enum</code> support and proper pluralization, this code:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Task</span><span class="p">.</span><span class="nf">statuses</span><span class="p">.</span><span class="nf">values_at</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="s2">"pending"</span><span class="p">,</span> <span class="s2">"success"</span><span class="p">]).</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Gets reduced like this:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
+  <span class="ss">pending: </span><span class="mi">0</span><span class="p">,</span>
+  <span class="ss">success: </span><span class="mi">1</span><span class="p">,</span>
+  <span class="ss">failed: </span><span class="mi">3</span><span class="p">,</span>
+<span class="p">}.</span><span class="nf">values_at</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="s2">"pending"</span><span class="p">,</span> <span class="s2">"success"</span><span class="p">]).</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+</code></pre></div></div>
+<p>to</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
+  <span class="ss">pending: </span><span class="mi">0</span><span class="p">,</span>
+  <span class="ss">success: </span><span class="mi">1</span><span class="p">,</span>
+  <span class="ss">failed: </span><span class="mi">3</span><span class="p">,</span>
+<span class="p">}.</span><span class="nf">values_at</span><span class="p">(</span><span class="s2">"pending"</span><span class="p">,</span> <span class="s2">"success"</span><span class="p">).</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+</code></pre></div></div>
+<p>to</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="ss">:BRAKEMAN_SAFE_LITERAL</span><span class="p">,</span> <span class="ss">:BRAKEMAN_SAFE_LITERAL</span><span class="p">].</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+</code></pre></div></div>
+<p>to</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s2">"BRAKEMAN_SAFE_LITERAL,BRAKEMAN_SAFE_LITERAL"</span>
+</code></pre></div></div>
+
+<p>Well… it’s not perfect. Note that the array values are strings, but our enum uses symbol keys. But Brakeman knows the enum is all literal values which are safe, so we end up with this.</p>
+
+<p>The query now looks like:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Task</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">select_all</span><span class="p">(</span>
+  <span class="s2">"SELECT COUNT(*) \
+  FROM `filings` \
+  WHERE `filings`.`status` NOT IN (</span><span class="si">#{</span><span class="s2">"BRAKEMAN_SAFE_LITERAL,BRAKEMAN_SAFE_LITERAL"</span><span class="si">}</span><span class="s2">) \
+  AND `filings`.`time_end` BETWEEN </span><span class="si">#{</span><span class="no">Date</span><span class="p">.</span><span class="nf">beginning_of_quarter</span><span class="si">}</span><span class="s2"> \
+  AND </span><span class="si">#{</span><span class="no">Date</span><span class="p">.</span><span class="nf">end_of_quarter</span><span class="si">}</span><span class="s2">"</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<p>Again, not perfect but at least Brakeman isn’t going to warn about interpolating a string literal into the query.</p>
+
+<h2 id="not-done-yet">Not Done Yet</h2>
+
+<p>Ah, but wait. The warning is not gone!</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Confidence: Medium
+Category: SQL Injection
+Check: SQL
+Message: Possible SQL injection
+Code: Task.connection.select_all("SELECT COUNT(*)\nFROM `filings`\nWHERE `filings`.`status` NOT IN (#{"BRAKEMAN_SAFE_LITERAL,BRAKEMAN_SAFE_LITERAL"})\nAND `filings`.`time_end` BETWEEN #{Date.beginning_of_quarter} AND #{Date.end_of_quarter}\n")
+File: app/models/task.rb
+Line: 25
+</code></pre></div></div>
+
+<p>What’s wrong now?</p>
+
+<p>Brakeman doesn’t know what <code class="language-plaintext highlighter-rouge">Date.beginning_of_quarter</code> or <code class="language-plaintext highlighter-rouge">Date.end_of_quarter</code> are, so it generates a lower confidence warning about it. For SQL injection, Brakeman is pretty paranoid about any string interpolation, even if it’s not sure the values are “dangerous”.</p>
+
+<p>But anything coming from <code class="language-plaintext highlighter-rouge">Date</code> is likely to be safe, so now <a href="https://github.com/presidentbeef/brakeman/pull/1615">Brakeman ignores <code class="language-plaintext highlighter-rouge">Date</code> calls in SQL</a>.</p>
+
+<h2 id="whew-done">Whew. Done?</h2>
+
+<p>Yep - now that code will no longer warn.</p>
+
+<p>Except… in the months it took me to address this false positive, the code has changed in such a way that Brakeman now has a false <em>negative</em> problem (should be warning about some things, but isn’t). But that’s a different problem for a different day.</p>
+
+<p>At least that one false positive is fixed!</p>
+</div>
+
+
+    </article>
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2021/07/21/rails-6-dot-1-sql-injection-updates/">Rails 6.1 SQL Injection Updates</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2021-07-21T12:14:00-06:00" pubdate data-updated="true" style="color: #a2a2a2">Jul 21st, 2021</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Since early 2013, I have been maintaining <a href="https://rails-sqli.org">rails-sqli.org</a>, a collection of Rails ActiveRecord methods that can be vulnerable to <a href="https://guides.rubyonrails.org/security.html#sql-injection">SQL injection</a>.</p>
+
+<p>Rails 6 has been out <a href="https://guides.rubyonrails.org/6_0_release_notes.html">since December 2019</a>, but sadly the site has been missing information about changes and new methods in Rails 6.</p>
+
+<p>As that deficiency has recently been rectified, let’s walk through what has changed since Rails 5!</p>
+
+<h2 id="delete_all-destroy_all"><code class="language-plaintext highlighter-rouge">delete_all</code>, <code class="language-plaintext highlighter-rouge">destroy_all</code></h2>
+
+<p>In earlier versions of Rails, <code class="language-plaintext highlighter-rouge">delete_all</code> and <code class="language-plaintext highlighter-rouge">destroy_all</code> could be passed a string of raw SQL.</p>
+
+<p>In Rails 6, these two methods no longer accept any arguments.</p>
+
+<p>Instead, you can use…</p>
+
+<h2 id="delete_by-destroy_by"><code class="language-plaintext highlighter-rouge">delete_by</code>, <code class="language-plaintext highlighter-rouge">destroy_by</code></h2>
+
+<p>New in Rails 6, <a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/Relation.html#method-i-delete_by"><code class="language-plaintext highlighter-rouge">delete_by</code></a> and <a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/Relation.html#method-i-destroy_by"><code class="language-plaintext highlighter-rouge">destroy_by</code></a> accept the same type of arguments as <code class="language-plaintext highlighter-rouge">where</code>: a Hash, an Array, or a raw SQL String.</p>
+
+<p>This means they are vulnerable to the same kind of SQL injection.</p>
+
+<p>For example:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"1) OR 1=1--"</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">delete_by</span><span class="p">(</span><span class="s2">"id = </span><span class="si">#{</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Resulting query that deletes all users:</p>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">DELETE</span> <span class="k">FROM</span> <span class="nv">"users"</span> <span class="k">WHERE</span> <span class="p">(</span><span class="n">id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">OR</span> <span class="mi">1</span><span class="o">=</span><span class="mi">1</span><span class="c1">--)</span>
+</code></pre></div></div>
+
+<h2 id="order-reorder"><code class="language-plaintext highlighter-rouge">order</code>, <code class="language-plaintext highlighter-rouge">reorder</code></h2>
+
+<p>Prior to Rails 6, it was possible to pass arbitrary SQL to the <a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/QueryMethods.html#method-i-order"><code class="language-plaintext highlighter-rouge">order</code></a> and <a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/QueryMethods.html#method-i-reorder"><code class="language-plaintext highlighter-rouge">reorder</code></a> methods.</p>
+
+<p>Since Rails did not offer an easy way of setting sort direction, this kind of code was common:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">User</span><span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="s2">"name </span><span class="si">#{</span><span class="n">params</span><span class="p">[</span><span class="ss">:direction</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>In Rails 6.0, injection attempts would raise a deprecation warning:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">DEPRECATION</span> <span class="no">WARNING</span><span class="p">:</span> <span class="no">Dangerous</span> <span class="n">query</span> <span class="nb">method</span> <span class="p">(</span><span class="nb">method</span> <span class="n">whose</span> <span class="n">arguments</span> <span class="n">are</span> <span class="n">used</span> <span class="n">as</span> <span class="n">raw</span> <span class="no">SQL</span><span class="p">)</span> <span class="n">called</span> <span class="n">with</span> <span class="n">non</span><span class="o">-</span><span class="n">attribute</span> <span class="n">argument</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="s2">"--"</span><span class="o">.</span> <span class="no">Non</span><span class="o">-</span><span class="n">attribute</span> <span class="n">arguments</span> <span class="n">will</span> <span class="n">be</span> <span class="n">disallowed</span> <span class="k">in</span> <span class="no">Rails</span> <span class="mf">6.1</span><span class="o">.</span> <span class="no">This</span> <span class="nb">method</span> <span class="n">should</span> <span class="n">not</span> <span class="n">be</span> <span class="n">called</span> <span class="n">with</span> <span class="n">user</span><span class="o">-</span><span class="n">provided</span> <span class="n">values</span><span class="p">,</span> <span class="n">such</span> <span class="n">as</span> <span class="n">request</span> <span class="n">parameters</span> <span class="n">or</span> <span class="n">model</span> <span class="n">attributes</span><span class="o">.</span> <span class="no">Known</span><span class="o">-</span><span class="n">safe</span> <span class="n">values</span> <span class="n">can</span> <span class="n">be</span> <span class="n">passed</span> <span class="n">by</span> <span class="n">wrapping</span> <span class="n">them</span> <span class="k">in</span> <span class="no">Arel</span><span class="p">.</span><span class="nf">sql</span><span class="p">()</span><span class="o">.</span>
+</code></pre></div></div>
+
+<p>Starting with Rails 6.1, some logic to check the arguments to <code class="language-plaintext highlighter-rouge">order</code>. If the arguments do not appear to be column names or sort order, they will be rejected:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="no">User</span><span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="s2">"name ARGLBARGHL"</span><span class="p">)</span>
+<span class="no">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+        <span class="mi">1</span><span class="p">:</span> <span class="n">from</span> <span class="p">(</span><span class="n">irb</span><span class="p">):</span><span class="mi">12</span>
+<span class="no">ActiveRecord</span><span class="o">::</span><span class="no">UnknownAttributeReference</span> <span class="p">(</span><span class="no">Query</span> <span class="nb">method</span> <span class="n">called</span> <span class="n">with</span> <span class="n">non</span><span class="o">-</span><span class="n">attribute</span> <span class="n">argument</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="s2">"name ARGLBARGHL"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>It is still possible to inject additional columns to extract some information from the table, such as number of columns or names of the columns:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">params</span><span class="p">[</span><span class="ss">:direction</span><span class="p">]</span> <span class="o">=</span> <span class="s2">", 8"</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="s2">"name </span><span class="si">#{</span><span class="n">params</span><span class="p">[</span><span class="ss">:direction</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Resulting exception:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ActiveRecord::StatementInvalid (SQLite3::SQLException: 2nd ORDER BY term out of range - should be between 1 and 7)
+</code></pre></div></div>
+
+<h2 id="pluck"><code class="language-plaintext highlighter-rouge">pluck</code></h2>
+
+<p><a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-pluck"><code class="language-plaintext highlighter-rouge">pluck</code></a> pulls out specified columns from a query, instead of loading whole records.</p>
+
+<p>In previous versions of Rails, <code class="language-plaintext highlighter-rouge">pluck</code> (somewhat surprisingly!) accepted arbitrary SQL strings if they were passed in as an array.</p>
+
+<p>Like <code class="language-plaintext highlighter-rouge">order</code>/<code class="language-plaintext highlighter-rouge">reorder</code>, Rails 6.0 started warning about this:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="o">&gt;</span> <span class="no">User</span><span class="p">.</span><span class="nf">pluck</span><span class="p">([</span><span class="s2">"1"</span><span class="p">])</span>
+<span class="no">DEPRECATION</span> <span class="no">WARNING</span><span class="p">:</span> <span class="no">Dangerous</span> <span class="n">query</span> <span class="nb">method</span> <span class="p">(</span><span class="nb">method</span> <span class="n">whose</span> <span class="n">arguments</span> <span class="n">are</span> <span class="n">used</span> <span class="n">as</span> <span class="n">raw</span> <span class="no">SQL</span><span class="p">)</span> <span class="n">called</span> <span class="n">with</span> <span class="n">non</span><span class="o">-</span><span class="n">attribute</span> <span class="n">argument</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="p">[</span><span class="s2">"1"</span><span class="p">]</span><span class="o">.</span> <span class="no">Non</span><span class="o">-</span><span class="n">attribute</span> <span class="n">arguments</span> <span class="n">will</span> <span class="n">be</span> <span class="n">disallowed</span> <span class="k">in</span> <span class="no">Rails</span> <span class="mf">6.1</span><span class="o">.</span> <span class="no">This</span> <span class="nb">method</span> <span class="n">should</span> <span class="n">not</span> <span class="n">be</span> <span class="n">called</span> <span class="n">with</span> <span class="n">user</span><span class="o">-</span><span class="n">provided</span> <span class="n">values</span><span class="p">,</span> <span class="n">such</span> <span class="n">as</span> <span class="n">request</span> <span class="n">parameters</span> <span class="n">or</span> <span class="n">model</span> <span class="n">attributes</span><span class="o">.</span> <span class="no">Known</span><span class="o">-</span><span class="n">safe</span> <span class="n">values</span> <span class="n">can</span> <span class="n">be</span> <span class="n">passed</span> <span class="n">by</span> <span class="n">wrapping</span> <span class="n">them</span> <span class="k">in</span> <span class="no">Arel</span><span class="p">.</span><span class="nf">sql</span><span class="p">()</span><span class="o">.</span>
+</code></pre></div></div>
+
+<p>In Rails 6.1, <code class="language-plaintext highlighter-rouge">pluck</code> now only accepts attribute names!</p>
+
+<h2 id="reselect"><code class="language-plaintext highlighter-rouge">reselect</code></h2>
+
+<p>Rails 6 introduced <a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/QueryMethods.html#method-i-reselect"><code class="language-plaintext highlighter-rouge">reselect</code></a>, which allows one to completely replace the <code class="language-plaintext highlighter-rouge">SELECT</code> clause of a query. Like <code class="language-plaintext highlighter-rouge">select</code>, it accepts any SQL string. Since <code class="language-plaintext highlighter-rouge">SELECT</code> is at the very beginning of the SQL query, it makes it a great target for SQL injection.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">params</span><span class="p">[</span><span class="ss">:column</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"* FROM orders -- "</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">select</span><span class="p">(</span><span class="ss">:name</span><span class="p">).</span><span class="nf">reselect</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:column</span><span class="p">])</span>
+</code></pre></div></div>
+
+<p>Note this selects <em>all</em> columns <em>from a different table</em>:</p>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">orders</span> <span class="c1">-- FROM "users"</span>
+</code></pre></div></div>
+
+<h2 id="rewhere"><code class="language-plaintext highlighter-rouge">rewhere</code></h2>
+
+<p><a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/QueryMethods.html#method-i-rewhere"><code class="language-plaintext highlighter-rouge">rewhere</code></a> is analogous to <code class="language-plaintext highlighter-rouge">reselect</code> but it replaces the <code class="language-plaintext highlighter-rouge">WHERE</code> clause.</p>
+
+<p>Like <code class="language-plaintext highlighter-rouge">where</code>, it is very easy to open up <code class="language-plaintext highlighter-rouge">rewhere</code> to SQL injection.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">params</span><span class="p">[</span><span class="ss">:age</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"1=1) OR 1=1--"</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">name: </span><span class="s2">"Bob"</span><span class="p">).</span><span class="nf">rewhere</span><span class="p">(</span><span class="s2">"age &gt; </span><span class="si">#{</span><span class="n">params</span><span class="p">[</span><span class="ss">:age</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Resulting query:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SELECT "users".* FROM "users" WHERE "users"."name" = ? AND (age &gt; 1=1) OR 1=1--)
+</code></pre></div></div>
+
+<h2 id="wrapping-up">Wrapping Up</h2>
+
+<p>Any other new methods that allow SQL injection? Let me know!</p>
+
+<p>Want to find out more?</p>
+
+<ul>
+  <li><a href="https://rails-sqli.org">rails-sqli.org</a> for the complete list.</li>
+  <li><a href="https://brakemanscanner.org/">Brakeman</a> to help find vulnerable queries in your code.</li>
+  <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html">OWASP SQL Injection Cheat Sheet</a> to learn more about preventing SQL injection.</li>
+</ul>
+</div>
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/6/">&larr; Older</a>
+    
+    
+    <a class="next" href="/blog/4/">Newer &rarr;</a>
+    
+  </div>
+</div>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Justin&#39;s Blurgh</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/presidentbeef"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">presidentbeef</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

@@ -1,109 +1,57 @@
-
 <!DOCTYPE html>
-<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
-<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
-<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<head>
+<html lang="en"><head>
   <meta charset="utf-8">
-  <title>Fast Compact Sparse Bit Sets - Justin Collins' Blugh</title>
-  <meta name="author" content="Justin Collins">
-
-  
-  <meta name="description" content="Imagine you need a relatively compact data structure for quickly checking membership of mostly-consecutive non-negative integers. (If this sounds &hellip;">
-  
-
-  <!-- http://t.co/dKP3o1e -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  
-  <link rel="canonical" href="https://blog.presidentbeef.com/blog/2013/09/02/fast-compact-sparse-bitsets">
-  <link href="/favicon.ico" rel="icon">
-  
-  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="/javascripts/ender.js"></script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
-  <link href="/atom.xml" rel="alternate" title="Justin Collins' Blugh" type="application/atom+xml">
-  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
-<link href="https://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<link href="https://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Fast Compact Sparse Bit Sets | Justin’s Blurgh</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Fast Compact Sparse Bit Sets" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Imagine you need a relatively compact data structure for quickly checking membership of mostly-consecutive non-negative integers. (If this sounds really specific, it is because it is precisely what I needed for a particular project.)" />
+<meta property="og:description" content="Imagine you need a relatively compact data structure for quickly checking membership of mostly-consecutive non-negative integers. (If this sounds really specific, it is because it is precisely what I needed for a particular project.)" />
+<link rel="canonical" href="https://blog.presidentbeef.com/blog/2013/09/02/fast-compact-sparse-bitsets/" />
+<meta property="og:url" content="https://blog.presidentbeef.com/blog/2013/09/02/fast-compact-sparse-bitsets/" />
+<meta property="og:site_name" content="Justin’s Blurgh" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2013-09-02T14:49:00-06:00" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:site" content="@presidentbeef" />
-<meta name="twitter:title" content="Fast Compact Sparse Bit Sets - Justin Collins' Blugh" />
-<meta name="description" content="Imagine you need a relatively compact data structure for quickly checking membership of mostly-consecutive non-negative integers. (If this sounds &hellip;">
+<meta property="twitter:title" content="Fast Compact Sparse Bit Sets" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2013-09-02T14:49:00-06:00","datePublished":"2013-09-02T14:49:00-06:00","description":"Imagine you need a relatively compact data structure for quickly checking membership of mostly-consecutive non-negative integers. (If this sounds really specific, it is because it is precisely what I needed for a particular project.)","headline":"Fast Compact Sparse Bit Sets","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.presidentbeef.com/blog/2013/09/02/fast-compact-sparse-bitsets/"},"url":"https://blog.presidentbeef.com/blog/2013/09/02/fast-compact-sparse-bitsets/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://blog.presidentbeef.com/feed.xml" title="Justin&apos;s Blurgh" /></head>
+<body><header class="site-header" role="banner">
 
-  
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-20920647-3']);
-    _gaq.push(['_trackPageview']);
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Justin&#39;s Blurgh</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
 
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
-
-
-</head>
-
-<body   class="no-sidebar"  >
-  <header role="banner"><hgroup>
-  
-    <h2><a href="/">*.blog</a></h2>
-  
-  <em>by <a style="text-decoration: none" href="http://presidentbeef.com">Justin Collins</a></em>
-</hgroup>
-
+        <div class="trigger"><a class="page-link" href="/archives/">Archives</a></div>
+      </nav></div>
 </header>
-  <nav role="navigation">
-  
-<ul class="main-navigation">
-  <li><a href="/">Recent</a></li>
-  <li><a href="/blog/archives">All</a></li>
-  <li><a href="https://twitter.com/presidentbeef">Twitter</a></li>
-</ul>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
-</nav>
-  <div id="main">
-    <div id="content">
-      <div>
-<article class="hentry" role="article">
-  
-  <header>
-    
-      <h1 class="entry-title">Fast Compact Sparse Bit Sets</h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-09-02T14:49:00-07:00" pubdate data-updated="true">Sep 2<span>nd</span>, 2013</time>
-        
-      </p>
-    
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Fast Compact Sparse Bit Sets</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2013-09-02T14:49:00-06:00" itemprop="datePublished">Sep 2, 2013
+      </time></p>
   </header>
 
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Imagine you need a relatively compact data structure for quickly checking membership of mostly-consecutive non-negative integers. (If this sounds really specific, it is because it is precisely what I needed for a particular project.)</p>
 
-<div class="entry-content"><p>Imagine you need a relatively compact data structure for quickly checking membership of mostly-consecutive non-negative integers. (If this sounds really specific, it is because it is precisely what I needed for a particular project.)</p>
+<p>The Ruby standard library contains a <a href="http://rdoc.info/stdlib/set/1.9.3/Set">Set</a> class which may be a good starting point. Set is actually implemented as a Hash with the Set elements as keys and <code class="language-plaintext highlighter-rouge">true</code> as the values. Thus the overhead for storing a value in the Set is essentially only the value itself since all keys point to the same <code class="language-plaintext highlighter-rouge">true</code> object. Assuming a 64-bit machine, the overhead will be 64 bits per value. This seems reasonable, but given the specific limitations of the values we wish to store, perhaps we can do better?</p>
 
-<p>The Ruby standard library contains a <a href="http://rdoc.info/stdlib/set/1.9.3/Set">Set</a> class which may be a good starting point. Set is actually implemented as a Hash with the Set elements as keys and <code>true</code> as the values. Thus the overhead for storing a value in the Set is essentially only the value itself since all keys point to the same <code>true</code> object. Assuming a 64-bit machine, the overhead will be 64 bits per value. This seems reasonable, but given the specific limitations of the values we wish to store, perhaps we can do better?</p>
-
-<h3>Bit Sets</h3>
+<h3 id="bit-sets">Bit Sets</h3>
 
 <p>A bit set is a compact data structure of binary values where membership is indicated by setting a bit to 1. The position of the bit indicates the element value. For example, the second bit from the right might be used to indicate whether or not the value 1 is in the set.</p>
 
@@ -111,73 +59,58 @@
 
 <p>In Ruby, this looks like</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">bitset</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">num</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">bitset</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">num</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span>
+</code></pre></div></div>
 
-
-<p>For example, to check if the value 4 is in the set, we use the mask <code>00010000</code> (the 5th bit from the right is set to 1) which is the decimal value <code>8</code>:</p>
+<p>For example, to check if the value 4 is in the set, we use the mask <code class="language-plaintext highlighter-rouge">00010000</code> (the 5th bit from the right is set to 1) which is the decimal value <code class="language-plaintext highlighter-rouge">8</code>:</p>
 
 <p><img src="/images/blog/bitset-example1.png" alt="Bit Set Checking Example 1" /></p>
 
 <p>Since the result is zero, we know the value 4 is not in the set.</p>
 
-<p>If we check for the value <code>6</code>, the result is not zero, indicating the value is a member of the set:</p>
+<p>If we check for the value <code class="language-plaintext highlighter-rouge">6</code>, the result is not zero, indicating the value is a member of the set:</p>
 
 <p><img src="/images/blog/bitset-example2.png" alt="Bit Set Checking Example 2" /></p>
 
 <p>Now, instead of 64 bits per value, it only requires a single bit! Now we just need to put a lot of bits together, either by using a long string or a bunch of integers in an array.</p>
 
-<h3>Sparse Bit Sets</h3>
+<h3 id="sparse-bit-sets">Sparse Bit Sets</h3>
 
-<p>The problem with a long binary string or an array of integers is that membership is entirely position-based. To store the value <code>1000</code>, the data structure requires 1001 bits, all but one of which is set to 0. This is quite inefficient, especially for very large values.</p>
+<p>The problem with a long binary string or an array of integers is that membership is entirely position-based. To store the value <code class="language-plaintext highlighter-rouge">1000</code>, the data structure requires 1001 bits, all but one of which is set to 0. This is quite inefficient, especially for very large values.</p>
 
-<p>One solution is to create a sparse bit set by combining a hash table with bit sets as values. The hash table keys provide fast look up of the correct bit set, then the bit set is checked for the desired element. The keys indicate the lowest value stored in the bit set (e.g., the decimal key <code>4</code> pointing to the binary bit set <code>00000001</code> would mean the value <code>4</code> is in the set).</p>
+<p>One solution is to create a sparse bit set by combining a hash table with bit sets as values. The hash table keys provide fast look up of the correct bit set, then the bit set is checked for the desired element. The keys indicate the lowest value stored in the bit set (e.g., the decimal key <code class="language-plaintext highlighter-rouge">4</code> pointing to the binary bit set <code class="language-plaintext highlighter-rouge">00000001</code> would mean the value <code class="language-plaintext highlighter-rouge">4</code> is in the set).</p>
 
 <p>Below is an example of a hash table using integer keys and 8 bit integers for the bit sets:</p>
 
 <p><img src="/images/blog/sparse-bitset-example.png" alt="Sparse Bit Set Example" /></p>
 
-<p>The average overhead is <code>⌊(m * n) / w⌋ + m</code> bits, where <em>m</em> is the number of values (assumed to be consecutive), <em>w</em> is the number of bits per bit set, and <em>n</em> is the number of bits per key. In 64-bit Ruby, if we use integers for the bit sets, <em>n</em> = 64 and <em>w</em> = 62<a href="#footnote">*</a>. This works out to an average of 2 bits per value in the set. Of course, a single value incurs the overhead of both the key and the bit set: 128 bits! But if there are many consecutive values, the cost per value begins to shrink. For example, the numbers 0 to 61 can be stored in a single bit set, so 62 values can be stored in the 128 bits and we are back to about 2 bits per value.</p>
+<p>The average overhead is <code class="language-plaintext highlighter-rouge">⌊(m * n) / w⌋ + m</code> bits, where <em>m</em> is the number of values (assumed to be consecutive), <em>w</em> is the number of bits per bit set, and <em>n</em> is the number of bits per key. In 64-bit Ruby, if we use integers for the bit sets, <em>n</em> = 64 and <em>w</em> = 62<a href="#footnote">*</a>. This works out to an average of 2 bits per value in the set. Of course, a single value incurs the overhead of both the key and the bit set: 128 bits! But if there are many consecutive values, the cost per value begins to shrink. For example, the numbers 0 to 61 can be stored in a single bit set, so 62 values can be stored in the 128 bits and we are back to about 2 bits per value.</p>
 
-<p>Note that while it is best to use consecutive values which fit neatly into the bit sets (in this case, runs of 62 integers), the sequences can start and end at arbitrary points with only a little &#8220;wasted&#8221; overhead. To store just the number <code>1000</code>, we now only need 128 bits, not 1001.</p>
+<p>Note that while it is best to use consecutive values which fit neatly into the bit sets (in this case, runs of 62 integers), the sequences can start and end at arbitrary points with only a little “wasted” overhead. To store just the number <code class="language-plaintext highlighter-rouge">1000</code>, we now only need 128 bits, not 1001.</p>
 
-<p>On top of the space savings, the membership checks remain fast. Still assuming 64-bit Ruby, to determine if a value is in the table look up index <code>i = value / 61</code>. Then check the bit set with <code>bitset &amp; (1 &lt;&lt; (value % 61) != 0</code> as previously. (The divisor is 61 because there are 62 bits, but the values are 0 to 61).</p>
+<p>On top of the space savings, the membership checks remain fast. Still assuming 64-bit Ruby, to determine if a value is in the table look up index <code class="language-plaintext highlighter-rouge">i = value / 61</code>. Then check the bit set with <code class="language-plaintext highlighter-rouge">bitset &amp; (1 &lt;&lt; (value % 61) != 0</code> as previously. (The divisor is 61 because there are 62 bits, but the values are 0 to 61).</p>
 
-<h3>Space Efficiency</h3>
+<h3 id="space-efficiency">Space Efficiency</h3>
 
 <p>I have implemented a Ruby version of the data structure described above which I call the <a href="https://github.com/presidentbeef/dumb-numb-set">Dumb Numb Set</a> (DNS).</p>
 
-<p>To measure the space used by the bit sets, we compare the Marshal data size for the bit sets versus regular Hashes (using <code>true</code> for all values, just like a Ruby Set).</p>
+<p>To measure the space used by the bit sets, we compare the Marshal data size for the bit sets versus regular Hashes (using <code class="language-plaintext highlighter-rouge">true</code> for all values, just like a Ruby Set).</p>
 
 <p>These are the results for perfectly ordered data on a 64-bit version of Ruby 1.9.3 (size is number of bytes):</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Items</span>        <span class="no">Hash</span>         <span class="no">DNS</span>      <span class="o">%</span><span class="n">reduction</span>
-</span><span class='line'><span class="o">---------------------------------------------</span>
-</span><span class='line'>   <span class="mi">1</span>   <span class="o">|</span>           <span class="mi">7</span>  <span class="o">|</span>        <span class="mi">41</span>   <span class="o">|-</span><span class="mi">486</span><span class="o">%</span>
-</span><span class='line'> <span class="mi">100</span>   <span class="o">|</span>         <span class="mi">307</span>  <span class="o">|</span>        <span class="mi">61</span>   <span class="o">|</span>  <span class="mi">80</span><span class="o">%</span>
-</span><span class='line'>  <span class="mi">1</span><span class="n">k</span>   <span class="o">|</span>        <span class="mi">4632</span>  <span class="o">|</span>       <span class="mi">253</span>   <span class="o">|</span>  <span class="mi">95</span><span class="o">%</span>
-</span><span class='line'> <span class="mi">10</span><span class="n">k</span>   <span class="o">|</span>       <span class="mi">49632</span>  <span class="o">|</span>      <span class="mi">2211</span>   <span class="o">|</span>  <span class="mi">96</span><span class="o">%</span>
-</span><span class='line'><span class="mi">100</span><span class="n">k</span>   <span class="o">|</span>      <span class="mi">534098</span>  <span class="o">|</span>     <span class="mi">24254</span>   <span class="o">|</span>  <span class="mi">95</span><span class="o">%</span>
-</span><span class='line'>  <span class="mi">1</span><span class="n">M</span>   <span class="o">|</span>     <span class="mi">5934098</span>  <span class="o">|</span>    <span class="mi">245565</span>   <span class="o">|</span>  <span class="mi">96</span><span class="o">%</span>
-</span><span class='line'> <span class="mi">10</span><span class="n">M</span>   <span class="o">|</span>    <span class="mi">59934098</span>  <span class="o">|</span>   <span class="mi">2557080</span>   <span class="o">|</span>  <span class="mi">96</span><span class="o">%</span>
-</span><span class='line'><span class="mi">100</span><span class="n">M</span>   <span class="o">|</span>   <span class="mi">683156884</span>  <span class="o">|</span>  <span class="mi">26163639</span>   <span class="o">|</span>  <span class="mi">96</span><span class="o">%</span>
-</span><span class='line'>  <span class="mi">1</span><span class="n">B</span>   <span class="o">|</span>         <span class="p">?</span>    <span class="o">|</span> <span class="mi">262229211</span>   <span class="o">|</span>   <span class="p">?</span>
-</span><span class='line'><span class="o">---------------------------------------------</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    Items        Hash         DNS      %reduction
+    ---------------------------------------------
+       1   |           7  |        41   |-486%
+     100   |         307  |        61   |  80%
+      1k   |        4632  |       253   |  95%
+     10k   |       49632  |      2211   |  96%
+    100k   |      534098  |     24254   |  95%
+      1M   |     5934098  |    245565   |  96%
+     10M   |    59934098  |   2557080   |  96%
+    100M   |   683156884  |  26163639   |  96%
+      1B   |         ?    | 262229211   |   ?
+    ---------------------------------------------
+</code></pre></div></div>
 
 <p>At 1 billion items, my machine ran out of memory.</p>
 
@@ -185,46 +118,34 @@
 
 <p>This is, however, the best case scenario for the DNS. Less perfectly dense values cause it to <a href="https://github.com/presidentbeef/dumb-numb-set#less-dense-data">be less efficient</a>. For <em>very</em> sparse values, a Hash/Set is probably a better choice.</p>
 
-<h3>Even Better Space Efficiency</h3>
+<h3 id="even-better-space-efficiency">Even Better Space Efficiency</h3>
 
 <p>It may not surprise you to find out I was very interested in minimizing the serialized version of the sparse bit set for sending it over a network. In investigating easy but compact ways of doing so, I realized the Marshal data for Hashes and integers is not very compact, especially for large integers.</p>
 
 <p>Fortunately, there is an existing solution for this scenario called <a href="http://msgpack.org/">MessagePack</a>. For storing 1 million values, serialized size is reduced from 245,565 to 196,378 bytes (20%). The DNS will use MessagePack automatically if it is installed.</p>
 
-<h3>Performance</h3>
+<h3 id="performance">Performance</h3>
 
-<p>Somewhat surprisingly, the DNS is quite fast even when compared to MRI Ruby&#8217;s Hash implementation.</p>
+<p>Somewhat surprisingly, the DNS is quite fast even when compared to MRI Ruby’s Hash implementation.</p>
 
 <p>With MRI Ruby 1.9.3p448 (x86_64) and 1 million values:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'>                           <span class="n">user</span>     <span class="nb">system</span>      <span class="n">total</span>        <span class="n">real</span>
-</span><span class='line'><span class="no">Hash</span> <span class="n">add</span> <span class="n">random</span>            <span class="mi">0</span><span class="o">.</span><span class="mi">540000</span>   <span class="mi">0</span><span class="o">.</span><span class="mo">020000</span>   <span class="mi">0</span><span class="o">.</span><span class="mi">560000</span> <span class="p">(</span>  <span class="mi">0</span><span class="o">.</span><span class="mi">549499</span><span class="p">)</span>
-</span><span class='line'><span class="no">DumbNumbSet</span> <span class="n">add</span> <span class="n">random</span>     <span class="mi">0</span><span class="o">.</span><span class="mi">850000</span>   <span class="mi">0</span><span class="o">.</span><span class="mo">020000</span>   <span class="mi">0</span><span class="o">.</span><span class="mi">870000</span> <span class="p">(</span>  <span class="mi">0</span><span class="o">.</span><span class="mi">864700</span><span class="p">)</span>
-</span><span class='line'><span class="no">Hash</span> <span class="n">add</span> <span class="k">in</span> <span class="n">order</span>          <span class="mi">0</span><span class="o">.</span><span class="mi">540000</span>   <span class="mi">0</span><span class="o">.</span><span class="mo">020000</span>   <span class="mi">0</span><span class="o">.</span><span class="mi">560000</span> <span class="p">(</span>  <span class="mi">0</span><span class="o">.</span><span class="mi">556441</span><span class="p">)</span>
-</span><span class='line'><span class="no">DumbNumbSet</span> <span class="n">add</span> <span class="k">in</span> <span class="n">order</span>   <span class="mi">0</span><span class="o">.</span><span class="mi">490000</span>   <span class="mi">0</span><span class="o">.</span><span class="mo">000000</span>   <span class="mi">0</span><span class="o">.</span><span class="mi">490000</span> <span class="p">(</span>  <span class="mi">0</span><span class="o">.</span><span class="mi">483713</span><span class="p">)</span>
-</span><span class='line'><span class="no">Hash</span> <span class="n">add</span> <span class="n">shuffled</span>          <span class="mi">0</span><span class="o">.</span><span class="mi">570000</span>   <span class="mi">0</span><span class="o">.</span><span class="mo">020000</span>   <span class="mi">0</span><span class="o">.</span><span class="mi">590000</span> <span class="p">(</span>  <span class="mi">0</span><span class="o">.</span><span class="mi">589316</span><span class="p">)</span>
-</span><span class='line'><span class="no">DumbNumbSet</span> <span class="n">add</span> <span class="n">shuffled</span>   <span class="mi">0</span><span class="o">.</span><span class="mi">540000</span>   <span class="mi">0</span><span class="o">.</span><span class="mo">010000</span>   <span class="mi">0</span><span class="o">.</span><span class="mi">550000</span> <span class="p">(</span>  <span class="mi">0</span><span class="o">.</span><span class="mi">538420</span><span class="p">)</span>
-</span><span class='line'><span class="no">Hash</span> <span class="n">look</span> <span class="n">up</span>               <span class="mi">0</span><span class="o">.</span><span class="mi">930000</span>   <span class="mi">0</span><span class="o">.</span><span class="mo">010000</span>   <span class="mi">0</span><span class="o">.</span><span class="mi">940000</span> <span class="p">(</span>  <span class="mi">0</span><span class="o">.</span><span class="mi">940849</span><span class="p">)</span>
-</span><span class='line'><span class="no">DNS</span> <span class="n">look</span> <span class="n">up</span>                <span class="mi">0</span><span class="o">.</span><span class="mi">820000</span>   <span class="mi">0</span><span class="o">.</span><span class="mo">000000</span>   <span class="mi">0</span><span class="o">.</span><span class="mi">820000</span> <span class="p">(</span>  <span class="mi">0</span><span class="o">.</span><span class="mi">818728</span><span class="p">)</span>
-</span><span class='line'><span class="no">Hash</span> <span class="n">remove</span>                <span class="mi">0</span><span class="o">.</span><span class="mi">980000</span>   <span class="mi">0</span><span class="o">.</span><span class="mo">030000</span>   <span class="mi">1</span><span class="o">.</span><span class="mo">010000</span> <span class="p">(</span>  <span class="mi">0</span><span class="o">.</span><span class="mi">999362</span><span class="p">)</span>
-</span><span class='line'><span class="no">DNS</span> <span class="n">remove</span>                 <span class="mi">0</span><span class="o">.</span><span class="mi">950000</span>   <span class="mi">0</span><span class="o">.</span><span class="mo">000000</span>   <span class="mi">0</span><span class="o">.</span><span class="mi">950000</span> <span class="p">(</span>  <span class="mi">0</span><span class="o">.</span><span class="mi">953170</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>                               user     system      total        real
+Hash add random            0.540000   0.020000   0.560000 (  0.549499)
+DumbNumbSet add random     0.850000   0.020000   0.870000 (  0.864700)
+Hash add in order          0.540000   0.020000   0.560000 (  0.556441)
+DumbNumbSet add in order   0.490000   0.000000   0.490000 (  0.483713)
+Hash add shuffled          0.570000   0.020000   0.590000 (  0.589316)
+DumbNumbSet add shuffled   0.540000   0.010000   0.550000 (  0.538420)
+Hash look up               0.930000   0.010000   0.940000 (  0.940849)
+DNS look up                0.820000   0.000000   0.820000 (  0.818728)
+Hash remove                0.980000   0.030000   1.010000 (  0.999362)
+DNS remove                 0.950000   0.000000   0.950000 (  0.953170)
+</code></pre></div></div>
 
 <p>The only operation slower than a regular Hash is inserting many random values. All other operations are roughly equal.</p>
 
-<h3>Conclusion</h3>
+<h3 id="conclusion">Conclusion</h3>
 
 <p>For my specific scenario, a simple custom data structure was just as fast as a built-in data structure, but required significantly less space for the expected use case.</p>
 
@@ -233,126 +154,42 @@
 <p>I also did not want to deal with compression schemes, of which there are quite a few, since my sets were going to be dynamic. I imagine there are very efficient implementations for fixed data sets.</p>
 
 <p><a name="footnote"></a></p>
-
-<h4>Footnote: Integer Size in Ruby</h4>
+<h4 id="footnote-integer-size-in-ruby">Footnote: Integer Size in Ruby</h4>
 
 <p>Integers in 32-bit MRI Ruby only have 30 bits available, and in 64-bit MRI Ruby they only have 62 bits available:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="err">$</span> <span class="n">irb</span>
-</span><span class='line'><span class="mi">1</span><span class="o">.</span><span class="mi">9</span><span class="o">.</span><span class="mi">3</span><span class="n">p448</span> <span class="p">:</span><span class="mo">001</span> <span class="o">&gt;</span> <span class="p">(</span><span class="s2">&quot;1&quot;</span> <span class="o">*</span> <span class="mi">62</span><span class="p">)</span><span class="o">.</span><span class="n">to_i</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">class</span>
-</span><span class='line'> <span class="o">=&gt;</span> <span class="no">Fixnum</span>
-</span><span class='line'><span class="mi">1</span><span class="o">.</span><span class="mi">9</span><span class="o">.</span><span class="mi">3</span><span class="n">p448</span> <span class="p">:</span><span class="mo">002</span> <span class="o">&gt;</span> <span class="p">(</span><span class="s2">&quot;1&quot;</span> <span class="o">*</span> <span class="mi">63</span><span class="p">)</span><span class="o">.</span><span class="n">to_i</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">class</span>
-</span><span class='line'> <span class="o">=&gt;</span> <span class="no">Bignum</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ irb
+1.9.3p448 :001 &gt; ("1" * 62).to_i(2).class
+ =&gt; Fixnum 
+1.9.3p448 :002 &gt; ("1" * 63).to_i(2).class
+ =&gt; Bignum 
+</code></pre></div></div>
 
-</div>
-
-
-  <footer>
-    <p class="meta">
-      
-  
-
-<span class="byline author vcard">Posted by <span class="fn"><a href="/about" title="About the author (Justin Collins)" rel="author">Justin Collins</a></span></span>
-
-      
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-09-02T14:49:00-07:00" pubdate data-updated="true">Sep 2<span>nd</span>, 2013</time>
-      
-
-
-    </p>
-    
-      <div class="sharing">
-  
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.presidentbeef.com/blog/2013/09/02/fast-compact-sparse-bitsets/" data-via="presidentbeef" data-counturl="https://blog.presidentbeef.com/blog/2013/09/02/fast-compact-sparse-bitsets/" >Tweet</a>
-  
-  
-  
-</div>
-
-    
-    <p class="meta">
-      
-        <a class="basic-alignment left" href="/blog/2013/02/08/avoid-sql-injection-in-rails/" title="Previous Post: Avoiding SQL Injection in Rails">&laquo; Avoiding SQL Injection in Rails</a>
-      
-      
-        <a class="basic-alignment right" href="/blog/2013/11/01/testing-brakeman/" title="next Post: Testing Brakeman Against 253 Rails Apps">Testing Brakeman Against 253 Rails Apps &raquo;</a>
-      
-    </p>
-  </footer>
+  </div><a class="u-url" href="/blog/2013/09/02/fast-compact-sparse-bitsets/" hidden></a>
 </article>
 
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Justin&#39;s Blurgh</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/presidentbeef"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">presidentbeef</span></a></li></ul>
 </div>
-  </section>
 
-</div>
-
-
+      <div class="footer-col footer-col-3">
+      </div>
     </div>
+
   </div>
-  <footer role="contentinfo"><p>
-  Copyright &copy; 2022 - Justin Collins -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -
-  <span class="credit">Theme by <a href="http://aron.cedercrantz.com/">Aron Cedercrantz</a></span>
-</p>
 
 </footer>
-  
-
-<script type="text/javascript">
-      var disqus_shortname = 'presidentbeefblog';
-      
-        
-        // var disqus_developer = 1;
-        var disqus_identifier = 'https://blog.presidentbeef.com/blog/2013/09/02/fast-compact-sparse-bitsets/';
-        var disqus_url = 'https://blog.presidentbeef.com/blog/2013/09/02/fast-compact-sparse-bitsets/';
-        var disqus_script = 'embed.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'https://' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
-
-
-
-
-
-
-
-  <script type="text/javascript">
-    (function(){
-      var twitterWidgets = document.createElement('script');
-      twitterWidgets.type = 'text/javascript';
-      twitterWidgets.async = true;
-      twitterWidgets.src = 'https://platform.twitter.com/widgets.js';
-      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
-    })();
-  </script>
-
-
-
-
-
 </body>
+
 </html>

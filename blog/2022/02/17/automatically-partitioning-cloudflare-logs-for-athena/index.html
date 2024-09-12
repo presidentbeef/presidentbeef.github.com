@@ -1,107 +1,55 @@
-
 <!DOCTYPE html>
-<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
-<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
-<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<head>
+<html lang="en"><head>
   <meta charset="utf-8">
-  <title>Automatically Partitioning Cloudflare Logs for Athena - Justin Collins' Blugh</title>
-  <meta name="author" content="Justin Collins">
-
-  
-  <meta name="description" content="If you are using Cloudflare, it can be helpful to configure Cloudflare to push request logs to S3. Otherwise, the Cloudflare dashboard provides only &hellip;">
-  
-
-  <!-- http://t.co/dKP3o1e -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  
-  <link rel="canonical" href="https://blog.presidentbeef.com/blog/2022/02/17/automatically-partitioning-cloudflare-logs-for-athena">
-  <link href="/favicon.ico" rel="icon">
-  
-  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="/javascripts/ender.js"></script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
-  <link href="/atom.xml" rel="alternate" title="Justin Collins' Blugh" type="application/atom+xml">
-  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
-<link href="https://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<link href="https://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Automatically Partitioning Cloudflare Logs for Athena | Justin’s Blurgh</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Automatically Partitioning Cloudflare Logs for Athena" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="If you are using Cloudflare, it can be helpful to configure Cloudflare to push request logs to S3. Otherwise, the Cloudflare dashboard provides only a limited view into your data (72 hours at a time and sampled data instead of full logs)." />
+<meta property="og:description" content="If you are using Cloudflare, it can be helpful to configure Cloudflare to push request logs to S3. Otherwise, the Cloudflare dashboard provides only a limited view into your data (72 hours at a time and sampled data instead of full logs)." />
+<link rel="canonical" href="https://blog.presidentbeef.com/blog/2022/02/17/automatically-partitioning-cloudflare-logs-for-athena/" />
+<meta property="og:url" content="https://blog.presidentbeef.com/blog/2022/02/17/automatically-partitioning-cloudflare-logs-for-athena/" />
+<meta property="og:site_name" content="Justin’s Blurgh" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2022-02-17T21:00:00-07:00" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:site" content="@presidentbeef" />
-<meta name="twitter:title" content="Automatically Partitioning Cloudflare Logs for Athena - Justin Collins' Blugh" />
-<meta name="description" content="If you are using Cloudflare, it can be helpful to configure Cloudflare to push request logs to S3. Otherwise, the Cloudflare dashboard provides only &hellip;">
+<meta property="twitter:title" content="Automatically Partitioning Cloudflare Logs for Athena" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2022-02-17T21:00:00-07:00","datePublished":"2022-02-17T21:00:00-07:00","description":"If you are using Cloudflare, it can be helpful to configure Cloudflare to push request logs to S3. Otherwise, the Cloudflare dashboard provides only a limited view into your data (72 hours at a time and sampled data instead of full logs).","headline":"Automatically Partitioning Cloudflare Logs for Athena","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.presidentbeef.com/blog/2022/02/17/automatically-partitioning-cloudflare-logs-for-athena/"},"url":"https://blog.presidentbeef.com/blog/2022/02/17/automatically-partitioning-cloudflare-logs-for-athena/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://blog.presidentbeef.com/feed.xml" title="Justin&apos;s Blurgh" /></head>
+<body><header class="site-header" role="banner">
 
-  
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-20920647-3']);
-    _gaq.push(['_trackPageview']);
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Justin&#39;s Blurgh</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
 
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
-
-
-</head>
-
-<body   class="no-sidebar"  >
-  <header role="banner"><hgroup>
-  
-    <h2><a href="/">*.blog</a></h2>
-  
-  <em>by <a style="text-decoration: none" href="http://presidentbeef.com">Justin Collins</a></em>
-</hgroup>
-
+        <div class="trigger"><a class="page-link" href="/archives/">Archives</a></div>
+      </nav></div>
 </header>
-  <nav role="navigation">
-  
-<ul class="main-navigation">
-  <li><a href="/">Recent</a></li>
-  <li><a href="/blog/archives">All</a></li>
-  <li><a href="https://twitter.com/presidentbeef">Twitter</a></li>
-</ul>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
-</nav>
-  <div id="main">
-    <div id="content">
-      <div>
-<article class="hentry" role="article">
-  
-  <header>
-    
-      <h1 class="entry-title">Automatically Partitioning Cloudflare Logs for Athena</h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2022-02-17T21:00:00-08:00" pubdate data-updated="true">Feb 17<span>th</span>, 2022</time>
-        
-      </p>
-    
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Automatically Partitioning Cloudflare Logs for Athena</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2022-02-17T21:00:00-07:00" itemprop="datePublished">Feb 17, 2022
+      </time></p>
   </header>
 
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>If you are using Cloudflare, it can be helpful to <a href="https://developers.cloudflare.com/logs/get-started/enable-destinations/aws-s3">configure Cloudflare to push request logs to S3</a>. Otherwise, the Cloudflare dashboard provides only a limited view into your data (72 hours at a time and sampled data instead of full logs).</p>
 
-<div class="entry-content"><p>If you are using Cloudflare, it can be helpful to <a href="https://developers.cloudflare.com/logs/get-started/enable-destinations/aws-s3">configure Cloudflare to push request logs to S3</a>. Otherwise, the Cloudflare dashboard provides only a limited view into your data (72 hours at a time and sampled data instead of full logs).</p>
-
-<p>Once the Cloudflare request logs are in S3, they can be queried using <a href="https://aws.amazon.com/athena/">Athena</a>. <a href="https://duffn.medium.com/analyzing-cloudflare-logs-with-aws-athena-19c1399c91e3">This blog post</a> even provides a nice <code>CREATE TABLE</code> command to set up the table in Athena.</p>
+<p>Once the Cloudflare request logs are in S3, they can be queried using <a href="https://aws.amazon.com/athena/">Athena</a>. <a href="https://duffn.medium.com/analyzing-cloudflare-logs-with-aws-athena-19c1399c91e3">This blog post</a> even provides a nice <code class="language-plaintext highlighter-rouge">CREATE TABLE</code> command to set up the table in Athena.</p>
 
 <p>However, there is a problem. When performing a query in Athena, it <em>might</em> have to scan <em>all</em> of the logs in S3, even if you try to limit the query. This can be slow and costly, as Athena queries are charged per byte scanned.</p>
 
@@ -109,48 +57,46 @@
 
 <p>This post assumes you have already set up Cloudflare to push logs to an S3 bucket, configured a database in Athena to access it, and then realized those logs will grow forever, along with your query times.</p>
 
-<p>(If you just want the &#8220;how to&#8221; without the exposition, jump down to &#8220;Setting Up Partitions for Cloudflare Logs&#8221;.)</p>
+<p>(If you just want the “how to” without the exposition, jump down to “Setting Up Partitions for Cloudflare Logs”.)</p>
 
-<h3>Partitioning</h3>
+<h3 id="partitioning">Partitioning</h3>
 
 <p>Most commonly, you will want to look at logs from a specific time period, so it makes sense to partition the logs by date.</p>
 
-<p>Most of the partitioning documentation suggests the files (or in this case, S3 objects) include a <code>column=value</code> key pair in the name. The <code>column</code> can then be used as a partition.</p>
+<p>Most of the partitioning documentation suggests the files (or in this case, S3 objects) include a <code class="language-plaintext highlighter-rouge">column=value</code> key pair in the name. The <code class="language-plaintext highlighter-rouge">column</code> can then be used as a partition.</p>
 
 <p>Unfortunately, Cloudflare does not allow customizing the format of the file names it produces.</p>
 
 <p><em>Fortunately</em>, the file names do include date/time information. The logs are grouped by date and time range:</p>
 
-<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class=''><span class='line'>s3://mah_s3_bucket/20210812/20210812T223000Z_20210812T224000Z_9af500e2.log.gz</span></code></pre></td></tr></table></div></figure>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>s3://mah_s3_bucket/20210812/20210812T223000Z_20210812T224000Z_9af500e2.log.gz
+</code></pre></div></div>
 
-
-<p>So all we need to do is grab that date &#8220;folder&#8221; name and that&#8217;s our partition! Easy, right?</p>
+<p>So all we need to do is grab that date “folder” name and that’s our partition! Easy, right?</p>
 
 <p>No, wrong. This is AWS. <em>Nothing is easy.</em></p>
 
-<h3>Use a Recurring Job?</h3>
+<h3 id="use-a-recurring-job">Use a Recurring Job?</h3>
 
-<p>Several of the AWS documentation pages suggest using <code>ALTER TABLE</code> to <a href="https://docs.aws.amazon.com/athena/latest/ug/alter-table-add-partition.html"><code>ADD PARTITION</code>s</a>.</p>
+<p>Several of the AWS documentation pages suggest using <code class="language-plaintext highlighter-rouge">ALTER TABLE</code> to <a href="https://docs.aws.amazon.com/athena/latest/ug/alter-table-add-partition.html"><code class="language-plaintext highlighter-rouge">ADD PARTITION</code>s</a>.</p>
 
 <p>Something like this:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">cloudflare_logs</span> <span class="k">ADD</span>
-</span><span class='line'>  <span class="n">PARTITION</span> <span class="p">(</span><span class="n">dt</span> <span class="o">=</span> <span class="s1">&#39;2021-08-12&#39;</span><span class="p">)</span> <span class="k">LOCATION</span> <span class="s1">&#39;s3://mah_log_bucket/20210812/&#39;</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">cloudflare_logs</span> <span class="k">ADD</span>
+  <span class="k">PARTITION</span> <span class="p">(</span><span class="n">dt</span> <span class="o">=</span> <span class="s1">'2021-08-12'</span><span class="p">)</span> <span class="k">LOCATION</span> <span class="s1">'s3://mah_log_bucket/20210812/'</span><span class="p">;</span>
+</code></pre></div></div>
 
+<p>But since the logs will grow every day, we’ll need to add new a new partition every 24 hours. It is not possible to “predefine” the partitions.</p>
 
-<p>But since the logs will grow every day, we&#8217;ll need to add new a new partition every 24 hours. It is not possible to &#8220;predefine&#8221; the partitions.</p>
+<p>This requires setting up a recurring job… somewhere… to periodically define the new partitions. So now we have to pull in <em>another</em> AWS service to make S3 and Athena work nicely?! No thanks!</p>
 
-<p>This requires setting up a recurring job&#8230; somewhere&#8230; to periodically define the new partitions. So now we have to pull in <em>another</em> AWS service to make S3 and Athena work nicely?! No thanks!</p>
+<h3 id="partition-projection">Partition Projection</h3>
 
-<h3>Partition Projection</h3>
+<p>At the bottom of the page about partitions, there is a paragraph about “<a href="https://docs.aws.amazon.com/athena/latest/ug/partitions.html#partitions-partition-projection">partition projection</a>” that sounds promising:</p>
 
-<p>At the bottom of the page about partitions, there is a paragraph about &#8221;<a href="https://docs.aws.amazon.com/athena/latest/ug/partitions.html#partitions-partition-projection">partition projection</a>&#8221; that sounds promising:</p>
-
-<blockquote><p>To avoid having to manage partitions, you can use partition projection. Partition projection is an option for highly partitioned tables whose structure is known in advance.</p></blockquote>
+<blockquote>
+  <p>To avoid having to manage partitions, you can use partition projection. Partition projection is an option for highly partitioned tables whose structure is known in advance.</p>
+</blockquote>
 
 <p>Yes, this is what we want! But how does it work?</p>
 
@@ -160,256 +106,161 @@
 
 <p>Then we define a pattern to pull the value out of each S3 object <em>name</em>. This allows Athena to figure out which objects (logs) are associated with which partition value.</p>
 
-<p>For example, the partition <code>20210812</code> will be associated with <code>s3://mah_s3_bucket/20210812/20210812T223000Z_20210812T224000Z_9af500e2.log.gz</code></p>
+<p>For example, the partition <code class="language-plaintext highlighter-rouge">20210812</code> will be associated with <code class="language-plaintext highlighter-rouge">s3://mah_s3_bucket/20210812/20210812T223000Z_20210812T224000Z_9af500e2.log.gz</code></p>
 
-<p>Once that&#8217;s all done, we can query based on the partition as if it were a column, like:</p>
+<p>Once that’s all done, we can query based on the partition as if it were a column, like:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">cloudflare_logs</span>
-</span><span class='line'><span class="k">WHERE</span> <span class="n">log_date</span> <span class="o">&gt;=</span> <span class="s1">&#39;20210812&#39;</span>
-</span><span class='line'>  <span class="k">AND</span> <span class="n">log_date</span> <span class="o">&lt;</span> <span class="s1">&#39;20210901&#39;</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">cloudflare_logs</span>
+<span class="k">WHERE</span> <span class="n">log_date</span> <span class="o">&gt;=</span> <span class="s1">'20210812'</span>
+  <span class="k">AND</span> <span class="n">log_date</span> <span class="o">&lt;</span> <span class="s1">'20210901'</span><span class="p">;</span>
+</code></pre></div></div>
 
-
-<h2>Setting Up Partitions for Cloudflare Logs</h2>
+<h2 id="setting-up-partitions-for-cloudflare-logs">Setting Up Partitions for Cloudflare Logs</h2>
 
 <p>Here are the steps that <em>must</em> be taken to set up the partitions:</p>
 
 <ol>
-<li>Add the partition &#8220;column&#8221; when creating the table</li>
-<li>Set several properties on the table to define the projection</li>
-<li>Set the partition pattern to match against object names</li>
-<li>Enable projection</li>
+  <li>Add the partition “column” when creating the table</li>
+  <li>Set several properties on the table to define the projection</li>
+  <li>Set the partition pattern to match against object names</li>
+  <li>Enable projection</li>
 </ol>
-
 
 <p>(Actually, 2-4 are all the same: set (totally unvalidated) key-value properties on the table.)</p>
 
 <p>Fortunately, all of this can be accomplished with one giant Athena command:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-<span class='line-number'>58</span>
-<span class='line-number'>59</span>
-<span class='line-number'>60</span>
-<span class='line-number'>61</span>
-<span class='line-number'>62</span>
-<span class='line-number'>63</span>
-<span class='line-number'>64</span>
-<span class='line-number'>65</span>
-<span class='line-number'>66</span>
-<span class='line-number'>67</span>
-<span class='line-number'>68</span>
-<span class='line-number'>69</span>
-<span class='line-number'>70</span>
-<span class='line-number'>71</span>
-<span class='line-number'>72</span>
-</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">CREATE</span> <span class="k">EXTERNAL</span> <span class="k">TABLE</span> <span class="o">`</span><span class="n">YOUR_TABLE_NAME</span><span class="o">`</span><span class="p">(</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">botscore</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">botscoresrc</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">cachecachestatus</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">cacheresponsebytes</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">cacheresponsestatus</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">clientasn</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">clientcountry</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">clientdevicetype</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">clientip</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">clientipclass</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">clientrequestbytes</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">clientrequesthost</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">clientrequestmethod</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">clientrequestpath</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">clientrequestprotocol</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">clientrequestreferer</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">clientrequesturi</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">clientrequestuseragent</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">clientsslcipher</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">clientsslprotocol</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">clientsrcport</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">edgecolocode</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">edgecoloid</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">edgeendtimestamp</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">edgepathingop</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">edgepathingsrc</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">edgepathingstatus</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">edgeratelimitaction</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">edgeratelimitid</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">edgerequesthost</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">edgeresponsebytes</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">edgeresponsecontenttype</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">edgeresponsestatus</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">edgeserverip</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">edgestarttimestamp</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">firewallmatchesactions</span><span class="o">`</span> <span class="nb">array</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">firewallmatchesruleids</span><span class="o">`</span> <span class="nb">array</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">firewallmatchessources</span><span class="o">`</span> <span class="nb">array</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">originip</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">originresponsestatus</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">originresponsetime</span><span class="o">`</span> <span class="nb">int</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">originsslprotocol</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">rayid</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">wafaction</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">wafflags</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">wafmatchedvar</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">wafprofile</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">wafruleid</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">wafrulemessage</span><span class="o">`</span> <span class="n">string</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">workersubrequest</span><span class="o">`</span> <span class="nb">boolean</span><span class="p">,</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">zoneid</span><span class="o">`</span> <span class="nb">bigint</span><span class="p">)</span>
-</span><span class='line'><span class="n">PARTITIONED</span> <span class="k">BY</span> <span class="p">(</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">YOUR_COLUMN_NAME</span><span class="o">`</span> <span class="n">string</span><span class="p">)</span>
-</span><span class='line'><span class="k">ROW</span> <span class="n">FORMAT</span> <span class="n">SERDE</span>
-</span><span class='line'>  <span class="s1">&#39;org.openx.data.jsonserde.JsonSerDe&#39;</span>
-</span><span class='line'><span class="n">STORED</span> <span class="k">AS</span> <span class="n">INPUTFORMAT</span>
-</span><span class='line'>  <span class="s1">&#39;org.apache.hadoop.mapred.TextInputFormat&#39;</span>
-</span><span class='line'><span class="n">OUTPUTFORMAT</span>
-</span><span class='line'>  <span class="s1">&#39;org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat&#39;</span>
-</span><span class='line'><span class="k">LOCATION</span>
-</span><span class='line'>  <span class="s1">&#39;s3://YOUR_BUCKET_NAME/&#39;</span>
-</span><span class='line'><span class="n">TBLPROPERTIES</span> <span class="p">(</span>
-</span><span class='line'>  <span class="s1">&#39;projection.enabled&#39;</span><span class="o">=</span><span class="s1">&#39;TRUE&#39;</span><span class="p">,</span>
-</span><span class='line'>  <span class="s1">&#39;projection.YOUR_COLUMN_NAME.format&#39;</span><span class="o">=</span><span class="s1">&#39;yyyyMMdd&#39;</span><span class="p">,</span>
-</span><span class='line'>  <span class="s1">&#39;projection.YOUR_COLUMN_NAME.interval&#39;</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">,</span>
-</span><span class='line'>  <span class="s1">&#39;projection.YOUR_COLUMN_NAME.interval.unit&#39;</span><span class="o">=</span><span class="s1">&#39;DAYS&#39;</span><span class="p">,</span>
-</span><span class='line'>  <span class="s1">&#39;projection.YOUR_COLUMN_NAME.range&#39;</span><span class="o">=</span><span class="s1">&#39;YOUR_START_DATE,NOW&#39;</span><span class="p">,</span>
-</span><span class='line'>  <span class="s1">&#39;projection.YOUR_COLUMN_NAME.type&#39;</span><span class="o">=</span><span class="s1">&#39;date&#39;</span><span class="p">,</span>
-</span><span class='line'>
-</span><span class='line'> <span class="s1">&#39;storage.location.template&#39;</span><span class="o">=</span><span class="s1">&#39;s3://YOUR_BUCKET_NAME/${YOUR_COLUMN_NAME}/&#39;</span>
-</span><span class='line'><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">EXTERNAL</span> <span class="k">TABLE</span> <span class="nv">`YOUR_TABLE_NAME`</span><span class="p">(</span>
+  <span class="nv">`botscore`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`botscoresrc`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`cachecachestatus`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`cacheresponsebytes`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`cacheresponsestatus`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`clientasn`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`clientcountry`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientdevicetype`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientip`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientipclass`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientrequestbytes`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`clientrequesthost`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientrequestmethod`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientrequestpath`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientrequestprotocol`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientrequestreferer`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientrequesturi`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientrequestuseragent`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientsslcipher`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientsslprotocol`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientsrcport`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`edgecolocode`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgecoloid`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`edgeendtimestamp`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgepathingop`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgepathingsrc`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgepathingstatus`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgeratelimitaction`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgeratelimitid`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`edgerequesthost`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgeresponsebytes`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`edgeresponsecontenttype`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgeresponsestatus`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`edgeserverip`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgestarttimestamp`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`firewallmatchesactions`</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="nv">`firewallmatchesruleids`</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="nv">`firewallmatchessources`</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="nv">`originip`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`originresponsestatus`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`originresponsetime`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`originsslprotocol`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`rayid`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`wafaction`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`wafflags`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`wafmatchedvar`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`wafprofile`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`wafruleid`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`wafrulemessage`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`workersubrequest`</span> <span class="nb">boolean</span><span class="p">,</span>
+  <span class="nv">`zoneid`</span> <span class="nb">bigint</span><span class="p">)</span>
+<span class="n">PARTITIONED</span> <span class="k">BY</span> <span class="p">(</span>
+  <span class="nv">`YOUR_COLUMN_NAME`</span> <span class="n">string</span><span class="p">)</span>
+<span class="k">ROW</span> <span class="n">FORMAT</span> <span class="n">SERDE</span>
+  <span class="s1">'org.openx.data.jsonserde.JsonSerDe'</span>
+<span class="n">STORED</span> <span class="k">AS</span> <span class="n">INPUTFORMAT</span>
+  <span class="s1">'org.apache.hadoop.mapred.TextInputFormat'</span>
+<span class="n">OUTPUTFORMAT</span>
+  <span class="s1">'org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat'</span>
+<span class="k">LOCATION</span>
+  <span class="s1">'s3://YOUR_BUCKET_NAME/'</span>
+<span class="n">TBLPROPERTIES</span> <span class="p">(</span>
+  <span class="s1">'projection.enabled'</span><span class="o">=</span><span class="s1">'TRUE'</span><span class="p">,</span>
+  <span class="s1">'projection.YOUR_COLUMN_NAME.format'</span><span class="o">=</span><span class="s1">'yyyyMMdd'</span><span class="p">,</span>
+  <span class="s1">'projection.YOUR_COLUMN_NAME.interval'</span><span class="o">=</span><span class="s1">'1'</span><span class="p">,</span>
+  <span class="s1">'projection.YOUR_COLUMN_NAME.interval.unit'</span><span class="o">=</span><span class="s1">'DAYS'</span><span class="p">,</span>
+  <span class="s1">'projection.YOUR_COLUMN_NAME.range'</span><span class="o">=</span><span class="s1">'YOUR_START_DATE,NOW'</span><span class="p">,</span>
+  <span class="s1">'projection.YOUR_COLUMN_NAME.type'</span><span class="o">=</span><span class="s1">'date'</span><span class="p">,</span> 
+ 
+ <span class="s1">'storage.location.template'</span><span class="o">=</span><span class="s1">'s3://YOUR_BUCKET_NAME/${YOUR_COLUMN_NAME}/'</span>
+<span class="p">)</span> 
+</code></pre></div></div>
 
 <p>These are the pieces related to partitioning:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="n">PARTITIONED</span> <span class="k">BY</span> <span class="p">(</span>
-</span><span class='line'>  <span class="o">`</span><span class="n">YOUR_COLUMN_NAME</span><span class="o">`</span> <span class="n">string</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">PARTITIONED</span> <span class="k">BY</span> <span class="p">(</span>
+  <span class="nv">`YOUR_COLUMN_NAME`</span> <span class="n">string</span><span class="p">)</span>
+</code></pre></div></div>
 
 <p>This tells Athena to set up a column for the partition.</p>
 
-<p>(The type of the partition column <strong>must</strong> be <code>string</code>, even though the projection type <strong>must</strong> be <code>date</code>. Does this make any sense? <strong>NO</strong>.)</p>
+<p>(The type of the partition column <strong>must</strong> be <code class="language-plaintext highlighter-rouge">string</code>, even though the projection type <strong>must</strong> be <code class="language-plaintext highlighter-rouge">date</code>. Does this make any sense? <strong>NO</strong>.)</p>
 
 <p>Then the table properties.</p>
 
 <p>Turn on projection:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="s1">&#39;projection.enabled&#39;</span><span class="o">=</span><span class="s1">&#39;TRUE&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">'projection.enabled'</span><span class="o">=</span><span class="s1">'TRUE'</span>
+</code></pre></div></div>
 
 <p>Set the column type to date:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="s1">&#39;projection.YOUR_COLUMN_NAME.type&#39;</span><span class="o">=</span><span class="s1">&#39;date&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">'projection.YOUR_COLUMN_NAME.type'</span><span class="o">=</span><span class="s1">'date'</span>
+</code></pre></div></div>
 
 <p>This is so Athena knows how to interpolate values.</p>
 
 <p>Define the date format to match:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="s1">&#39;projection.YOUR_COLUMN_NAME.format&#39;</span><span class="o">=</span><span class="s1">&#39;yyyyMMdd&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">'projection.YOUR_COLUMN_NAME.format'</span><span class="o">=</span><span class="s1">'yyyyMMdd'</span>
+</code></pre></div></div>
 
 <p>Set the interval for the values to one day:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="s1">&#39;projection.YOUR_COLUMN_NAME.interval&#39;</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">,</span>
-</span><span class='line'><span class="s1">&#39;projection.YOUR_COLUMN_NAME.interval.unit&#39;</span><span class="o">=</span><span class="s1">&#39;DAYS&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">'projection.YOUR_COLUMN_NAME.interval'</span><span class="o">=</span><span class="s1">'1'</span><span class="p">,</span>
+<span class="s1">'projection.YOUR_COLUMN_NAME.interval.unit'</span><span class="o">=</span><span class="s1">'DAYS'</span>
+</code></pre></div></div>
 
 <p>Set the range for the values:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="s1">&#39;projection.YOUR_COLUMN_NAME.range&#39;</span><span class="o">=</span><span class="s1">&#39;YOUR_START_DATE,NOW&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">'projection.YOUR_COLUMN_NAME.range'</span><span class="o">=</span><span class="s1">'YOUR_START_DATE,NOW'</span>
+</code></pre></div></div>
 
-
-<p><code>NOW</code> is a special value so the end of the range will always be the current day.</p>
+<p><code class="language-plaintext highlighter-rouge">NOW</code> is a special value so the end of the range will always be the current day.</p>
 
 <p>This sets a template to extract the date string from the object name, using the date template defined above, and setting the value in the column name specified for the projection:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="s1">&#39;storage.location.template&#39;</span><span class="o">=</span><span class="s1">&#39;s3://YOUR_BUCKET_NAME/${YOUR_COLUMN_NAME}/&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">'storage.location.template'</span><span class="o">=</span><span class="s1">'s3://YOUR_BUCKET_NAME/${YOUR_COLUMN_NAME}/'</span>
+</code></pre></div></div>
 
-
-<p>If you are unfamiliar with Athena, it&#8217;s good to know that deleting/creating tables is low impact. If the table is already created, it is not a big deal to delete it and start over.</p>
+<p>If you are unfamiliar with Athena, it’s good to know that deleting/creating tables is low impact. If the table is already created, it is not a big deal to delete it and start over.</p>
 
 <p>Here are the important bits above that you will need to change:</p>
 
 <ul>
-<li><code>YOUR_TABLE_NAME</code> is whatever you want to name the table. Something like <code>cloudflare_logs</code> would probably make sense.</li>
-<li><code>YOUR_COLUMN_NAME</code> is whatever you want to name the projection &#8220;column&#8221;. Could be <code>dt</code> like in the AWS docs, or <code>log_date</code> or whatever you want.</li>
-<li><code>YOUR_BUCKET_NAME</code> is the name of the S3 bucket.</li>
-<li><code>YOUR START_DATE</code> is the date of the first log. Something like <code>20210101</code>.</li>
+  <li><code class="language-plaintext highlighter-rouge">YOUR_TABLE_NAME</code> is whatever you want to name the table. Something like <code class="language-plaintext highlighter-rouge">cloudflare_logs</code> would probably make sense.</li>
+  <li><code class="language-plaintext highlighter-rouge">YOUR_COLUMN_NAME</code> is whatever you want to name the projection “column”. Could be <code class="language-plaintext highlighter-rouge">dt</code> like in the AWS docs, or <code class="language-plaintext highlighter-rouge">log_date</code> or whatever you want.</li>
+  <li><code class="language-plaintext highlighter-rouge">YOUR_BUCKET_NAME</code> is the name of the S3 bucket.</li>
+  <li><code class="language-plaintext highlighter-rouge">YOUR START_DATE</code> is the date of the first log. Something like <code class="language-plaintext highlighter-rouge">20210101</code>.</li>
 </ul>
-
 
 <p>The table should now indicate it is partitioned:</p>
 
@@ -419,18 +270,14 @@
 
 <p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/2k9ixdqd6820stqrvetr.png" alt="Column name with text 'string (partitioned)' next to it" /></p>
 
-<h3>Using Date Partitions</h3>
+<h3 id="using-date-partitions">Using Date Partitions</h3>
 
 <p>To test if partitions are working as expected, a quick query like this will work:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="k">DISTINCT</span><span class="p">(</span><span class="n">YOUR_COLUMN_NAME</span><span class="p">)</span>
-</span><span class='line'><span class="k">FROM</span> <span class="ss">&quot;YOUR_TABLE_NAME&quot;</span>
-</span><span class='line'><span class="k">LIMIT</span> <span class="mi">10</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="k">DISTINCT</span><span class="p">(</span><span class="n">YOUR_COLUMN_NAME</span><span class="p">)</span>
+<span class="k">FROM</span> <span class="nv">"YOUR_TABLE_NAME"</span>
+<span class="k">LIMIT</span> <span class="mi">10</span><span class="p">;</span>
+</code></pre></div></div>
 
 <p>The expected output is several dates for which there are logs.</p>
 
@@ -438,126 +285,44 @@
 
 <p>For a single day:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">YOUR_TABLE</span>
-</span><span class='line'><span class="k">WHERE</span> <span class="n">YOUR_COLUMN_NAME</span> <span class="o">=</span> <span class="ss">&quot;20200101&quot;</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">YOUR_TABLE</span>
+<span class="k">WHERE</span> <span class="n">YOUR_COLUMN_NAME</span> <span class="o">=</span> <span class="nv">"20200101"</span><span class="p">;</span>
+</code></pre></div></div>
 
 <p>For an inclusive range:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='sql'><span class='line'><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">YOUR_TABLE</span>
-</span><span class='line'><span class="k">WHERE</span> <span class="n">YOUR_COLUMN_NAME</span> <span class="o">&gt;=</span> <span class="ss">&quot;20200101&quot;</span>
-</span><span class='line'>  <span class="k">AND</span> <span class="n">YOUR_COLUMN_NAME</span> <span class="o">&lt;=</span> <span class="ss">&quot;20210101&quot;</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">YOUR_TABLE</span>
+<span class="k">WHERE</span> <span class="n">YOUR_COLUMN_NAME</span> <span class="o">&gt;=</span> <span class="nv">"20200101"</span>
+  <span class="k">AND</span> <span class="n">YOUR_COLUMN_NAME</span> <span class="o">&lt;=</span> <span class="nv">"20210101"</span><span class="p">;</span>
+</code></pre></div></div>
 
 <p>And now your queries can be faster and cheaper!</p>
-</div>
 
-
-  <footer>
-    <p class="meta">
-      
-  
-
-<span class="byline author vcard">Posted by <span class="fn"><a href="/about" title="About the author (Justin Collins)" rel="author">Justin Collins</a></span></span>
-
-      
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2022-02-17T21:00:00-08:00" pubdate data-updated="true">Feb 17<span>th</span>, 2022</time>
-      
-
-
-    </p>
-    
-      <div class="sharing">
-  
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.presidentbeef.com/blog/2022/02/17/automatically-partitioning-cloudflare-logs-for-athena/" data-via="presidentbeef" data-counturl="https://blog.presidentbeef.com/blog/2022/02/17/automatically-partitioning-cloudflare-logs-for-athena/" >Tweet</a>
-  
-  
-  
-</div>
-
-    
-    <p class="meta">
-      
-        <a class="basic-alignment left" href="/blog/2022/01/31/sounds-in-dragonruby/" title="Previous Post: Sounds in DragonRuby">&laquo; Sounds in DragonRuby</a>
-      
-      
-    </p>
-  </footer>
+  </div><a class="u-url" href="/blog/2022/02/17/automatically-partitioning-cloudflare-logs-for-athena/" hidden></a>
 </article>
 
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Justin&#39;s Blurgh</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/presidentbeef"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">presidentbeef</span></a></li></ul>
 </div>
-  </section>
 
-</div>
-
-
+      <div class="footer-col footer-col-3">
+      </div>
     </div>
+
   </div>
-  <footer role="contentinfo"><p>
-  Copyright &copy; 2022 - Justin Collins -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -
-  <span class="credit">Theme by <a href="http://aron.cedercrantz.com/">Aron Cedercrantz</a></span>
-</p>
 
 </footer>
-  
-
-<script type="text/javascript">
-      var disqus_shortname = 'presidentbeefblog';
-      
-        
-        // var disqus_developer = 1;
-        var disqus_identifier = 'https://blog.presidentbeef.com/blog/2022/02/17/automatically-partitioning-cloudflare-logs-for-athena/';
-        var disqus_url = 'https://blog.presidentbeef.com/blog/2022/02/17/automatically-partitioning-cloudflare-logs-for-athena/';
-        var disqus_script = 'embed.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'https://' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
-
-
-
-
-
-
-
-  <script type="text/javascript">
-    (function(){
-      var twitterWidgets = document.createElement('script');
-      twitterWidgets.type = 'text/javascript';
-      twitterWidgets.async = true;
-      twitterWidgets.src = 'https://platform.twitter.com/widgets.js';
-      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
-    })();
-  </script>
-
-
-
-
-
 </body>
+
 </html>

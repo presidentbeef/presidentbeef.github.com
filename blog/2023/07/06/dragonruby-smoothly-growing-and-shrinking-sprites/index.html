@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>DragonRuby: Smoothly Growing and Shrinking Sprites | Justin’s Blurgh</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="DragonRuby: Smoothly Growing and Shrinking Sprites" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="This post is about DragonRuby, a Ruby implementation for writing games. Check it out!" />
+<meta property="og:description" content="This post is about DragonRuby, a Ruby implementation for writing games. Check it out!" />
+<link rel="canonical" href="https://blog.presidentbeef.com/blog/2023/07/06/dragonruby-smoothly-growing-and-shrinking-sprites/" />
+<meta property="og:url" content="https://blog.presidentbeef.com/blog/2023/07/06/dragonruby-smoothly-growing-and-shrinking-sprites/" />
+<meta property="og:site_name" content="Justin’s Blurgh" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2023-07-06T14:17:00-06:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="DragonRuby: Smoothly Growing and Shrinking Sprites" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2023-07-06T14:17:00-06:00","datePublished":"2023-07-06T14:17:00-06:00","description":"This post is about DragonRuby, a Ruby implementation for writing games. Check it out!","headline":"DragonRuby: Smoothly Growing and Shrinking Sprites","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.presidentbeef.com/blog/2023/07/06/dragonruby-smoothly-growing-and-shrinking-sprites/"},"url":"https://blog.presidentbeef.com/blog/2023/07/06/dragonruby-smoothly-growing-and-shrinking-sprites/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://blog.presidentbeef.com/feed.xml" title="Justin&apos;s Blurgh" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Justin&#39;s Blurgh</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/archives/">Archives</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">DragonRuby: Smoothly Growing and Shrinking Sprites</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2023-07-06T14:17:00-06:00" itemprop="datePublished">Jul 6, 2023
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>This post is about <a href="https://dragonruby.org/toolkit/game">DragonRuby</a>, a Ruby implementation for writing games. Check it out!</p>
+
+<h2 id="starting-off">Starting Off</h2>
+
+<p>Let’s start simply by rendering a sprite in the middle of the window. For convenience, the program also renders guidelines marking the center of the window (for brevity, not showing this in later code). Also for convenience, this code uses a sprite included with the DragonRuby distribution.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="c1"># Double size of the original sprite, in pixels</span>
+  <span class="n">width</span> <span class="o">=</span> <span class="mi">80</span> <span class="o">*</span> <span class="mi">2</span>
+  <span class="n">height</span> <span class="o">=</span> <span class="mi">80</span> <span class="o">*</span> <span class="mi">2</span>
+
+  <span class="c1"># Output sprite in middle of the window</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span> <span class="c1"># Horizontal center</span>
+    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span><span class="p">,</span> <span class="c1"># Vertical center</span>
+    <span class="ss">w: </span><span class="n">width</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="n">height</span><span class="p">,</span>
+    <span class="ss">path: </span><span class="s1">'sprites/hexagon/red.png'</span><span class="p">,</span>
+  <span class="p">}</span>
+
+  <span class="c1"># Add grid lines to mark center of window</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">lines</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span><span class="p">,</span>
+    <span class="ss">x2: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">w</span><span class="p">,</span>
+    <span class="ss">y2: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span>
+  <span class="p">}</span> <span class="o">&lt;&lt;</span>
+  <span class="p">{</span>
+    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">x2: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span>
+    <span class="ss">y2: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">h</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/vvi2vdzdkylrg1em8j1m.png" alt="Off-center rendering of a red hexagon" /></p>
+
+<p>As you can see, we’ve perfectly rendered a sprite in the center of the -</p>
+
+<p>Wait, that’s not quite right. What happened?</p>
+
+<h2 id="anchoring">Anchoring</h2>
+
+<p>In DragonRuby, the (0, 0) coordinate is the bottom-left of the window. Similarly, when setting <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> location for a sprite, those correspond to the bottom-left of the sprite.</p>
+
+<p>This could be solved with some math like <code class="language-plaintext highlighter-rouge">x = x + (sprite.w / 2)</code> to adjust the sprite appropriately. But this will cause complications later when resizing the sprite.</p>
+
+<p>Preview of the problem:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/wqmm70ud4cgikzot23y5.gif" alt="Hexagon growing and shrinking off-center" /></p>
+
+<p>This <em>might</em> be what you want, but for this post we want the sprite to expand/shrink from the center.</p>
+
+<p>A simpler approach that trying to move <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> around is to instead use the <code class="language-plaintext highlighter-rouge">anchor_x</code> and <code class="language-plaintext highlighter-rouge">anchor_y</code> attributes.</p>
+
+<p><strong>Important note: <code class="language-plaintext highlighter-rouge">anchor_*</code> attributes were introduced in DragonRuby 4.8.</strong></p>
+
+<p>These are very similar to the <code class="language-plaintext highlighter-rouge">angle_anchor_*</code> attributes <a href="https://dev.to/presidentbeef/dragonruby-rotating-rectangles-2i9e/">discussed previously</a>.</p>
+
+<p>The values used for the anchors are a <em>percentage</em> of the width or height of the sprite. This diagram from the earlier post might help:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/fwlbn5o29zou5qvpf7ug.png" alt="Angle anchors on a black rectangle" /></p>
+
+<p>The default “anchors” are essentially at (0, 0) (technically, they are <code class="language-plaintext highlighter-rouge">nil</code>, but never mind that).</p>
+
+<p>The center of the sprite is at (0.5, 0.5).</p>
+
+<p>In code:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="c1"># Double size of the original sprite</span>
+  <span class="n">width</span> <span class="o">=</span> <span class="mi">80</span> <span class="o">*</span> <span class="mi">2</span>
+  <span class="n">height</span> <span class="o">=</span> <span class="mi">80</span> <span class="o">*</span> <span class="mi">2</span>
+
+  <span class="c1"># Actually render sprite in middle of the window</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="n">width</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="n">height</span><span class="p">,</span>
+    <span class="ss">anchor_x: </span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="ss">anchor_y: </span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="ss">path: </span><span class="s1">'sprites/hexagon/red.png'</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/y228g59elua7p9d7fyxm.png" alt="Red hexagon centered in window" /></p>
+
+<p>There we go! Digression over, back to squishing and stretching this sprite.</p>
+
+<h3 id="simple-approach">“Simple” Approach</h3>
+
+<p>For the first approach, let’s do this:</p>
+
+<ul>
+  <li>Set a rate of growth (e.g. 1 pixel per tick)</li>
+  <li>Set a target size</li>
+  <li>Grow (or shrink) the size on each tick</li>
+  <li>When the target size is met, reverse direction</li>
+</ul>
+
+<p>To avoid some duplication, this code uses the same size for width and height. Adjust as desired.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="c1"># How big to make the sprite</span>
+  <span class="n">target_size</span> <span class="o">=</span> <span class="mi">80</span> <span class="o">*</span> <span class="mi">2</span>
+
+  <span class="c1"># Current size of the sprite</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">size</span> <span class="o">||=</span> <span class="mi">0</span>
+
+  <span class="c1"># How fast to grow</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">growth_rate</span> <span class="o">||=</span> <span class="mi">1</span>
+
+  <span class="c1"># If the target size is reached, reverse</span>
+  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">size</span> <span class="o">&gt;=</span> <span class="n">target_size</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">growth_rate</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+  <span class="k">elsif</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">size</span> <span class="o">&lt;=</span> <span class="mi">0</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">growth_rate</span> <span class="o">=</span> <span class="mi">1</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Grow (or shrink) the size</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">size</span> <span class="o">+=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">growth_rate</span>
+
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">size</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">size</span><span class="p">,</span>
+    <span class="ss">path: </span><span class="s1">'sprites/hexagon/red.png'</span><span class="p">,</span>
+    <span class="ss">anchor_x: </span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="ss">anchor_y: </span><span class="mf">0.5</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Result:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/c233nxl7im2qxmi87pmx.gif" alt="Red hexagon growing and shrinking in the center of the window" /></p>
+
+<p>Nailed it. Post over..?</p>
+
+<h3 id="easing-in">Easing In</h3>
+
+<p>Instead of calculating the growth rate “by hand,” wouldn’t it be nice if a function could do that for us? Maybe even have the ability to vary the growth rate over time?</p>
+
+<p><code class="language-plaintext highlighter-rouge">args.easing.ease</code> is here for that very reason.</p>
+
+<p>(<a href="https://www.youtube.com/watch?v=mr5xkf6zSzk">This video</a>, linked in the DragonRuby docs, is <em>really</em> good. Plus it also will explain the names of the easing functions used below.)</p>
+
+<p><code class="language-plaintext highlighter-rouge">args.easing.ease</code> will return a “percentage” value (between 0 and 1) which can be multiplied against the target value to get the current value. For the example here, that means it will calculate the current percentage of the size of the the sprite.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="n">target_size</span> <span class="o">=</span> <span class="mi">80</span> <span class="o">*</span> <span class="mi">2</span>
+  <span class="n">duration</span> <span class="o">=</span> <span class="mi">60</span>
+
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">start_time</span> <span class="o">||=</span> <span class="mi">0</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">easing_function</span> <span class="o">=</span> <span class="ss">:identity</span>
+
+  <span class="c1"># Calculate percentage (0 to 1) of progress based</span>
+  <span class="c1"># on the start time, current time, duration, and easing function</span>
+  <span class="n">percentage</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="nf">easing</span><span class="p">.</span><span class="nf">ease</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">start_time</span><span class="p">,</span>
+                                <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">tick_count</span><span class="p">,</span>
+                                <span class="n">duration</span><span class="p">,</span>                         
+                                <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">easing_function</span>
+
+  <span class="c1"># Output the scaled image</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="n">target_size</span> <span class="o">*</span> <span class="n">percentage</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="n">target_size</span> <span class="o">*</span> <span class="n">percentage</span><span class="p">,</span>
+    <span class="ss">path: </span><span class="s1">'sprites/hexagon/red.png'</span><span class="p">,</span>
+    <span class="ss">anchor_x: </span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="ss">anchor_y: </span><span class="mf">0.5</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>This code uses the <code class="language-plaintext highlighter-rouge">:identity</code> function which is linear - essentially the same as the earlier code that adds a constant “growth rate” on each tick.</p>
+
+<p>Here is the result:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/eugztn22l0aq6j95olyt.gif" alt="Red hexagon growing, but not shrinking" /></p>
+
+<p>Oops, forgot to shrink it back down!</p>
+
+<h3 id="easing-out">Easing Out</h3>
+
+<p>The code is going to get slightly more complicated now. Instead of passing in a single easing function, the new code uses an array of function names. The array is “splatted” into <code class="language-plaintext highlighter-rouge">args.ease.easing</code>.</p>
+
+<p>When the set duration is up, the code adds <code class="language-plaintext highlighter-rouge">:flip</code> to the list of functions. Instead of going from 0 to 1, the percentage will now go from 1 to 0.</p>
+
+<p>When that’s over, <code class="language-plaintext highlighter-rouge">:flip</code> is removed from the list and it starts all over.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="n">target_size</span> <span class="o">=</span> <span class="mi">80</span> <span class="o">*</span> <span class="mi">2</span>
+  <span class="n">duration</span> <span class="o">=</span> <span class="mi">60</span>
+
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">start_time</span> <span class="o">||=</span> <span class="mi">0</span>
+                                                                               
+  <span class="c1"># List of easing functions                                                   </span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">easing_functions</span> <span class="o">||=</span> <span class="p">[</span><span class="ss">:identity</span><span class="p">]</span>                                  
+                                                                               
+  <span class="c1"># Calculate percentage (0 to 1) of progress based                            </span>
+  <span class="c1"># on the start time, current time, duration, and easing function(s)          </span>
+  <span class="n">percentage</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="nf">easing</span><span class="p">.</span><span class="nf">ease</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">start_time</span><span class="p">,</span>                         
+                                      <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">tick_count</span><span class="p">,</span>                   
+                                      <span class="n">duration</span><span class="p">,</span>                                
+                                      <span class="o">*</span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">easing_functions</span>             
+                                                                               
+  <span class="c1"># When we reach the end of the duration, switch direction                    </span>
+  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">==</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">start_time</span> <span class="o">+</span> <span class="n">duration</span>                 
+    <span class="c1"># Reset the start time for the easing function</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">start_time</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">tick_count</span>                              
+                                                                               
+    <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">easing_functions</span> <span class="o">==</span> <span class="p">[</span><span class="ss">:identity</span><span class="p">]</span>                              
+      <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">easing_functions</span> <span class="o">=</span> <span class="p">[</span><span class="ss">:identity</span><span class="p">,</span> <span class="ss">:flip</span><span class="p">]</span>                         
+    <span class="k">else</span>                                                                       
+      <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">easing_functions</span> <span class="o">=</span> <span class="p">[</span><span class="ss">:identity</span><span class="p">]</span>                                
+    <span class="k">end</span>                                                                        
+  <span class="k">end</span>                                                                          
+                                                                               
+  <span class="c1"># Output the scaled image                                                    </span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>                                                    
+    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span>                                                     
+    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span><span class="p">,</span>                                                     
+    <span class="ss">w: </span><span class="n">target_size</span> <span class="o">*</span> <span class="n">percentage</span><span class="p">,</span>                                               
+    <span class="ss">h: </span><span class="n">target_size</span> <span class="o">*</span> <span class="n">percentage</span><span class="p">,</span>                                               
+    <span class="ss">path: </span><span class="s1">'sprites/hexagon/red.png'</span><span class="p">,</span>                                           
+    <span class="ss">anchor_x: </span><span class="mf">0.5</span><span class="p">,</span>                                                             
+    <span class="ss">anchor_y: </span><span class="mf">0.5</span><span class="p">,</span>                                                             
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/uje6fhszquw966wcsl7o.gif" alt="Red hexagon growing and shrinking" /></p>
+
+<p>One way to think of <code class="language-plaintext highlighter-rouge">[:identity, :flip]</code> is like this:</p>
+
+<p><code class="language-plaintext highlighter-rouge">:identity</code> is <em>f(x) = x</em> and <code class="language-plaintext highlighter-rouge">:identity, :flip</code> is <em>g(x) = 1 - f(x)</em>. <code class="language-plaintext highlighter-rouge">:flip</code> can be used to “reverse” any function.</p>
+
+<h3 id="more-easing">More Easing</h3>
+
+<p>This may not be <em>very</em> exciting, but keep in mind there are several pre-defined easing functions:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">:identity</code> (f(x) = x)</li>
+  <li><code class="language-plaintext highlighter-rouge">:quad</code> (f(x) = x^2)</li>
+  <li><code class="language-plaintext highlighter-rouge">:cube</code> (f(x) = x^3)</li>
+  <li><code class="language-plaintext highlighter-rouge">:quint</code> (f(x) = x^4)</li>
+  <li><code class="language-plaintext highlighter-rouge">:smooth_start_quad</code> (same as <code class="language-plaintext highlighter-rouge">:quad</code>)</li>
+  <li><code class="language-plaintext highlighter-rouge">:smooth_start_cube</code> (same as <code class="language-plaintext highlighter-rouge">:cube</code>)</li>
+  <li><code class="language-plaintext highlighter-rouge">:smooth_start_quart</code> (same as <code class="language-plaintext highlighter-rouge">:quart</code>)</li>
+  <li><code class="language-plaintext highlighter-rouge">:smooth_start_quint</code> (same as <code class="language-plaintext highlighter-rouge">:quint</code>)</li>
+  <li><code class="language-plaintext highlighter-rouge">:smooth_stop_quad</code> (f(x) = 1 - (1 - x)^2)</li>
+  <li><code class="language-plaintext highlighter-rouge">:smooth_stop_cube</code> (f(x) = 1 - (1 - x)^3)</li>
+  <li><code class="language-plaintext highlighter-rouge">:smooth_stop_quart</code> (f(x) = 1 - (1 - x)^4)</li>
+  <li><code class="language-plaintext highlighter-rouge">:smooth_stop_quint</code> (f(x) = 1 - (1 - x)^5)</li>
+</ul>
+
+<p>Mix and match as you’d like… for example, here’s growing with <code class="language-plaintext highlighter-rouge">:cube</code> but shrinking with <code class="language-plaintext highlighter-rouge">:quint</code>:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="n">target_size</span> <span class="o">=</span> <span class="mi">80</span> <span class="o">*</span> <span class="mi">2</span>
+  <span class="n">duration</span> <span class="o">=</span> <span class="mi">60</span>
+
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">start_time</span> <span class="o">||=</span> <span class="mi">0</span>
+                                                                               
+  <span class="c1"># List of easing functions                                                   </span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">easing_functions</span> <span class="o">||=</span> <span class="p">[</span><span class="ss">:cube</span><span class="p">]</span>                                  
+                                                                               
+  <span class="c1"># Calculate percentage (0 to 1) of progress based                            </span>
+  <span class="c1"># on the start time, current time, duration, and easing function(s)          </span>
+  <span class="n">percentage</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="nf">easing</span><span class="p">.</span><span class="nf">ease</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">start_time</span><span class="p">,</span>                         
+                                <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">tick_count</span><span class="p">,</span>                   
+                                <span class="n">duration</span><span class="p">,</span>                                
+                                <span class="o">*</span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">easing_functions</span>             
+                                                                               
+  <span class="c1"># When we reach the end of the duration, switch direction                    </span>
+  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">==</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">start_time</span> <span class="o">+</span> <span class="n">duration</span>                 
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">start_time</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">tick_count</span>                              
+                                                                               
+    <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">easing_functions</span> <span class="o">==</span> <span class="p">[</span><span class="ss">:cube</span><span class="p">]</span>                              
+      <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">easing_functions</span> <span class="o">=</span> <span class="p">[</span><span class="ss">:quint</span><span class="p">,</span> <span class="ss">:flip</span><span class="p">]</span>                         
+    <span class="k">else</span>                                                                       
+      <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">easing_functions</span> <span class="o">=</span> <span class="p">[</span><span class="ss">:cube</span><span class="p">]</span>                                
+    <span class="k">end</span>                                                                        
+  <span class="k">end</span>                                                                          
+                                                                               
+  <span class="c1"># Output the scaled image                                                    </span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>                                                    
+    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span>                                                     
+    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span><span class="p">,</span>                                                     
+    <span class="ss">w: </span><span class="n">target_size</span> <span class="o">*</span> <span class="n">percentage</span><span class="p">,</span>                                               
+    <span class="ss">h: </span><span class="n">target_size</span> <span class="o">*</span> <span class="n">percentage</span><span class="p">,</span>                                               
+    <span class="ss">path: </span><span class="s1">'sprites/hexagon/red.png'</span><span class="p">,</span>                                           
+    <span class="ss">anchor_x: </span><span class="mf">0.5</span><span class="p">,</span>                                                             
+    <span class="ss">anchor_y: </span><span class="mf">0.5</span><span class="p">,</span>                                                             
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/l9qmcrd0kpg8lnj95nq8.gif" alt="Hexagon growing, but then shrinking faster than it grew" /></p>
+
+<h3 id="closing-out">Closing Out</h3>
+
+<p>This post demonstrates two concepts: changing the anchors for a sprite, and using “easing” to set the size of a sprite.</p>
+
+<p>Easing is a general-purpose concept that can be used for any applications, such as smooth movement.</p>
+
+<p>Keep in mind, you can also:</p>
+
+<ul>
+  <li>Change up the anchors</li>
+  <li>Grow/shrink width and height separately</li>
+  <li>Change up the target width/height as desired (for example, grow all the way but only shrink back a little)</li>
+  <li><a href="https://docs.dragonruby.org/#/api/easing?id=combining-easing-definitions">Combine several easing functions together</a></li>
+  <li><a href="https://docs.dragonruby.org/#/api/easing?id=custom-easing-functions">Write your own easing functions</a></li>
+  <li>???</li>
+</ul>
+
+<p>Have fun!</p>
+
+  </div><a class="u-url" href="/blog/2023/07/06/dragonruby-smoothly-growing-and-shrinking-sprites/" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Justin&#39;s Blurgh</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/presidentbeef"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">presidentbeef</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

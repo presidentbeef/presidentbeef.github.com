@@ -1,144 +1,92 @@
-
 <!DOCTYPE html>
-<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
-<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
-<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<head>
+<html lang="en"><head>
   <meta charset="utf-8">
-  <title>Avoiding SQL Injection in Rails - Justin Collins' Blugh</title>
-  <meta name="author" content="Justin Collins">
-
-  
-  <meta name="description" content="SQL injection (SQLi) is any situation in which a user can manipulate a database query in an unintended manner. Consequences of SQL injection &hellip;">
-  
-
-  <!-- http://t.co/dKP3o1e -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  
-  <link rel="canonical" href="https://blog.presidentbeef.com/blog/2013/02/08/avoid-sql-injection-in-rails">
-  <link href="/favicon.ico" rel="icon">
-  
-  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="/javascripts/ender.js"></script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
-  <link href="/atom.xml" rel="alternate" title="Justin Collins' Blugh" type="application/atom+xml">
-  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
-<link href="https://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<link href="https://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Avoiding SQL Injection in Rails | Justin’s Blurgh</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Avoiding SQL Injection in Rails" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="SQL injection (SQLi) is any situation in which a user can manipulate a database query in an unintended manner. Consequences of SQL injection vulnerabilites range from data leaks, to authentication bypass, to root access on a database server. In short, it is a very big deal." />
+<meta property="og:description" content="SQL injection (SQLi) is any situation in which a user can manipulate a database query in an unintended manner. Consequences of SQL injection vulnerabilites range from data leaks, to authentication bypass, to root access on a database server. In short, it is a very big deal." />
+<link rel="canonical" href="https://blog.presidentbeef.com/blog/2013/02/08/avoid-sql-injection-in-rails/" />
+<meta property="og:url" content="https://blog.presidentbeef.com/blog/2013/02/08/avoid-sql-injection-in-rails/" />
+<meta property="og:site_name" content="Justin’s Blurgh" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2013-02-08T09:45:00-07:00" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:site" content="@presidentbeef" />
-<meta name="twitter:title" content="Avoiding SQL Injection in Rails - Justin Collins' Blugh" />
-<meta name="description" content="SQL injection (SQLi) is any situation in which a user can manipulate a database query in an unintended manner. Consequences of SQL injection &hellip;">
+<meta property="twitter:title" content="Avoiding SQL Injection in Rails" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2013-02-08T09:45:00-07:00","datePublished":"2013-02-08T09:45:00-07:00","description":"SQL injection (SQLi) is any situation in which a user can manipulate a database query in an unintended manner. Consequences of SQL injection vulnerabilites range from data leaks, to authentication bypass, to root access on a database server. In short, it is a very big deal.","headline":"Avoiding SQL Injection in Rails","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.presidentbeef.com/blog/2013/02/08/avoid-sql-injection-in-rails/"},"url":"https://blog.presidentbeef.com/blog/2013/02/08/avoid-sql-injection-in-rails/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://blog.presidentbeef.com/feed.xml" title="Justin&apos;s Blurgh" /></head>
+<body><header class="site-header" role="banner">
 
-  
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-20920647-3']);
-    _gaq.push(['_trackPageview']);
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Justin&#39;s Blurgh</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
 
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
-
-
-</head>
-
-<body   class="no-sidebar"  >
-  <header role="banner"><hgroup>
-  
-    <h2><a href="/">*.blog</a></h2>
-  
-  <em>by <a style="text-decoration: none" href="http://presidentbeef.com">Justin Collins</a></em>
-</hgroup>
-
+        <div class="trigger"><a class="page-link" href="/archives/">Archives</a></div>
+      </nav></div>
 </header>
-  <nav role="navigation">
-  
-<ul class="main-navigation">
-  <li><a href="/">Recent</a></li>
-  <li><a href="/blog/archives">All</a></li>
-  <li><a href="https://twitter.com/presidentbeef">Twitter</a></li>
-</ul>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
-</nav>
-  <div id="main">
-    <div id="content">
-      <div>
-<article class="hentry" role="article">
-  
-  <header>
-    
-      <h1 class="entry-title">Avoiding SQL Injection in Rails</h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-02-08T09:45:00-08:00" pubdate data-updated="true">Feb 8<span>th</span>, 2013</time>
-        
-      </p>
-    
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Avoiding SQL Injection in Rails</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2013-02-08T09:45:00-07:00" itemprop="datePublished">Feb 8, 2013
+      </time></p>
   </header>
 
-
-<div class="entry-content"><p>SQL injection (SQLi) is any situation in which a user can manipulate a database query in an unintended manner. Consequences of SQL injection vulnerabilites range from data leaks, to authentication bypass, to root access on a database server. In short, it is a very big deal.</p>
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>SQL injection (SQLi) is any situation in which a user can manipulate a database query in an unintended manner. Consequences of SQL injection vulnerabilites range from data leaks, to authentication bypass, to root access on a database server. In short, it is a very big deal.</p>
 
 <p>Most Rails applications interact with a database through ActiveRecord, the default and convenient Object Relational Mapping (ORM) layer which comes with Rails.
 Generally, use of ORMs is safer than not. They can provide abstraction and safety and allow developers to avoid manually building SQL queries. They can embody best practices and prevent careless handling of external input.</p>
 
 <p>Instead of unsafe code like</p>
 
-<pre><code>query = "SELECT * FROM users WHERE name = '#{name}' AND password = '#{password'} LIMIT 1"
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>query = "SELECT * FROM users WHERE name = '#{name}' AND password = '#{password'} LIMIT 1"
 results = DB.execute(query)
-</code></pre>
+</code></pre></div></div>
 
 <p>You can have safer, simpler code like</p>
 
-<pre><code>User.where(:name =&gt; name, :password =&gt; :password).first
-</code></pre>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>User.where(:name =&gt; name, :password =&gt; :password).first
+</code></pre></div></div>
 
-<p>My impression is many people assume the Rails framework will protect them as long as they avoid the &#8220;obviously dangerous&#8221; methods, like <code>find_by_sql</code>.</p>
+<p>My impression is many people assume the Rails framework will protect them as long as they avoid the “obviously dangerous” methods, like <code class="language-plaintext highlighter-rouge">find_by_sql</code>.</p>
 
 <p>Unfortunately, ActiveRecord is unsafe more often than it is safe. It does provide parameterization of queries (the API documentation for which can be <a href="http://api.rubyonrails.org/classes/ActiveRecord/Base.html">found here</a>) for some methods, there are many methods for which it does not. While these methods are not intended to be used with user input, the truth is that has never stopped anyone.</p>
 
-<p>To make it clear how dangerous it can be to use ActiveRecord, consider <a href="http://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F">ActiveRecord::FinderMethods#exists?</a> which queries the database and returns <code>true</code> if a matching record exists. The argument can be a primary key (either integer or string, if a string it will be sanitized), an array consisting of a template string and values to safely interpolate, or a hash of column-value pairs (which will be sanitized).</p>
+<p>To make it clear how dangerous it can be to use ActiveRecord, consider <a href="http://api.rubyonrails.org/classes/ActiveRecord/FinderMethods.html#method-i-exists-3F">ActiveRecord::FinderMethods#exists?</a> which queries the database and returns <code class="language-plaintext highlighter-rouge">true</code> if a matching record exists. The argument can be a primary key (either integer or string, if a string it will be sanitized), an array consisting of a template string and values to safely interpolate, or a hash of column-value pairs (which will be sanitized).</p>
 
-<p>Here is an example of using <code>exists?</code> to determine if a given user exists:</p>
+<p>Here is an example of using <code class="language-plaintext highlighter-rouge">exists?</code> to determine if a given user exists:</p>
 
-<pre><code>User.exists? params[:user_id]
-</code></pre>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>User.exists? params[:user_id]
+</code></pre></div></div>
 
-<p>This looks harmless, since <code>params[:user_id]</code> is a string, and strings will be sanitized. In fact, the documentation clearly points out not to pass in conditions as strings, because they will be escaped.</p>
+<p>This looks harmless, since <code class="language-plaintext highlighter-rouge">params[:user_id]</code> is a string, and strings will be sanitized. In fact, the documentation clearly points out not to pass in conditions as strings, because they will be escaped.</p>
 
-<p>However, there is no gaurantee <code>params[:user_id]</code> is a string. An attacker could send a request with <code>?user_id[]=some_attack_string</code>, which Rails will turn into an array <code>["some_attack_string"]</code>. Now the argument is an array, the first element of which is not escaped.</p>
+<p>However, there is no gaurantee <code class="language-plaintext highlighter-rouge">params[:user_id]</code> is a string. An attacker could send a request with <code class="language-plaintext highlighter-rouge">?user_id[]=some_attack_string</code>, which Rails will turn into an array <code class="language-plaintext highlighter-rouge">["some_attack_string"]</code>. Now the argument is an array, the first element of which is not escaped.</p>
 
 <p>To avoid this problem, the user input should be converted to the expected type:</p>
 
-<pre><code>User.exists? params[:user_id].to_i
-</code></pre>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>User.exists? params[:user_id].to_i
+</code></pre></div></div>
 
 <p>Or use a hash:</p>
 
-<pre><code>User.exists? :id =&gt; params[:user_id]
-</code></pre>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>User.exists? :id =&gt; params[:user_id]
+</code></pre></div></div>
 
 <p>This should be the approach for all uses of user input. Do not assume <em>anything</em> about values from external sources or what safety mechanisms a method might have.</p>
 
@@ -149,109 +97,32 @@ results = DB.execute(query)
 <p><img src="/images/blog/inject-some-sql.png" alt="Query Example" /></p>
 
 <p>The resulting information is available at <a href="http://rails-sqli.org">rails-sqli.org</a>, including examples of how SQL injection can occur and the resulting queries. This is basically a big list of what <em>not</em> to do when using ActiveRecord. Again, please feel free to <a href="https://github.com/presidentbeef/inject-some-sql">contribute</a> so that the list can be as authoritative as possible and help everyone avoid SQL injection in Rails.</p>
-</div>
 
-
-  <footer>
-    <p class="meta">
-      
-  
-
-<span class="byline author vcard">Posted by <span class="fn"><a href="/about" title="About the author (Justin Collins)" rel="author">Justin Collins</a></span></span>
-
-      
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2013-02-08T09:45:00-08:00" pubdate data-updated="true">Feb 8<span>th</span>, 2013</time>
-      
-
-
-    </p>
-    
-      <div class="sharing">
-  
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.presidentbeef.com/blog/2013/02/08/avoid-sql-injection-in-rails/" data-via="presidentbeef" data-counturl="https://blog.presidentbeef.com/blog/2013/02/08/avoid-sql-injection-in-rails/" >Tweet</a>
-  
-  
-  
-</div>
-
-    
-    <p class="meta">
-      
-        <a class="basic-alignment left" href="/blog/2012/11/28/faster-call-indexing-in-brakeman-1-dot-8-3/" title="Previous Post: Faster Call Indexing in Brakeman">&laquo; Faster Call Indexing in Brakeman</a>
-      
-      
-        <a class="basic-alignment right" href="/blog/2013/09/02/fast-compact-sparse-bitsets/" title="next Post: Fast Compact Sparse Bit Sets">Fast Compact Sparse Bit Sets &raquo;</a>
-      
-    </p>
-  </footer>
+  </div><a class="u-url" href="/blog/2013/02/08/avoid-sql-injection-in-rails/" hidden></a>
 </article>
 
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Justin&#39;s Blurgh</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/presidentbeef"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">presidentbeef</span></a></li></ul>
 </div>
-  </section>
 
-</div>
-
-
+      <div class="footer-col footer-col-3">
+      </div>
     </div>
+
   </div>
-  <footer role="contentinfo"><p>
-  Copyright &copy; 2022 - Justin Collins -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -
-  <span class="credit">Theme by <a href="http://aron.cedercrantz.com/">Aron Cedercrantz</a></span>
-</p>
 
 </footer>
-  
-
-<script type="text/javascript">
-      var disqus_shortname = 'presidentbeefblog';
-      
-        
-        // var disqus_developer = 1;
-        var disqus_identifier = 'https://blog.presidentbeef.com/blog/2013/02/08/avoid-sql-injection-in-rails/';
-        var disqus_url = 'https://blog.presidentbeef.com/blog/2013/02/08/avoid-sql-injection-in-rails/';
-        var disqus_script = 'embed.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'https://' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
-
-
-
-
-
-
-
-  <script type="text/javascript">
-    (function(){
-      var twitterWidgets = document.createElement('script');
-      twitterWidgets.type = 'text/javascript';
-      twitterWidgets.async = true;
-      twitterWidgets.src = 'https://platform.twitter.com/widgets.js';
-      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
-    })();
-  </script>
-
-
-
-
-
 </body>
+
 </html>

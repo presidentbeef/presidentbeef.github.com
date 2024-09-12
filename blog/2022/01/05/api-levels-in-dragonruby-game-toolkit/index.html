@@ -1,514 +1,289 @@
-
 <!DOCTYPE html>
-<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
-<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
-<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<head>
+<html lang="en"><head>
   <meta charset="utf-8">
-  <title>API Levels in DragonRuby Game Toolkit - Justin Collins' Blugh</title>
-  <meta name="author" content="Justin Collins">
-
-  
-  <meta name="description" content="DragonRuby Game Toolkit (DRGTK) is a 2D game engine built with mRuby, SDL, and LLVM. It&#8217;s meant to be tiny, fast, and allow you to turn out &hellip;">
-  
-
-  <!-- http://t.co/dKP3o1e -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  
-  <link rel="canonical" href="https://blog.presidentbeef.com/blog/2022/01/05/api-levels-in-dragonruby-game-toolkit">
-  <link href="/favicon.ico" rel="icon">
-  
-  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="/javascripts/ender.js"></script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
-  <link href="/atom.xml" rel="alternate" title="Justin Collins' Blugh" type="application/atom+xml">
-  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
-<link href="https://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<link href="https://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>API Levels in DragonRuby Game Toolkit | Justin’s Blurgh</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="API Levels in DragonRuby Game Toolkit" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="DragonRuby Game Toolkit (DRGTK) is a 2D game engine built with mRuby, SDL, and LLVM. It’s meant to be tiny, fast, and allow you to turn out games quickly using Ruby." />
+<meta property="og:description" content="DragonRuby Game Toolkit (DRGTK) is a 2D game engine built with mRuby, SDL, and LLVM. It’s meant to be tiny, fast, and allow you to turn out games quickly using Ruby." />
+<link rel="canonical" href="https://blog.presidentbeef.com/blog/2022/01/05/api-levels-in-dragonruby-game-toolkit/" />
+<meta property="og:url" content="https://blog.presidentbeef.com/blog/2022/01/05/api-levels-in-dragonruby-game-toolkit/" />
+<meta property="og:site_name" content="Justin’s Blurgh" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2022-01-05T11:00:00-07:00" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:site" content="@presidentbeef" />
-<meta name="twitter:title" content="API Levels in DragonRuby Game Toolkit - Justin Collins' Blugh" />
-<meta name="description" content="DragonRuby Game Toolkit (DRGTK) is a 2D game engine built with mRuby, SDL, and LLVM. It&#8217;s meant to be tiny, fast, and allow you to turn out &hellip;">
+<meta property="twitter:title" content="API Levels in DragonRuby Game Toolkit" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2022-01-05T11:00:00-07:00","datePublished":"2022-01-05T11:00:00-07:00","description":"DragonRuby Game Toolkit (DRGTK) is a 2D game engine built with mRuby, SDL, and LLVM. It’s meant to be tiny, fast, and allow you to turn out games quickly using Ruby.","headline":"API Levels in DragonRuby Game Toolkit","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.presidentbeef.com/blog/2022/01/05/api-levels-in-dragonruby-game-toolkit/"},"url":"https://blog.presidentbeef.com/blog/2022/01/05/api-levels-in-dragonruby-game-toolkit/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://blog.presidentbeef.com/feed.xml" title="Justin&apos;s Blurgh" /></head>
+<body><header class="site-header" role="banner">
 
-  
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-20920647-3']);
-    _gaq.push(['_trackPageview']);
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Justin&#39;s Blurgh</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
 
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
-
-
-</head>
-
-<body   class="no-sidebar"  >
-  <header role="banner"><hgroup>
-  
-    <h2><a href="/">*.blog</a></h2>
-  
-  <em>by <a style="text-decoration: none" href="http://presidentbeef.com">Justin Collins</a></em>
-</hgroup>
-
+        <div class="trigger"><a class="page-link" href="/archives/">Archives</a></div>
+      </nav></div>
 </header>
-  <nav role="navigation">
-  
-<ul class="main-navigation">
-  <li><a href="/">Recent</a></li>
-  <li><a href="/blog/archives">All</a></li>
-  <li><a href="https://twitter.com/presidentbeef">Twitter</a></li>
-</ul>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
-</nav>
-  <div id="main">
-    <div id="content">
-      <div>
-<article class="hentry" role="article">
-  
-  <header>
-    
-      <h1 class="entry-title">API Levels in DragonRuby Game Toolkit</h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2022-01-05T11:00:00-08:00" pubdate data-updated="true">Jan 5<span>th</span>, 2022</time>
-        
-      </p>
-    
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">API Levels in DragonRuby Game Toolkit</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2022-01-05T11:00:00-07:00" itemprop="datePublished">Jan 5, 2022
+      </time></p>
   </header>
 
+  <div class="post-content e-content" itemprop="articleBody">
+    <p><a href="https://dragonruby.org/toolkit/game">DragonRuby Game Toolkit (DRGTK)</a> is a 2D game engine built with <a href="https://mruby.org/">mRuby</a>, <a href="https://www.libsdl.org/">SDL</a>, and <a href="https://llvm.org/">LLVM</a>. It’s meant to be tiny, fast, and allow you to turn out games quickly using <a href="https://www.ruby-lang.org/">Ruby</a>.</p>
 
-<div class="entry-content"><p><a href="https://dragonruby.org/toolkit/game">DragonRuby Game Toolkit (DRGTK)</a> is a 2D game engine built with <a href="https://mruby.org/">mRuby</a>, <a href="https://www.libsdl.org/">SDL</a>, and <a href="https://llvm.org/">LLVM</a>. It&#8217;s meant to be tiny, fast, and allow you to turn out games quickly using <a href="https://www.ruby-lang.org/">Ruby</a>.</p>
-
-<p>Unfortunately, since the documentation is focused on making games <em>quickly</em>, I sometimes get lost when trying to figure out how to do things that should be simple. DragonRuby seems to have borrowed Perl&#8217;s &#8221;<a href="https://en.wikipedia.org/wiki/There%27s_more_than_one_way_to_do_it">There&#8217;s more than one way to do it</a>&#8221; philosophy because for anything you want to do with the API there are <em>several</em> ways to do it.</p>
+<p>Unfortunately, since the documentation is focused on making games <em>quickly</em>, I sometimes get lost when trying to figure out how to do things that should be simple. DragonRuby seems to have borrowed Perl’s “<a href="https://en.wikipedia.org/wiki/There%27s_more_than_one_way_to_do_it">There’s more than one way to do it</a>” philosophy because for anything you want to do with the API there are <em>several</em> ways to do it.</p>
 
 <p>The documentation and examples tend to focus on the simplest forms (which is fine) but then require digging and experimentation to figure out the rest.</p>
 
 <p>To help explain/document the different API options, this post will go through different methods of rendering images (well, rectangles mostly).</p>
 
-<h2>API Levels</h2>
+<h2 id="api-levels">API Levels</h2>
 
-<h3>Level 0 - Getting Started</h3>
+<h3 id="level-0---getting-started">Level 0 - Getting Started</h3>
 
-<p>The main object one interacts with in DragonRuby is canonically called <code>args</code> (always accessible with <code>$gtk.args</code>&#8230; because there&#8217;s more than one way!)</p>
+<p>The main object one interacts with in DragonRuby is canonically called <code class="language-plaintext highlighter-rouge">args</code> (always accessible with <code class="language-plaintext highlighter-rouge">$gtk.args</code>… because there’s more than one way!)</p>
 
-<p>To output <em>things</em>, like shapes, sprites, or sounds, you can use the &#8220;shovel&#8221; operator <code>&lt;&lt;</code> on <code>args.outputs</code> - like <code>args.outputs.sprites</code> or <code>args.outputs.sounds</code>.</p>
+<p>To output <em>things</em>, like shapes, sprites, or sounds, you can use the “shovel” operator <code class="language-plaintext highlighter-rouge">&lt;&lt;</code> on <code class="language-plaintext highlighter-rouge">args.outputs</code> - like <code class="language-plaintext highlighter-rouge">args.outputs.sprites</code> or <code class="language-plaintext highlighter-rouge">args.outputs.sounds</code>.</p>
 
-<p>For these &#8220;basic&#8221; objects, you&#8217;ll need to shovel <em>things</em> in on every &#8220;tick&#8221; of the game engine.</p>
+<p>For these “basic” objects, you’ll need to shovel <em>things</em> in on every “tick” of the game engine.</p>
 
 <p>This is a complete DragonRuby example to output a rectangle:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
-</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">solids</span> <span class="o">&lt;&lt;</span> <span class="o">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">400</span><span class="o">]</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">solids</span> <span class="o">&lt;&lt;</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">400</span><span class="p">]</span>
+<span class="k">end</span>
+</code></pre></div></div>
 
 <p>So far, so good.</p>
 
-<p>(You can assume the rest of the examples below are inside a <code>tick</code> method if it&#8217;s not explicitly defined.)</p>
+<p>(You can assume the rest of the examples below are inside a <code class="language-plaintext highlighter-rouge">tick</code> method if it’s not explicitly defined.)</p>
 
-<h3>Level 1 - Arrays</h3>
+<h3 id="level-1---arrays">Level 1 - Arrays</h3>
 
-<p>The documentation usually starts off by passing <em>things</em> to <code>args.outputs</code> as arrays - essentially positional arguments.</p>
+<p>The documentation usually starts off by passing <em>things</em> to <code class="language-plaintext highlighter-rouge">args.outputs</code> as arrays - essentially positional arguments.</p>
 
 <p>For example:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">solids</span> <span class="o">&lt;&lt;</span> <span class="o">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">400</span><span class="o">]</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">solids</span> <span class="o">&lt;&lt;</span> <span class="p">[</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">400</span><span class="p">]</span>
+</code></pre></div></div>
 
-
-<p>What does that do? I&#8217;m not quite sure!</p>
+<p>What does that do? I’m not quite sure!</p>
 
 <p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/p9aobr3f41cbih3kpa95.png" alt="A black rectangle on a gray background" /></p>
 
 <p>Okay - it shows a black rectangle on the screen. Not that exciting, but useful enough for our examples.</p>
 
-<p>The problem with using arrays though is remembering which index in the array is which attribute. On top of that, it&#8217;s not even recommended to pass in arrays because they are slow (for some reason).</p>
+<p>The problem with using arrays though is remembering which index in the array is which attribute. On top of that, it’s not even recommended to pass in arrays because they are slow (for some reason).</p>
 
-<h3>Level 2 - Hashes</h3>
+<h3 id="level-2---hashes">Level 2 - Hashes</h3>
 
 <p>What is better than arrays? Hashes! (Hash tables/associative arrays for anyone not familiar with Ruby.)</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">solids</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
-</span><span class='line'>  <span class="ss">x</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
-</span><span class='line'>  <span class="ss">y</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
-</span><span class='line'>  <span class="ss">w</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>  <span class="c1"># width</span>
-</span><span class='line'>  <span class="ss">h</span><span class="p">:</span> <span class="mi">400</span>   <span class="c1"># height</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">solids</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+  <span class="ss">x: </span><span class="mi">100</span><span class="p">,</span>
+  <span class="ss">y: </span><span class="mi">200</span><span class="p">,</span>
+  <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>  <span class="c1"># width</span>
+  <span class="ss">h: </span><span class="mi">400</span>   <span class="c1"># height</span>
+<span class="p">}</span>
+</code></pre></div></div>
 
-
-<p>Okay, that&#8217;s way easier to understand!</p>
+<p>Okay, that’s way easier to understand!</p>
 
 <p>And there are more options, too:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">solids</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
-</span><span class='line'>  <span class="ss">x</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
-</span><span class='line'>  <span class="ss">y</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
-</span><span class='line'>  <span class="ss">w</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
-</span><span class='line'>  <span class="ss">h</span><span class="p">:</span> <span class="mi">400</span><span class="p">,</span>
-</span><span class='line'>  <span class="ss">r</span><span class="p">:</span> <span class="mi">255</span><span class="p">,</span>  <span class="c1"># red</span>
-</span><span class='line'>  <span class="ss">g</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>  <span class="c1"># green</span>
-</span><span class='line'>  <span class="ss">b</span><span class="p">:</span> <span class="mi">255</span><span class="p">,</span>  <span class="c1"># blue</span>
-</span><span class='line'>  <span class="ss">a</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>  <span class="c1"># alpha</span>
-</span><span class='line'>  <span class="ss">blendmode_enum</span><span class="p">:</span> <span class="mi">0</span>  <span class="c1"># blend mode</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">solids</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+  <span class="ss">x: </span><span class="mi">100</span><span class="p">,</span>
+  <span class="ss">y: </span><span class="mi">200</span><span class="p">,</span>
+  <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>
+  <span class="ss">h: </span><span class="mi">400</span><span class="p">,</span>
+  <span class="ss">r: </span><span class="mi">255</span><span class="p">,</span>  <span class="c1"># red</span>
+  <span class="ss">g: </span><span class="mi">200</span><span class="p">,</span>  <span class="c1"># green</span>
+  <span class="ss">b: </span><span class="mi">255</span><span class="p">,</span>  <span class="c1"># blue</span>
+  <span class="ss">a: </span><span class="mi">100</span><span class="p">,</span>  <span class="c1"># alpha</span>
+  <span class="ss">blendmode_enum: </span><span class="mi">0</span>  <span class="c1"># blend mode</span>
+<span class="p">}</span>
+</code></pre></div></div>
 
+<h3 id="level-3---primitives">Level 3 - Primitives</h3>
 
-<h3>Level 3 - Primitives</h3>
+<p>But there is yet another way… instead of using <code class="language-plaintext highlighter-rouge">args.outputs.solids</code>, <code class="language-plaintext highlighter-rouge">args.outputs.labels</code>, <code class="language-plaintext highlighter-rouge">args.outputs.sprites</code>, etc., we can output a hash to <code class="language-plaintext highlighter-rouge">args.outputs.primitives</code> but mark it as the right primitive “type”:</p>
 
-<p>But there is yet another way&#8230; instead of using <code>args.outputs.solids</code>, <code>args.outputs.labels</code>, <code>args.outputs.sprites</code>, etc., we can output a hash to <code>args.outputs.primitives</code> but mark it as the right primitive &#8220;type&#8221;:</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">primitives</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+  <span class="ss">x: </span><span class="mi">100</span><span class="p">,</span>
+  <span class="ss">y: </span><span class="mi">200</span><span class="p">,</span>
+  <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>
+  <span class="ss">h: </span><span class="mi">400</span><span class="p">,</span>
+  <span class="ss">r: </span><span class="mi">255</span><span class="p">,</span>  <span class="c1"># red</span>
+  <span class="ss">g: </span><span class="mi">200</span><span class="p">,</span>  <span class="c1"># green</span>
+  <span class="ss">b: </span><span class="mi">255</span><span class="p">,</span>  <span class="c1"># blue</span>
+  <span class="ss">a: </span><span class="mi">100</span><span class="p">,</span>  <span class="c1"># alpha</span>
+  <span class="ss">blendmode_enum: </span><span class="mi">0</span>  <span class="c1"># blend mode</span>
+<span class="p">}.</span><span class="nf">solid!</span>
+</code></pre></div></div>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">primitives</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
-</span><span class='line'>  <span class="ss">x</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
-</span><span class='line'>  <span class="ss">y</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
-</span><span class='line'>  <span class="ss">w</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
-</span><span class='line'>  <span class="ss">h</span><span class="p">:</span> <span class="mi">400</span><span class="p">,</span>
-</span><span class='line'>  <span class="ss">r</span><span class="p">:</span> <span class="mi">255</span><span class="p">,</span>  <span class="c1"># red</span>
-</span><span class='line'>  <span class="ss">g</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>  <span class="c1"># green</span>
-</span><span class='line'>  <span class="ss">b</span><span class="p">:</span> <span class="mi">255</span><span class="p">,</span>  <span class="c1"># blue</span>
-</span><span class='line'>  <span class="ss">a</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>  <span class="c1"># alpha</span>
-</span><span class='line'>  <span class="ss">blendmode_enum</span><span class="p">:</span> <span class="mi">0</span>  <span class="c1"># blend mode</span>
-</span><span class='line'><span class="p">}</span><span class="o">.</span><span class="n">solid!</span>
-</span></code></pre></td></tr></table></div></figure>
+<p>Weird, but okay. Why might one want to do this? See the “Layers” section down below!</p>
 
-
-<p>Weird, but okay. Why might one want to do this? See the &#8220;Layers&#8221; section down below!</p>
-
-<h3>Level 4 - Classes</h3>
+<h3 id="level-4---classes">Level 4 - Classes</h3>
 
 <p>Finally, probably the most natural for a Rubyist: just use a class!</p>
 
-<p>To do this, you <em>must</em> define all the methods expected for the type of primitive, plus define a method called <code>primitive_marker</code> that returns the type of primitive.</p>
+<p>To do this, you <em>must</em> define all the methods expected for the type of primitive, plus define a method called <code class="language-plaintext highlighter-rouge">primitive_marker</code> that returns the type of primitive.</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">ACoolSolid</span>
-</span><span class='line'>  <span class="kp">attr_reader</span> <span class="ss">:x</span><span class="p">,</span> <span class="ss">:y</span><span class="p">,</span> <span class="ss">:w</span><span class="p">,</span> <span class="ss">:h</span><span class="p">,</span> <span class="ss">:r</span><span class="p">,</span> <span class="ss">:g</span><span class="p">,</span> <span class="ss">:b</span><span class="p">,</span> <span class="ss">:a</span><span class="p">,</span> <span class="ss">:blendmode_enum</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span>
-</span><span class='line'>    <span class="vi">@x</span> <span class="o">=</span> <span class="n">x</span>
-</span><span class='line'>    <span class="vi">@y</span> <span class="o">=</span> <span class="n">y</span>
-</span><span class='line'>    <span class="vi">@w</span> <span class="o">=</span> <span class="n">w</span>
-</span><span class='line'>    <span class="vi">@h</span> <span class="o">=</span> <span class="n">h</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">def</span> <span class="nf">primitive_marker</span>
-</span><span class='line'>    <span class="ss">:solid</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
-</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">primitives</span> <span class="o">&lt;&lt;</span> <span class="no">ACoolSolid</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ACoolSolid</span>
+  <span class="nb">attr_reader</span> <span class="ss">:x</span><span class="p">,</span> <span class="ss">:y</span><span class="p">,</span> <span class="ss">:w</span><span class="p">,</span> <span class="ss">:h</span><span class="p">,</span> <span class="ss">:r</span><span class="p">,</span> <span class="ss">:g</span><span class="p">,</span> <span class="ss">:b</span><span class="p">,</span> <span class="ss">:a</span><span class="p">,</span> <span class="ss">:blendmode_enum</span>
 
+  <span class="k">def</span> <span class="nf">initialize</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span>
+    <span class="vi">@x</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="vi">@y</span> <span class="o">=</span> <span class="n">y</span>
+    <span class="vi">@w</span> <span class="o">=</span> <span class="n">w</span>
+    <span class="vi">@h</span> <span class="o">=</span> <span class="n">h</span>
+  <span class="k">end</span>
 
-<p>Instead of defining a bunch of methods with <code>attr_reader</code>, you can use <code>attr_sprite</code> instead which is a DragonRuby shortcut method to do the same thing.</p>
+  <span class="k">def</span> <span class="nf">primitive_marker</span>
+    <span class="ss">:solid</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<h2>Layers</h2>
+<span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">primitives</span> <span class="o">&lt;&lt;</span> <span class="no">ACoolSolid</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Instead of defining a bunch of methods with <code class="language-plaintext highlighter-rouge">attr_reader</code>, you can use <code class="language-plaintext highlighter-rouge">attr_sprite</code> instead which is a DragonRuby shortcut method to do the same thing.</p>
+
+<h2 id="layers">Layers</h2>
 
 <p>DragonRuby renders outputs in this order (from back to front):</p>
 
 <ul>
-<li>Solids</li>
-<li>Sprites</li>
-<li>Primitives</li>
-<li>Labels</li>
-<li>Lines</li>
-<li>Borders</li>
+  <li>Solids</li>
+  <li>Sprites</li>
+  <li>Primitives</li>
+  <li>Labels</li>
+  <li>Lines</li>
+  <li>Borders</li>
 </ul>
 
+<p>For each “layer” the objects are rendered in FIFO order - the first things in the queue are rendered first.</p>
 
-<p>For each &#8220;layer&#8221; the objects are rendered in FIFO order - the first things in the queue are rendered first.</p>
-
-<p>But wait&#8230; one of these things is not like the others. Doesn&#8217;t <code>primitives</code> just hold things like solids, sprites, labels&#8230;?</p>
+<p>But wait… one of these things is not like the others. Doesn’t <code class="language-plaintext highlighter-rouge">primitives</code> just hold things like solids, sprites, labels…?</p>
 
 <p>Yes!</p>
 
-<p>But using <code>primitives</code> enables better control over render order.</p>
+<p>But using <code class="language-plaintext highlighter-rouge">primitives</code> enables better control over render order.</p>
 
-<p>For example, what if we want to render a rectangle on top of a sprite? With the fixed rendering order above, it&#8217;s impossible! But by using <code>args.outputs.primitives</code> we can do it:</p>
+<p>For example, what if we want to render a rectangle on top of a sprite? With the fixed rendering order above, it’s impossible! But by using <code class="language-plaintext highlighter-rouge">args.outputs.primitives</code> we can do it:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
-</span><span class='line'>  <span class="n">a_solid</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>    <span class="ss">x</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
-</span><span class='line'>    <span class="ss">y</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
-</span><span class='line'>    <span class="ss">w</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
-</span><span class='line'>    <span class="ss">h</span><span class="p">:</span> <span class="mi">400</span>
-</span><span class='line'>  <span class="p">}</span><span class="o">.</span><span class="n">solid!</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">a_sprite</span> <span class="o">=</span> <span class="p">{</span>
-</span><span class='line'>    <span class="ss">x</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
-</span><span class='line'>    <span class="ss">y</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
-</span><span class='line'>    <span class="ss">w</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
-</span><span class='line'>    <span class="ss">h</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span>
-</span><span class='line'>    <span class="ss">path</span><span class="p">:</span> <span class="s1">&#39;metadata/icon.png&#39;</span>
-</span><span class='line'>  <span class="p">}</span><span class="o">.</span><span class="n">sprite!</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">primitives</span> <span class="o">&lt;&lt;</span> <span class="n">a_sprite</span> <span class="o">&lt;&lt;</span> <span class="n">a_solid</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="n">a_solid</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="mi">100</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="mi">200</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="mi">400</span>
+  <span class="p">}.</span><span class="nf">solid!</span>
 
+  <span class="n">a_sprite</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="mi">100</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="mi">200</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="mi">500</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="mi">500</span><span class="p">,</span>
+    <span class="ss">path: </span><span class="s1">'metadata/icon.png'</span>
+  <span class="p">}.</span><span class="nf">sprite!</span>
 
-<p>And here&#8217;s the proof:</p>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">primitives</span> <span class="o">&lt;&lt;</span> <span class="n">a_sprite</span> <span class="o">&lt;&lt;</span> <span class="n">a_solid</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>And here’s the proof:</p>
 
 <p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/z1596wyp7n71lwya3f2c.png" alt="Screenshot showing a black rectangle on top of the DragonRuby logo" /></p>
 
-<h2>Every Tick?</h2>
+<h2 id="every-tick">Every Tick?</h2>
 
-<p><code>args.outputs.sprites</code>, etc. get cleared after each call to <code>tick</code>. So every tick we have to recreate all the objects and pass them in to <code>args.outputs</code>. Seems wasteful, right? Yes, it is!</p>
+<p><code class="language-plaintext highlighter-rouge">args.outputs.sprites</code>, etc. get cleared after each call to <code class="language-plaintext highlighter-rouge">tick</code>. So every tick we have to recreate all the objects and pass them in to <code class="language-plaintext highlighter-rouge">args.outputs</code>. Seems wasteful, right? Yes, it is!</p>
 
-<p>It&#8217;s somewhat odd that most DragonRuby examples show creating arrays or hashes for primitives each tick. It made me think somehow the rendering process was destructive - were the things added into <code>args.outputs</code> destroyed or modified in some way?</p>
+<p>It’s somewhat odd that most DragonRuby examples show creating arrays or hashes for primitives each tick. It made me think somehow the rendering process was destructive - were the things added into <code class="language-plaintext highlighter-rouge">args.outputs</code> destroyed or modified in some way?</p>
 
 <p>Turns out, no. It is fine to create e.g. a sprite representation once and render the same object each time.</p>
 
-<p>Here we&#8217;ll use a global for demonstration purposes:</p>
+<p>Here we’ll use a global for demonstration purposes:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">ACoolSolid</span>
-</span><span class='line'>  <span class="kp">attr_reader</span> <span class="ss">:x</span><span class="p">,</span> <span class="ss">:y</span><span class="p">,</span> <span class="ss">:w</span><span class="p">,</span> <span class="ss">:h</span><span class="p">,</span> <span class="ss">:r</span><span class="p">,</span> <span class="ss">:g</span><span class="p">,</span> <span class="ss">:b</span><span class="p">,</span> <span class="ss">:a</span><span class="p">,</span> <span class="ss">:blendmode_enum</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">def</span> <span class="nf">initialize</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span>
-</span><span class='line'>    <span class="vi">@x</span> <span class="o">=</span> <span class="n">x</span>
-</span><span class='line'>    <span class="vi">@y</span> <span class="o">=</span> <span class="n">y</span>
-</span><span class='line'>    <span class="vi">@w</span> <span class="o">=</span> <span class="n">w</span>
-</span><span class='line'>    <span class="vi">@h</span> <span class="o">=</span> <span class="n">h</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'>  <span class="k">def</span> <span class="nf">primitive_marker</span>
-</span><span class='line'>    <span class="ss">:solid</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'><span class="vg">$a_solid</span> <span class="o">=</span> <span class="no">ACoolSolid</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
-</span><span class='line'>  <span class="n">args</span><span class="o">.</span><span class="n">outputs</span><span class="o">.</span><span class="n">primitives</span> <span class="o">&lt;&lt;</span> <span class="vg">$a_solid</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ACoolSolid</span>
+  <span class="nb">attr_reader</span> <span class="ss">:x</span><span class="p">,</span> <span class="ss">:y</span><span class="p">,</span> <span class="ss">:w</span><span class="p">,</span> <span class="ss">:h</span><span class="p">,</span> <span class="ss">:r</span><span class="p">,</span> <span class="ss">:g</span><span class="p">,</span> <span class="ss">:b</span><span class="p">,</span> <span class="ss">:a</span><span class="p">,</span> <span class="ss">:blendmode_enum</span>
 
+  <span class="k">def</span> <span class="nf">initialize</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span>
+    <span class="vi">@x</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="vi">@y</span> <span class="o">=</span> <span class="n">y</span>
+    <span class="vi">@w</span> <span class="o">=</span> <span class="n">w</span>
+    <span class="vi">@h</span> <span class="o">=</span> <span class="n">h</span>
+  <span class="k">end</span>
 
-<h3>But Wait&#8230;</h3>
+  <span class="k">def</span> <span class="nf">primitive_marker</span>
+    <span class="ss">:solid</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p>We are still shoveling an object into <code>args.outputs.primitives</code> each time. Surely that is unnecessary?</p>
+<span class="vg">$a_solid</span> <span class="o">=</span> <span class="no">ACoolSolid</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">40</span><span class="p">)</span>
 
-<p>Correct! There are <a href="http://docs.dragonruby.org/#------static_solids-"><em>static</em> versions</a> for each <code>args.outputs</code> (e.g. <code>args.outputs.static_solids</code>) that do <em>not</em> get cleared every tick.</p>
+<span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">primitives</span> <span class="o">&lt;&lt;</span> <span class="vg">$a_solid</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<h3 id="but-wait">But Wait…</h3>
+
+<p>We are still shoveling an object into <code class="language-plaintext highlighter-rouge">args.outputs.primitives</code> each time. Surely that is unnecessary?</p>
+
+<p>Correct! There are <a href="http://docs.dragonruby.org/#------static_solids-"><em>static</em> versions</a> for each <code class="language-plaintext highlighter-rouge">args.outputs</code> (e.g. <code class="language-plaintext highlighter-rouge">args.outputs.static_solids</code>) that do <em>not</em> get cleared every tick.</p>
 
 <p>Naturally, this is more efficient than creating objects and updating the outputs 60 times per second.</p>
 
-<p>We&#8217;ll explore these options in a future post, but be aware they are available!</p>
-</div>
+<p>We’ll explore these options in a future post, but be aware they are available!</p>
 
 
-  <footer>
-    <p class="meta">
-      
-  
-
-<span class="byline author vcard">Posted by <span class="fn"><a href="/about" title="About the author (Justin Collins)" rel="author">Justin Collins</a></span></span>
-
-      
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2022-01-05T11:00:00-08:00" pubdate data-updated="true">Jan 5<span>th</span>, 2022</time>
-      
-
-
-    </p>
-    
-      <div class="sharing">
-  
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.presidentbeef.com/blog/2022/01/05/api-levels-in-dragonruby-game-toolkit/" data-via="presidentbeef" data-counturl="https://blog.presidentbeef.com/blog/2022/01/05/api-levels-in-dragonruby-game-toolkit/" >Tweet</a>
-  
-  
-  
-</div>
-
-    
-    <p class="meta">
-      
-        <a class="basic-alignment left" href="/blog/2021/11/08/fixing-just-one-false-positive-in-brakeman/" title="Previous Post: Fixing Just One False Positive in Brakeman">&laquo; Fixing Just One False Positive in Brakeman</a>
-      
-      
-        <a class="basic-alignment right" href="/blog/2022/01/08/dragon-ruby-static-outputs/" title="next Post: DragonRuby: Static Outputs">DragonRuby: Static Outputs &raquo;</a>
-      
-    </p>
-  </footer>
+  </div><a class="u-url" href="/blog/2022/01/05/api-levels-in-dragonruby-game-toolkit/" hidden></a>
 </article>
 
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Justin&#39;s Blurgh</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/presidentbeef"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">presidentbeef</span></a></li></ul>
 </div>
-  </section>
 
-</div>
-
-
+      <div class="footer-col footer-col-3">
+      </div>
     </div>
+
   </div>
-  <footer role="contentinfo"><p>
-  Copyright &copy; 2022 - Justin Collins -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -
-  <span class="credit">Theme by <a href="http://aron.cedercrantz.com/">Aron Cedercrantz</a></span>
-</p>
 
 </footer>
-  
-
-<script type="text/javascript">
-      var disqus_shortname = 'presidentbeefblog';
-      
-        
-        // var disqus_developer = 1;
-        var disqus_identifier = 'https://blog.presidentbeef.com/blog/2022/01/05/api-levels-in-dragonruby-game-toolkit/';
-        var disqus_url = 'https://blog.presidentbeef.com/blog/2022/01/05/api-levels-in-dragonruby-game-toolkit/';
-        var disqus_script = 'embed.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'https://' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
-
-
-
-
-
-
-
-  <script type="text/javascript">
-    (function(){
-      var twitterWidgets = document.createElement('script');
-      twitterWidgets.type = 'text/javascript';
-      twitterWidgets.async = true;
-      twitterWidgets.src = 'https://platform.twitter.com/widgets.js';
-      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
-    })();
-  </script>
-
-
-
-
-
 </body>
+
 </html>

@@ -1,227 +1,98 @@
-
 <!DOCTYPE html>
-<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
-<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
-<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<head>
+<html lang="en"><head>
   <meta charset="utf-8">
-  <title>Price Transparency with Brakeman Pro - Justin Collins' Blugh</title>
-  <meta name="author" content="Justin Collins">
-
-  
-  <meta name="description" content="Pricing in the static analysis security tool (SAST) world is difficult. Do you charge per project? Per repository? Per line of code? Per language? &hellip;">
-  
-
-  <!-- http://t.co/dKP3o1e -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  
-  <link rel="canonical" href="https://blog.presidentbeef.com/blog/2017/12/21/price-transparency-with-brakeman-pro">
-  <link href="/favicon.ico" rel="icon">
-  
-  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="/javascripts/ender.js"></script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
-  <link href="/atom.xml" rel="alternate" title="Justin Collins' Blugh" type="application/atom+xml">
-  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
-<link href="https://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<link href="https://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Price Transparency with Brakeman Pro | Justin’s Blurgh</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Price Transparency with Brakeman Pro" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Pricing in the static analysis security tool (SAST) world is difficult. Do you charge per project? Per repository? Per line of code? Per language? Per user? What defines a “user”? None of these approaches are very satisfying, because no single approach will cover all types of customers." />
+<meta property="og:description" content="Pricing in the static analysis security tool (SAST) world is difficult. Do you charge per project? Per repository? Per line of code? Per language? Per user? What defines a “user”? None of these approaches are very satisfying, because no single approach will cover all types of customers." />
+<link rel="canonical" href="https://blog.presidentbeef.com/blog/2017/12/21/price-transparency-with-brakeman-pro/" />
+<meta property="og:url" content="https://blog.presidentbeef.com/blog/2017/12/21/price-transparency-with-brakeman-pro/" />
+<meta property="og:site_name" content="Justin’s Blurgh" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2017-12-21T19:39:00-07:00" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:site" content="@presidentbeef" />
-<meta name="twitter:title" content="Price Transparency with Brakeman Pro - Justin Collins' Blugh" />
-<meta name="description" content="Pricing in the static analysis security tool (SAST) world is difficult. Do you charge per project? Per repository? Per line of code? Per language? &hellip;">
+<meta property="twitter:title" content="Price Transparency with Brakeman Pro" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2017-12-21T19:39:00-07:00","datePublished":"2017-12-21T19:39:00-07:00","description":"Pricing in the static analysis security tool (SAST) world is difficult. Do you charge per project? Per repository? Per line of code? Per language? Per user? What defines a “user”? None of these approaches are very satisfying, because no single approach will cover all types of customers.","headline":"Price Transparency with Brakeman Pro","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.presidentbeef.com/blog/2017/12/21/price-transparency-with-brakeman-pro/"},"url":"https://blog.presidentbeef.com/blog/2017/12/21/price-transparency-with-brakeman-pro/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://blog.presidentbeef.com/feed.xml" title="Justin&apos;s Blurgh" /></head>
+<body><header class="site-header" role="banner">
 
-  
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-20920647-3']);
-    _gaq.push(['_trackPageview']);
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Justin&#39;s Blurgh</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
 
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
-
-
-</head>
-
-<body   class="no-sidebar"  >
-  <header role="banner"><hgroup>
-  
-    <h2><a href="/">*.blog</a></h2>
-  
-  <em>by <a style="text-decoration: none" href="http://presidentbeef.com">Justin Collins</a></em>
-</hgroup>
-
+        <div class="trigger"><a class="page-link" href="/archives/">Archives</a></div>
+      </nav></div>
 </header>
-  <nav role="navigation">
-  
-<ul class="main-navigation">
-  <li><a href="/">Recent</a></li>
-  <li><a href="/blog/archives">All</a></li>
-  <li><a href="https://twitter.com/presidentbeef">Twitter</a></li>
-</ul>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
-</nav>
-  <div id="main">
-    <div id="content">
-      <div>
-<article class="hentry" role="article">
-  
-  <header>
-    
-      <h1 class="entry-title">Price Transparency With Brakeman Pro</h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2017-12-21T19:39:00-08:00" pubdate data-updated="true">Dec 21<span>st</span>, 2017</time>
-        
-      </p>
-    
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Price Transparency with Brakeman Pro</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2017-12-21T19:39:00-07:00" itemprop="datePublished">Dec 21, 2017
+      </time></p>
   </header>
 
-
-<div class="entry-content"><p>Pricing in the static analysis security tool (SAST) world is difficult. Do you charge per project? Per repository? Per line of code? Per language? Per user? What defines a &#8220;user&#8221;?
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Pricing in the static analysis security tool (SAST) world is difficult. Do you charge per project? Per repository? Per line of code? Per language? Per user? What defines a “user”?
 None of these approaches are very satisfying, because no single approach will cover all types of customers.</p>
 
-<p>Instead, companies come up with per-customer pricing. Meaning they will look at a potential customer&#8217;s needs and size, and then come up with a number they think the customer might be willing to pay.</p>
+<p>Instead, companies come up with per-customer pricing. Meaning they will look at a potential customer’s needs and size, and then come up with a number they think the customer might be willing to pay.</p>
 
 <p>Then the negotation dance begins, where the customer attempts to talk the seller down 20-50% from the initial quote (which was kind of made up anyway).</p>
 
-<p>To me, that&#8217;s stressful, time-consuming, and a little shady.</p>
+<p>To me, that’s stressful, time-consuming, and a little shady.</p>
 
 <p>Personally, I do not want to deal with salespeople (and their relentless follow up emails/calls) just to get a rough idea of what a product will cost.</p>
 
-<p>With Brakeman Pro, I wanted to be upfront and honest with customers. That&#8217;s why, as far as I know, we are the only commercial SAST with <a href="https://brakemanpro.com/purchase/pricing">publicly-available pricing</a>.</p>
+<p>With Brakeman Pro, I wanted to be upfront and honest with customers. That’s why, as far as I know, we are the only commercial SAST with <a href="https://brakemanpro.com/purchase/pricing">publicly-available pricing</a>.</p>
 
-<p>Want to purchase a license? You can buy with a credit card on the website and you never have to talk to anyone! That is the kind of interaction I like to have with a company - not &#8220;request a quote&#8221; or &#8220;contact us for pricing&#8221;.</p>
+<p>Want to purchase a license? You can buy with a credit card on the website and you never have to talk to anyone! That is the kind of interaction I like to have with a company - not “request a quote” or “contact us for pricing”.</p>
 
-<p>Does that mean we make less money than if we had hidden price lists and made up numbers based on what we think a customer would pay? Almost certainly. Our customers range from companies making billions per year to individual users. It would be &#8220;smarter&#8221; to have the large companies pay more.</p>
+<p>Does that mean we make less money than if we had hidden price lists and made up numbers based on what we think a customer would pay? Almost certainly. Our customers range from companies making billions per year to individual users. It would be “smarter” to have the large companies pay more.</p>
 
-<p>But the &#8220;mission&#8221; of the company is not to maximize profit. It is to fund development of a security product that will <em>help make the world a little safer</em>.</p>
+<p>But the “mission” of the company is not to maximize profit. It is to fund development of a security product that will <em>help make the world a little safer</em>.</p>
 
 <p>That is why it has been more important to me that we focus on number of customers, rather than overall revenue.</p>
-</div>
 
-
-  <footer>
-    <p class="meta">
-      
-  
-
-<span class="byline author vcard">Posted by <span class="fn"><a href="/about" title="About the author (Justin Collins)" rel="author">Justin Collins</a></span></span>
-
-      
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2017-12-21T19:39:00-08:00" pubdate data-updated="true">Dec 21<span>st</span>, 2017</time>
-      
-
-
-    </p>
-    
-      <div class="sharing">
-  
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.presidentbeef.com/blog/2017/12/21/price-transparency-with-brakeman-pro/" data-via="presidentbeef" data-counturl="https://blog.presidentbeef.com/blog/2017/12/21/price-transparency-with-brakeman-pro/" >Tweet</a>
-  
-  
-  
-</div>
-
-    
-    <p class="meta">
-      
-        <a class="basic-alignment left" href="/blog/2017/03/08/challenges-when-building-commercial-versions-of-oss/" title="Previous Post: Challenges When Building Commercial Versions of Open Source">&laquo; Challenges When Building Commercial Versions of Open Source</a>
-      
-      
-        <a class="basic-alignment right" href="/blog/2018/11/28/finding-ruby-performance-hotspots-via-allocation-stats/" title="next Post: Finding Ruby Performance Hotspots via Allocation Stats">Finding Ruby Performance Hotspots via Allocation Stats &raquo;</a>
-      
-    </p>
-  </footer>
+  </div><a class="u-url" href="/blog/2017/12/21/price-transparency-with-brakeman-pro/" hidden></a>
 </article>
 
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Justin&#39;s Blurgh</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/presidentbeef"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">presidentbeef</span></a></li></ul>
 </div>
-  </section>
 
-</div>
-
-
+      <div class="footer-col footer-col-3">
+      </div>
     </div>
+
   </div>
-  <footer role="contentinfo"><p>
-  Copyright &copy; 2022 - Justin Collins -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -
-  <span class="credit">Theme by <a href="http://aron.cedercrantz.com/">Aron Cedercrantz</a></span>
-</p>
 
 </footer>
-  
-
-<script type="text/javascript">
-      var disqus_shortname = 'presidentbeefblog';
-      
-        
-        // var disqus_developer = 1;
-        var disqus_identifier = 'https://blog.presidentbeef.com/blog/2017/12/21/price-transparency-with-brakeman-pro/';
-        var disqus_url = 'https://blog.presidentbeef.com/blog/2017/12/21/price-transparency-with-brakeman-pro/';
-        var disqus_script = 'embed.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'https://' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
-
-
-
-
-
-
-
-  <script type="text/javascript">
-    (function(){
-      var twitterWidgets = document.createElement('script');
-      twitterWidgets.type = 'text/javascript';
-      twitterWidgets.async = true;
-      twitterWidgets.src = 'https://platform.twitter.com/widgets.js';
-      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
-    })();
-  </script>
-
-
-
-
-
 </body>
+
 </html>

@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Page 3 of 10 for Justin’s Blurgh</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Justin’s Blurgh" />
+<meta property="og:locale" content="en_US" />
+<link rel="canonical" href="https://blog.presidentbeef.com/blog/3/" />
+<meta property="og:url" content="https://blog.presidentbeef.com/blog/3/" />
+<meta property="og:site_name" content="Justin’s Blurgh" />
+<meta property="og:type" content="website" />
+<link rel="prev" href="https://blog.presidentbeef.com/blog/2/" />
+<link rel="next" href="https://blog.presidentbeef.com/blog/4/" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Justin’s Blurgh" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","headline":"Justin’s Blurgh","url":"https://blog.presidentbeef.com/blog/3/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://blog.presidentbeef.com/feed.xml" title="Justin&apos;s Blurgh" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Justin&#39;s Blurgh</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/archives/">Archives</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="blog-index">
+  
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2022/04/30/dragonruby-rotating-rectangles/">DragonRuby: Rotating Rectangles</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2022-04-30T10:51:00-06:00" pubdate data-updated="true" style="color: #a2a2a2">Apr 30th, 2022</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>In <a href="https://dragonruby.itch.io/dragonruby-gtk">DragonRuby</a>, one of the drawing primitives is a “solid” - a rectangle, actually.</p>
+
+<p>Rectangles are defined by the origin point of the bottom-right corner (<code class="language-plaintext highlighter-rouge">x</code>, <code class="language-plaintext highlighter-rouge">y</code>) and a size in height/width (<code class="language-plaintext highlighter-rouge">h</code>, <code class="language-plaintext highlighter-rouge">w</code>).</p>
+
+<p>For example, this code paints a black rectangle in roughly the middle of the screen:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">solids</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="mi">490</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="mi">310</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="mi">100</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/ejiyfwz8sz2t9eypvgs7.png" alt="DragonRuby window with a black rectangle in the middle" /></p>
+
+<p>Rectangles are simple and (presumably) fast. But what if we want to put the rectangle at an angle? Or spin it around?</p>
+
+<p>For sprites, there is an <code class="language-plaintext highlighter-rouge">angle</code> attribute. Will that work for rectangles? Unfortunately, no.</p>
+
+<p>We could make a rectangle image and use it in a sprite, but that seems wasteful. I don’t know if resizing a sprite is very resource-intensive, but I’m sure it takes more cycles than changing the size of a simple rectangle.</p>
+
+<p>Fortunately, there is a middle way.</p>
+
+<p>From the 2.26 release notes (and yes, this is the only place I could find this functionality formally documented, though it is used in examples):</p>
+
+<blockquote>
+  <p>** [API] Pre-defined ~:pixel~ render target now available.
+   Before ~(boot|tick)~ are invoked, a white solid with a size of 1280x1280
+   is added as a render target. You can use this predefined render target to
+   create solids and get ~args.outputs.sprites~ related capabilities.</p>
+</blockquote>
+
+<p>In other words, it is possible to create an equivalent rectangle to the above like this:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="mi">490</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="mi">310</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="mi">100</span><span class="p">,</span>
+    <span class="ss">r: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">g: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">b: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">path: :pixel</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>The key piece is <code class="language-plaintext highlighter-rouge">path: :pixel</code> and creating a sprite instead of a solid.</p>
+
+<p>As is mentioned above, the <code class="language-plaintext highlighter-rouge">:pixel</code> <a href="https://dev.to/presidentbeef/dragonruby-render-targets-437k">render target</a> is white, so to get exactly the same results as before the color is set to black. If no <code class="language-plaintext highlighter-rouge">r</code><code class="language-plaintext highlighter-rouge">g</code><code class="language-plaintext highlighter-rouge">b</code> values were specified, it would be a white rectangle.</p>
+
+<p>Now, can we rotate this rectangle?</p>
+
+<p>Sure!</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="mi">490</span><span class="p">,</span>
+    <span class="ss">y: </span><span class="mi">310</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>
+    <span class="ss">h: </span><span class="mi">100</span><span class="p">,</span>
+    <span class="ss">r: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">g: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">b: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">path: :pixel</span><span class="p">,</span>
+    <span class="ss">angle: </span><span class="mi">45</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/iri546i42cs9waajgo91.png" alt="Image description" /></p>
+
+<p>(By the way, angles in DragonRuby are in degrees.)</p>
+
+<h3 id="spinning-round-and-round">Spinning Round and Round</h3>
+
+<p>Here is an example of spinning the rectangle around:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+      <span class="ss">x: </span><span class="mi">490</span><span class="p">,</span>
+      <span class="ss">y: </span><span class="mi">310</span><span class="p">,</span>
+      <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>
+      <span class="ss">h: </span><span class="mi">100</span><span class="p">,</span>
+      <span class="ss">r: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">g: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">b: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">path: :pixel</span><span class="p">,</span>
+      <span class="ss">angle: </span><span class="n">args</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">%</span> <span class="mi">360</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/9ghaj7ac17cnpxwgs3yy.gif" alt="Black rectangle spinning around its center" /></p>
+
+<p>This is great and all, but what if you’d rather have it spin around like this?</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/jm0zj01nnjw22xrpv6mo.gif" alt="Black rectangle spinning around a corner" /></p>
+
+<p>With some sleuthing, you might find the <code class="language-plaintext highlighter-rouge">angle_anchor_x</code> and <code class="language-plaintext highlighter-rouge">angle_anchor_y</code> attributes. And you would be forgiven for thinking those refer to points on the coordinate grid. But they do not!</p>
+
+<p>Instead, <code class="language-plaintext highlighter-rouge">angle_anchor_x</code> and <code class="language-plaintext highlighter-rouge">angle_anchor_y</code> are <em>percentages relative to the sprite itself</em>.</p>
+
+<p>In other words, if both anchors are set to <code class="language-plaintext highlighter-rouge">0.5</code> (the default), the center of the rotation will be the middle of the sprite (half of the width and half of the height).</p>
+
+<p><code class="language-plaintext highlighter-rouge">0</code>,<code class="language-plaintext highlighter-rouge">0</code> is the bottom-left corner of the sprite, as shown above:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+      <span class="ss">x: </span><span class="mi">490</span><span class="p">,</span>
+      <span class="ss">y: </span><span class="mi">310</span><span class="p">,</span>
+      <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>
+      <span class="ss">h: </span><span class="mi">100</span><span class="p">,</span>
+      <span class="ss">r: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">g: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">b: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">path: :pixel</span><span class="p">,</span>
+      <span class="ss">angle: </span><span class="n">args</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">%</span> <span class="mi">360</span><span class="p">,</span>
+      <span class="ss">angle_anchor_x: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">angle_anchor_y: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>Anchor values between <code class="language-plaintext highlighter-rouge">0</code> and <code class="language-plaintext highlighter-rouge">1</code> will be inside the sprite. But values greater than <code class="language-plaintext highlighter-rouge">1</code> or less than <code class="language-plaintext highlighter-rouge">0</code> will be outside the sprite.</p>
+
+<p>Here is a little reference:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/fwlbn5o29zou5qvpf7ug.png" alt="Angle anchors on a black rectangle" /></p>
+
+<p>Happy rectangle rotating!</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/l8rjfdi9tcvz26iuc9de.gif" alt="Five colorful rotating rectangles" /></p>
+</div>
+
+
+    </article>
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2022/02/17/automatically-partitioning-cloudflare-logs-for-athena/">Automatically Partitioning Cloudflare Logs for Athena</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2022-02-17T21:00:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Feb 17th, 2022</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>If you are using Cloudflare, it can be helpful to <a href="https://developers.cloudflare.com/logs/get-started/enable-destinations/aws-s3">configure Cloudflare to push request logs to S3</a>. Otherwise, the Cloudflare dashboard provides only a limited view into your data (72 hours at a time and sampled data instead of full logs).</p>
+
+<p>Once the Cloudflare request logs are in S3, they can be queried using <a href="https://aws.amazon.com/athena/">Athena</a>. <a href="https://duffn.medium.com/analyzing-cloudflare-logs-with-aws-athena-19c1399c91e3">This blog post</a> even provides a nice <code class="language-plaintext highlighter-rouge">CREATE TABLE</code> command to set up the table in Athena.</p>
+
+<p>However, there is a problem. When performing a query in Athena, it <em>might</em> have to scan <em>all</em> of the logs in S3, even if you try to limit the query. This can be slow and costly, as Athena queries are charged per byte scanned.</p>
+
+<p>The only way to really limit the amount of data scanned is to <a href="https://docs.aws.amazon.com/athena/latest/ug/partitions.html">partition the data</a>.</p>
+
+<p>This post assumes you have already set up Cloudflare to push logs to an S3 bucket, configured a database in Athena to access it, and then realized those logs will grow forever, along with your query times.</p>
+
+<p>(If you just want the “how to” without the exposition, jump down to “Setting Up Partitions for Cloudflare Logs”.)</p>
+
+<h3 id="partitioning">Partitioning</h3>
+
+<p>Most commonly, you will want to look at logs from a specific time period, so it makes sense to partition the logs by date.</p>
+
+<p>Most of the partitioning documentation suggests the files (or in this case, S3 objects) include a <code class="language-plaintext highlighter-rouge">column=value</code> key pair in the name. The <code class="language-plaintext highlighter-rouge">column</code> can then be used as a partition.</p>
+
+<p>Unfortunately, Cloudflare does not allow customizing the format of the file names it produces.</p>
+
+<p><em>Fortunately</em>, the file names do include date/time information. The logs are grouped by date and time range:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>s3://mah_s3_bucket/20210812/20210812T223000Z_20210812T224000Z_9af500e2.log.gz
+</code></pre></div></div>
+
+<p>So all we need to do is grab that date “folder” name and that’s our partition! Easy, right?</p>
+
+<p>No, wrong. This is AWS. <em>Nothing is easy.</em></p>
+
+<h3 id="use-a-recurring-job">Use a Recurring Job?</h3>
+
+<p>Several of the AWS documentation pages suggest using <code class="language-plaintext highlighter-rouge">ALTER TABLE</code> to <a href="https://docs.aws.amazon.com/athena/latest/ug/alter-table-add-partition.html"><code class="language-plaintext highlighter-rouge">ADD PARTITION</code>s</a>.</p>
+
+<p>Something like this:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">cloudflare_logs</span> <span class="k">ADD</span>
+  <span class="k">PARTITION</span> <span class="p">(</span><span class="n">dt</span> <span class="o">=</span> <span class="s1">'2021-08-12'</span><span class="p">)</span> <span class="k">LOCATION</span> <span class="s1">'s3://mah_log_bucket/20210812/'</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>But since the logs will grow every day, we’ll need to add new a new partition every 24 hours. It is not possible to “predefine” the partitions.</p>
+
+<p>This requires setting up a recurring job… somewhere… to periodically define the new partitions. So now we have to pull in <em>another</em> AWS service to make S3 and Athena work nicely?! No thanks!</p>
+
+<h3 id="partition-projection">Partition Projection</h3>
+
+<p>At the bottom of the page about partitions, there is a paragraph about “<a href="https://docs.aws.amazon.com/athena/latest/ug/partitions.html#partitions-partition-projection">partition projection</a>” that sounds promising:</p>
+
+<blockquote>
+  <p>To avoid having to manage partitions, you can use partition projection. Partition projection is an option for highly partitioned tables whose structure is known in advance.</p>
+</blockquote>
+
+<p>Yes, this is what we want! But how does it work?</p>
+
+<p>Essentially like this:</p>
+
+<p>We must define a column, its type, start and end values, and the interval between those values. Athena will then be able to extrapolate all the possible values.</p>
+
+<p>Then we define a pattern to pull the value out of each S3 object <em>name</em>. This allows Athena to figure out which objects (logs) are associated with which partition value.</p>
+
+<p>For example, the partition <code class="language-plaintext highlighter-rouge">20210812</code> will be associated with <code class="language-plaintext highlighter-rouge">s3://mah_s3_bucket/20210812/20210812T223000Z_20210812T224000Z_9af500e2.log.gz</code></p>
+
+<p>Once that’s all done, we can query based on the partition as if it were a column, like:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">cloudflare_logs</span>
+<span class="k">WHERE</span> <span class="n">log_date</span> <span class="o">&gt;=</span> <span class="s1">'20210812'</span>
+  <span class="k">AND</span> <span class="n">log_date</span> <span class="o">&lt;</span> <span class="s1">'20210901'</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h2 id="setting-up-partitions-for-cloudflare-logs">Setting Up Partitions for Cloudflare Logs</h2>
+
+<p>Here are the steps that <em>must</em> be taken to set up the partitions:</p>
+
+<ol>
+  <li>Add the partition “column” when creating the table</li>
+  <li>Set several properties on the table to define the projection</li>
+  <li>Set the partition pattern to match against object names</li>
+  <li>Enable projection</li>
+</ol>
+
+<p>(Actually, 2-4 are all the same: set (totally unvalidated) key-value properties on the table.)</p>
+
+<p>Fortunately, all of this can be accomplished with one giant Athena command:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">EXTERNAL</span> <span class="k">TABLE</span> <span class="nv">`YOUR_TABLE_NAME`</span><span class="p">(</span>
+  <span class="nv">`botscore`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`botscoresrc`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`cachecachestatus`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`cacheresponsebytes`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`cacheresponsestatus`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`clientasn`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`clientcountry`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientdevicetype`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientip`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientipclass`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientrequestbytes`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`clientrequesthost`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientrequestmethod`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientrequestpath`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientrequestprotocol`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientrequestreferer`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientrequesturi`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientrequestuseragent`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientsslcipher`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientsslprotocol`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`clientsrcport`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`edgecolocode`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgecoloid`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`edgeendtimestamp`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgepathingop`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgepathingsrc`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgepathingstatus`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgeratelimitaction`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgeratelimitid`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`edgerequesthost`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgeresponsebytes`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`edgeresponsecontenttype`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgeresponsestatus`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`edgeserverip`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`edgestarttimestamp`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`firewallmatchesactions`</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="nv">`firewallmatchesruleids`</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="nv">`firewallmatchessources`</span> <span class="n">array</span><span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="nv">`originip`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`originresponsestatus`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`originresponsetime`</span> <span class="nb">int</span><span class="p">,</span>
+  <span class="nv">`originsslprotocol`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`rayid`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`wafaction`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`wafflags`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`wafmatchedvar`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`wafprofile`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`wafruleid`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`wafrulemessage`</span> <span class="n">string</span><span class="p">,</span>
+  <span class="nv">`workersubrequest`</span> <span class="nb">boolean</span><span class="p">,</span>
+  <span class="nv">`zoneid`</span> <span class="nb">bigint</span><span class="p">)</span>
+<span class="n">PARTITIONED</span> <span class="k">BY</span> <span class="p">(</span>
+  <span class="nv">`YOUR_COLUMN_NAME`</span> <span class="n">string</span><span class="p">)</span>
+<span class="k">ROW</span> <span class="n">FORMAT</span> <span class="n">SERDE</span>
+  <span class="s1">'org.openx.data.jsonserde.JsonSerDe'</span>
+<span class="n">STORED</span> <span class="k">AS</span> <span class="n">INPUTFORMAT</span>
+  <span class="s1">'org.apache.hadoop.mapred.TextInputFormat'</span>
+<span class="n">OUTPUTFORMAT</span>
+  <span class="s1">'org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat'</span>
+<span class="k">LOCATION</span>
+  <span class="s1">'s3://YOUR_BUCKET_NAME/'</span>
+<span class="n">TBLPROPERTIES</span> <span class="p">(</span>
+  <span class="s1">'projection.enabled'</span><span class="o">=</span><span class="s1">'TRUE'</span><span class="p">,</span>
+  <span class="s1">'projection.YOUR_COLUMN_NAME.format'</span><span class="o">=</span><span class="s1">'yyyyMMdd'</span><span class="p">,</span>
+  <span class="s1">'projection.YOUR_COLUMN_NAME.interval'</span><span class="o">=</span><span class="s1">'1'</span><span class="p">,</span>
+  <span class="s1">'projection.YOUR_COLUMN_NAME.interval.unit'</span><span class="o">=</span><span class="s1">'DAYS'</span><span class="p">,</span>
+  <span class="s1">'projection.YOUR_COLUMN_NAME.range'</span><span class="o">=</span><span class="s1">'YOUR_START_DATE,NOW'</span><span class="p">,</span>
+  <span class="s1">'projection.YOUR_COLUMN_NAME.type'</span><span class="o">=</span><span class="s1">'date'</span><span class="p">,</span> 
+ 
+ <span class="s1">'storage.location.template'</span><span class="o">=</span><span class="s1">'s3://YOUR_BUCKET_NAME/${YOUR_COLUMN_NAME}/'</span>
+<span class="p">)</span> 
+</code></pre></div></div>
+
+<p>These are the pieces related to partitioning:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">PARTITIONED</span> <span class="k">BY</span> <span class="p">(</span>
+  <span class="nv">`YOUR_COLUMN_NAME`</span> <span class="n">string</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>This tells Athena to set up a column for the partition.</p>
+
+<p>(The type of the partition column <strong>must</strong> be <code class="language-plaintext highlighter-rouge">string</code>, even though the projection type <strong>must</strong> be <code class="language-plaintext highlighter-rouge">date</code>. Does this make any sense? <strong>NO</strong>.)</p>
+
+<p>Then the table properties.</p>
+
+<p>Turn on projection:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">'projection.enabled'</span><span class="o">=</span><span class="s1">'TRUE'</span>
+</code></pre></div></div>
+
+<p>Set the column type to date:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">'projection.YOUR_COLUMN_NAME.type'</span><span class="o">=</span><span class="s1">'date'</span>
+</code></pre></div></div>
+
+<p>This is so Athena knows how to interpolate values.</p>
+
+<p>Define the date format to match:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">'projection.YOUR_COLUMN_NAME.format'</span><span class="o">=</span><span class="s1">'yyyyMMdd'</span>
+</code></pre></div></div>
+
+<p>Set the interval for the values to one day:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">'projection.YOUR_COLUMN_NAME.interval'</span><span class="o">=</span><span class="s1">'1'</span><span class="p">,</span>
+<span class="s1">'projection.YOUR_COLUMN_NAME.interval.unit'</span><span class="o">=</span><span class="s1">'DAYS'</span>
+</code></pre></div></div>
+
+<p>Set the range for the values:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">'projection.YOUR_COLUMN_NAME.range'</span><span class="o">=</span><span class="s1">'YOUR_START_DATE,NOW'</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">NOW</code> is a special value so the end of the range will always be the current day.</p>
+
+<p>This sets a template to extract the date string from the object name, using the date template defined above, and setting the value in the column name specified for the projection:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s1">'storage.location.template'</span><span class="o">=</span><span class="s1">'s3://YOUR_BUCKET_NAME/${YOUR_COLUMN_NAME}/'</span>
+</code></pre></div></div>
+
+<p>If you are unfamiliar with Athena, it’s good to know that deleting/creating tables is low impact. If the table is already created, it is not a big deal to delete it and start over.</p>
+
+<p>Here are the important bits above that you will need to change:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">YOUR_TABLE_NAME</code> is whatever you want to name the table. Something like <code class="language-plaintext highlighter-rouge">cloudflare_logs</code> would probably make sense.</li>
+  <li><code class="language-plaintext highlighter-rouge">YOUR_COLUMN_NAME</code> is whatever you want to name the projection “column”. Could be <code class="language-plaintext highlighter-rouge">dt</code> like in the AWS docs, or <code class="language-plaintext highlighter-rouge">log_date</code> or whatever you want.</li>
+  <li><code class="language-plaintext highlighter-rouge">YOUR_BUCKET_NAME</code> is the name of the S3 bucket.</li>
+  <li><code class="language-plaintext highlighter-rouge">YOUR START_DATE</code> is the date of the first log. Something like <code class="language-plaintext highlighter-rouge">20210101</code>.</li>
+</ul>
+
+<p>The table should now indicate it is partitioned:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/z17sufwwkndnfbygh7xm.png" alt="Table name with text 'partitioned' next to it" /></p>
+
+<p>And the partition should show up as a column:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/2k9ixdqd6820stqrvetr.png" alt="Column name with text 'string (partitioned)' next to it" /></p>
+
+<h3 id="using-date-partitions">Using Date Partitions</h3>
+
+<p>To test if partitions are working as expected, a quick query like this will work:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="k">DISTINCT</span><span class="p">(</span><span class="n">YOUR_COLUMN_NAME</span><span class="p">)</span>
+<span class="k">FROM</span> <span class="nv">"YOUR_TABLE_NAME"</span>
+<span class="k">LIMIT</span> <span class="mi">10</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>The expected output is several dates for which there are logs.</p>
+
+<p>Once that is confirmed, the partition column can be used like any other column. Since the values is a basic ISO date format, comparison operators can be safely used even though the column is really just a string.</p>
+
+<p>For a single day:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">YOUR_TABLE</span>
+<span class="k">WHERE</span> <span class="n">YOUR_COLUMN_NAME</span> <span class="o">=</span> <span class="nv">"20200101"</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>For an inclusive range:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">YOUR_TABLE</span>
+<span class="k">WHERE</span> <span class="n">YOUR_COLUMN_NAME</span> <span class="o">&gt;=</span> <span class="nv">"20200101"</span>
+  <span class="k">AND</span> <span class="n">YOUR_COLUMN_NAME</span> <span class="o">&lt;=</span> <span class="nv">"20210101"</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>And now your queries can be faster and cheaper!</p>
+</div>
+
+
+    </article>
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2022/01/31/sounds-in-dragonruby/">Sounds in DragonRuby</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2022-01-31T11:00:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Jan 31st, 2022</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>The sound API in <a href="https://dragonruby.itch.io/dragonruby-gtk">DragonRuby</a> is a little tricky because at first it seems similar to the sprite API (e.g. using <code class="language-plaintext highlighter-rouge">args.outputs</code>) but it diverges sharply when you want to have some more control.</p>
+
+<p>So let’s take a quick look at audio in DragonRuby!</p>
+
+<h3 id="simple-music">Simple Music</h3>
+
+<p>As usual with DragonRuby, the simple stuff is simple.</p>
+
+<p>To play a looping sound, for example as background music, get a sound file in <code class="language-plaintext highlighter-rouge">.ogg</code> format and then add it on to <code class="language-plaintext highlighter-rouge">args.outputs.sounds</code>:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sounds</span> <span class="o">&lt;&lt;</span> <span class="s1">'sounds/my_music.ogg'</span>
+</code></pre></div></div>
+
+<p>The audio will loop forever.</p>
+
+<h3 id="simple-sound-effects">Simple Sound Effects</h3>
+
+<p>Want to fire off a single sound effect?</p>
+
+<p>Get a sound file in <code class="language-plaintext highlighter-rouge">.wav</code> format and then add it on to <code class="language-plaintext highlighter-rouge">args.outputs.sounds</code>:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sounds</span> <span class="o">&lt;&lt;</span> <span class="s1">'sounds/my_effect.wav'</span>
+</code></pre></div></div>
+
+<p>The sound will play once.</p>
+
+<p><em>Wait so the API behaves differently based on the file format?</em></p>
+
+<p>Yep. A little odd but it works.</p>
+
+<h3 id="adjusting-the-volume-knob">Adjusting the Volume Knob</h3>
+
+<p>Playing a sound effect in DragonRuby is pretty easy. But what if we need to adjust the volume or some other attribute of the audio? Or maybe loop a <code class="language-plaintext highlighter-rouge">.wav</code> or not loop a <code class="language-plaintext highlighter-rouge">.ogg</code> file?</p>
+
+<p>You might think, based on how sprites work in DragonRuby, you could do something like this:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># This does not work!</span>
+<span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sounds</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+  <span class="ss">input: </span><span class="s1">'sounds/my_music.ogg'</span><span class="p">,</span>
+  <span class="ss">gain: </span><span class="mf">0.5</span><span class="p">,</span>      <span class="c1"># Half volume</span>
+  <span class="ss">looping: </span><span class="kp">false</span>  <span class="c1"># Don't loop</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>But this does not work.</p>
+
+<p>Instead, you need to use an entirely different interface: <code class="language-plaintext highlighter-rouge">args.audio</code>.</p>
+
+<p><code class="language-plaintext highlighter-rouge">args.audio</code> is a hash table of sounds.</p>
+
+<p>To add a new sound, assign it with a name:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">audio</span><span class="p">[</span><span class="ss">:music</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="ss">input: </span><span class="s1">'sounds/my_music.ogg'</span><span class="p">,</span>
+  <span class="ss">gain: </span><span class="mf">0.5</span><span class="p">,</span>
+  <span class="ss">looping: </span><span class="kp">false</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>To adjust an attribute of the audio, access it by the same name:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Turn up the volume</span>
+<span class="n">args</span><span class="p">.</span><span class="nf">audio</span><span class="p">[</span><span class="ss">:music</span><span class="p">].</span><span class="nf">gain</span> <span class="o">=</span> <span class="mf">0.75</span>
+</code></pre></div></div>
+
+<p>To pause a sound:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">audio</span><span class="p">[</span><span class="ss">:music</span><span class="p">].</span><span class="nf">paused</span> <span class="o">=</span> <span class="kp">true</span>
+</code></pre></div></div>
+
+<p>To completely remove a sound:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">audio</span><span class="p">.</span><span class="nf">delete</span> <span class="ss">:music</span>
+</code></pre></div></div>
+
+<h3 id="more-music-manipulation">More Music Manipulation</h3>
+
+<p>This is the full set of options for audio from <a href="http://docs.dragonruby.org/#--docs---gtk--args#audio-">the documentation</a>:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">audio</span><span class="p">[</span><span class="ss">:my_music</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="ss">input: </span><span class="s1">'sounds/my_music.ogg'</span><span class="p">,</span>
+  <span class="ss">x: </span><span class="mf">0.0</span><span class="p">,</span> <span class="ss">y: </span><span class="mf">0.0</span><span class="p">,</span> <span class="ss">z: </span><span class="mf">0.0</span><span class="p">,</span>   <span class="c1"># Relative position to the listener, x, y, z from -1.0 to 1.0</span>
+  <span class="ss">gain: </span><span class="mf">1.0</span><span class="p">,</span>                <span class="c1"># Volume (0.0 to 1.0)</span>
+  <span class="ss">pitch: </span><span class="mf">1.0</span><span class="p">,</span>               <span class="c1"># Pitch of the sound (1.0 = original pitch)</span>
+  <span class="ss">paused: </span><span class="kp">false</span><span class="p">,</span>            <span class="c1"># Set to true to pause</span>
+  <span class="ss">looping: </span><span class="kp">false</span><span class="p">,</span>           <span class="c1"># Set to true to loop</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>That’s it!</p>
+</div>
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/4/">&larr; Older</a>
+    
+    
+    <a class="next" href="/blog/2/">Newer &rarr;</a>
+    
+  </div>
+</div>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Justin&#39;s Blurgh</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/presidentbeef"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">presidentbeef</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

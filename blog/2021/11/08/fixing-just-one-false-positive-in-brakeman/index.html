@@ -1,585 +1,328 @@
-
 <!DOCTYPE html>
-<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
-<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
-<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
-<head>
+<html lang="en"><head>
   <meta charset="utf-8">
-  <title>Fixing Just One False Positive in Brakeman - Justin Collins' Blugh</title>
-  <meta name="author" content="Justin Collins">
-
-  
-  <meta name="description" content="A while ago, I came across a Brakeman false positive that I wanted to fix. For just one false positive, it became a bit of an epic journey. The code &hellip;">
-  
-
-  <!-- http://t.co/dKP3o1e -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  
-  <link rel="canonical" href="https://blog.presidentbeef.com/blog/2021/11/08/fixing-just-one-false-positive-in-brakeman">
-  <link href="/favicon.ico" rel="icon">
-  
-  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="/javascripts/ender.js"></script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
-  <link href="/atom.xml" rel="alternate" title="Justin Collins' Blugh" type="application/atom+xml">
-  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
-<link href="https://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-<link href="https://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
-
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Fixing Just One False Positive in Brakeman | Justin’s Blurgh</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Fixing Just One False Positive in Brakeman" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="A while ago, I came across a Brakeman false positive that I wanted to fix." />
+<meta property="og:description" content="A while ago, I came across a Brakeman false positive that I wanted to fix." />
+<link rel="canonical" href="https://blog.presidentbeef.com/blog/2021/11/08/fixing-just-one-false-positive-in-brakeman/" />
+<meta property="og:url" content="https://blog.presidentbeef.com/blog/2021/11/08/fixing-just-one-false-positive-in-brakeman/" />
+<meta property="og:site_name" content="Justin’s Blurgh" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-11-08T11:30:00-07:00" />
 <meta name="twitter:card" content="summary" />
-<meta name="twitter:site" content="@presidentbeef" />
-<meta name="twitter:title" content="Fixing Just One False Positive in Brakeman - Justin Collins' Blugh" />
-<meta name="description" content="A while ago, I came across a Brakeman false positive that I wanted to fix. For just one false positive, it became a bit of an epic journey. The code &hellip;">
+<meta property="twitter:title" content="Fixing Just One False Positive in Brakeman" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2021-11-08T11:30:00-07:00","datePublished":"2021-11-08T11:30:00-07:00","description":"A while ago, I came across a Brakeman false positive that I wanted to fix.","headline":"Fixing Just One False Positive in Brakeman","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.presidentbeef.com/blog/2021/11/08/fixing-just-one-false-positive-in-brakeman/"},"url":"https://blog.presidentbeef.com/blog/2021/11/08/fixing-just-one-false-positive-in-brakeman/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="https://blog.presidentbeef.com/feed.xml" title="Justin&apos;s Blurgh" /></head>
+<body><header class="site-header" role="banner">
 
-  
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-20920647-3']);
-    _gaq.push(['_trackPageview']);
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Justin&#39;s Blurgh</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
 
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
-
-
-</head>
-
-<body   class="no-sidebar"  >
-  <header role="banner"><hgroup>
-  
-    <h2><a href="/">*.blog</a></h2>
-  
-  <em>by <a style="text-decoration: none" href="http://presidentbeef.com">Justin Collins</a></em>
-</hgroup>
-
+        <div class="trigger"><a class="page-link" href="/archives/">Archives</a></div>
+      </nav></div>
 </header>
-  <nav role="navigation">
-  
-<ul class="main-navigation">
-  <li><a href="/">Recent</a></li>
-  <li><a href="/blog/archives">All</a></li>
-  <li><a href="https://twitter.com/presidentbeef">Twitter</a></li>
-</ul>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
-</nav>
-  <div id="main">
-    <div id="content">
-      <div>
-<article class="hentry" role="article">
-  
-  <header>
-    
-      <h1 class="entry-title">Fixing Just One False Positive in Brakeman</h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2021-11-08T11:30:00-08:00" pubdate data-updated="true">Nov 8<span>th</span>, 2021</time>
-        
-      </p>
-    
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Fixing Just One False Positive in Brakeman</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2021-11-08T11:30:00-07:00" itemprop="datePublished">Nov 8, 2021
+      </time></p>
   </header>
 
-
-<div class="entry-content"><p>A while ago, I came across a <a href="https://brakemanscanner.org/">Brakeman</a> false positive that I wanted to fix.</p>
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>A while ago, I came across a <a href="https://brakemanscanner.org/">Brakeman</a> false positive that I wanted to fix.</p>
 
 <p>For just one false positive, it became a bit of an epic journey.</p>
 
 <p>The code looked something like this:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Task</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
-</span><span class='line'>  <span class="n">enum</span> <span class="ss">status</span><span class="p">:</span> <span class="p">{</span>
-</span><span class='line'>    <span class="ss">pending</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-</span><span class='line'>    <span class="ss">success</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-</span><span class='line'>    <span class="ss">failed</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'>  <span class="no">NOT_FAILURES</span> <span class="o">=</span> <span class="o">[</span><span class="s1">&#39;pending&#39;</span><span class="p">,</span> <span class="s1">&#39;success&#39;</span><span class="o">].</span><span class="n">freeze</span>
-</span><span class='line'><span class="k">end</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">class</span> <span class="nc">TaskRunner</span>
-</span><span class='line'>  <span class="k">def</span> <span class="nf">get_failures</span>
-</span><span class='line'>    <span class="n">start_time</span> <span class="o">=</span> <span class="no">Date</span><span class="o">.</span><span class="n">beginning_of_quarter</span>
-</span><span class='line'>    <span class="n">end_time</span> <span class="o">=</span> <span class="no">Date</span><span class="o">.</span><span class="n">end_of_quarter</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">no_failure_enums</span> <span class="o">=</span> <span class="no">Task</span><span class="o">.</span><span class="n">statuses</span><span class="o">.</span><span class="n">values_at</span><span class="p">(</span><span class="o">*</span><span class="no">Task</span><span class="o">::</span><span class="no">NOT_FAILURES</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'>    <span class="n">query</span> <span class="o">=</span> <span class="o">&lt;&lt;~</span><span class="no">QUERY</span>
-</span><span class='line'>      <span class="no">SELECT</span> <span class="no">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span>
-</span><span class='line'>      <span class="no">FROM</span> <span class="sb">`tasks`</span>
-</span><span class='line'>      <span class="no">WHERE</span> <span class="sb">`tasks`</span><span class="o">.</span><span class="n">`status</span><span class="sb">` NOT IN (</span><span class="si">#{</span><span class="n">no_failure_enums</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="si">}</span><span class="sb">)</span>
-</span><span class='line'><span class="sb">      AND `</span><span class="n">tasks</span><span class="sb">`.`</span><span class="n">time_end</span><span class="sb">` BETWEEN </span><span class="si">#{</span><span class="n">start_time</span><span class="si">}</span><span class="sb"> AND </span><span class="si">#{</span><span class="n">end_time</span><span class="si">}</span><span class="sb"></span>
-</span><span class='line'><span class="sb">    QUERY</span>
-</span><span class='line'>
-</span><span class='line'><span class="sb">    # Line below triggers a SQL injection warning</span>
-</span><span class='line'><span class="sb">    Task.connection.select_all(query)</span>
-</span><span class='line'><span class="sb">  end</span>
-</span><span class='line'><span class="sb">end</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Task</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">enum</span> <span class="ss">status: </span><span class="p">{</span>
+    <span class="ss">pending: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">success: </span><span class="mi">1</span><span class="p">,</span>
+    <span class="ss">failed: </span><span class="mi">3</span><span class="p">,</span>
+  <span class="p">}</span>
+  <span class="no">NOT_FAILURES</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'pending'</span><span class="p">,</span> <span class="s1">'success'</span><span class="p">].</span><span class="nf">freeze</span>
+<span class="k">end</span>
 
+<span class="k">class</span> <span class="nc">TaskRunner</span>
+  <span class="k">def</span> <span class="nf">get_failures</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="no">Date</span><span class="p">.</span><span class="nf">beginning_of_quarter</span>
+    <span class="n">end_time</span> <span class="o">=</span> <span class="no">Date</span><span class="p">.</span><span class="nf">end_of_quarter</span>
+
+    <span class="n">no_failure_enums</span> <span class="o">=</span> <span class="no">Task</span><span class="p">.</span><span class="nf">statuses</span><span class="p">.</span><span class="nf">values_at</span><span class="p">(</span><span class="o">*</span><span class="no">Task</span><span class="o">::</span><span class="no">NOT_FAILURES</span><span class="p">)</span>
+
+    <span class="n">query</span> <span class="o">=</span> <span class="o">&lt;&lt;~</span><span class="no">QUERY</span><span class="sh">
+      SELECT COUNT(*)
+      FROM `tasks`
+      WHERE `tasks`.`status` NOT IN (</span><span class="si">#{</span><span class="n">no_failure_enums</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="s1">','</span><span class="p">)</span><span class="si">}</span><span class="sh">)
+      AND `tasks`.`time_end` BETWEEN </span><span class="si">#{</span><span class="n">start_time</span><span class="si">}</span><span class="sh"> AND </span><span class="si">#{</span><span class="n">end_time</span><span class="si">}</span><span class="sh">
+</span><span class="no">    QUERY</span>
+
+    <span class="c1"># Line below triggers a SQL injection warning</span>
+    <span class="no">Task</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">select_all</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
 
 <p>(You can imagine in reality the query is a bit more complicated and justifies writing it this way.)</p>
 
 <p>This code results in an SQL injection warning from Brakeman:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">Confidence</span><span class="p">:</span> <span class="no">High</span>
-</span><span class='line'><span class="ss">Category</span><span class="p">:</span> <span class="no">SQL</span> <span class="no">Injection</span>
-</span><span class='line'><span class="ss">Check</span><span class="p">:</span> <span class="no">SQL</span>
-</span><span class='line'><span class="ss">Message</span><span class="p">:</span> <span class="no">Possible</span> <span class="no">SQL</span> <span class="n">injection</span>
-</span><span class='line'><span class="ss">Code</span><span class="p">:</span> <span class="no">Task</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">select_all</span><span class="p">(</span><span class="s2">&quot;SELECT COUNT(*)</span><span class="se">\n</span><span class="s2">FROM `filings`</span><span class="se">\n</span><span class="s2">WHERE `filings`.`status` NOT IN (</span><span class="si">#{</span><span class="no">Task</span><span class="o">.</span><span class="n">statuses</span><span class="o">.</span><span class="n">values_at</span><span class="p">(</span><span class="o">*[</span><span class="s2">&quot;pending&quot;</span><span class="p">,</span> <span class="s2">&quot;success&quot;</span><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span><span class="si">}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">AND `filings`.`time_end` BETWEEN </span><span class="si">#{</span><span class="no">Date</span><span class="o">.</span><span class="n">beginning_of_quarter</span><span class="si">}</span><span class="s2"> AND </span><span class="si">#{</span><span class="no">Date</span><span class="o">.</span><span class="n">end_of_quarter</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span class='line'><span class="ss">File</span><span class="p">:</span> <span class="n">app</span><span class="o">/</span><span class="n">models</span><span class="o">/</span><span class="n">task</span><span class="o">.</span><span class="n">rb</span>
-</span><span class='line'><span class="ss">Line</span><span class="p">:</span> <span class="mi">25</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Confidence: High
+Category: SQL Injection
+Check: SQL
+Message: Possible SQL injection
+Code: Task.connection.select_all("SELECT COUNT(*)\nFROM `filings`\nWHERE `filings`.`status` NOT IN (#{Task.statuses.values_at(*["pending", "success"]).join(",")})\nAND `filings`.`time_end` BETWEEN #{Date.beginning_of_quarter} AND #{Date.end_of_quarter}\n")
+File: app/models/task.rb
+Line: 25
+</code></pre></div></div>
 
+<p>This is a little hard to read, so let’s take a look at a better formatted version of the code Brakeman is complaining about:</p>
 
-<p>This is a little hard to read, so let&#8217;s take a look at a better formatted version of the code Brakeman is complaining about:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Task</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">select_all</span><span class="p">(</span>
-</span><span class='line'>  <span class="s2">&quot;SELECT COUNT(*) \</span>
-</span><span class='line'><span class="s2">  FROM `filings` \</span>
-</span><span class='line'><span class="s2">  WHERE `filings`.`status` NOT IN (</span><span class="si">#{</span><span class="no">Task</span><span class="o">.</span><span class="n">statuses</span><span class="o">.</span><span class="n">values_at</span><span class="p">(</span><span class="o">*[</span><span class="s2">&quot;pending&quot;</span><span class="p">,</span> <span class="s2">&quot;success&quot;</span><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span><span class="si">}</span><span class="s2">) \</span>
-</span><span class='line'><span class="s2">  AND `filings`.`time_end` BETWEEN </span><span class="si">#{</span><span class="no">Date</span><span class="o">.</span><span class="n">beginning_of_quarter</span><span class="si">}</span><span class="s2"> \</span>
-</span><span class='line'><span class="s2">  AND </span><span class="si">#{</span><span class="no">Date</span><span class="o">.</span><span class="n">end_of_quarter</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span class='line'><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Task</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">select_all</span><span class="p">(</span>
+  <span class="s2">"SELECT COUNT(*) \
+  FROM `filings` \
+  WHERE `filings`.`status` NOT IN (</span><span class="si">#{</span><span class="no">Task</span><span class="p">.</span><span class="nf">statuses</span><span class="p">.</span><span class="nf">values_at</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="s2">"pending"</span><span class="p">,</span> <span class="s2">"success"</span><span class="p">]).</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span><span class="si">}</span><span class="s2">) \
+  AND `filings`.`time_end` BETWEEN </span><span class="si">#{</span><span class="no">Date</span><span class="p">.</span><span class="nf">beginning_of_quarter</span><span class="si">}</span><span class="s2"> \
+  AND </span><span class="si">#{</span><span class="no">Date</span><span class="p">.</span><span class="nf">end_of_quarter</span><span class="si">}</span><span class="s2">"</span>
+<span class="p">)</span>
+</code></pre></div></div>
 
 <p>Brakeman is warning about this SQL query because it is using string interpolation to unsafely add in values to the query. If an attacker could control those values, they could modify the SQL run by the database.</p>
 
-<p>In particular, it&#8217;s warning about</p>
+<p>In particular, it’s warning about</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Task</span><span class="p">.</span><span class="nf">statuses</span><span class="p">.</span><span class="nf">values_at</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="s2">"pending"</span><span class="p">,</span> <span class="s2">"success"</span><span class="p">]).</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+</code></pre></div></div>
+<p>(the value in <code class="language-plaintext highlighter-rouge">no_failure_enums.join(',')</code>).</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Task</span><span class="o">.</span><span class="n">statuses</span><span class="o">.</span><span class="n">values_at</span><span class="p">(</span><span class="o">*[</span><span class="s2">&quot;pending&quot;</span><span class="p">,</span> <span class="s2">&quot;success&quot;</span><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>(the value in <code>no_failure_enums.join(',')</code>).</p>
-
-<p>However, in this case, we know that <code>Task.statuses</code> is actually a constant - it&#8217;s defined using <a href="https://api.rubyonrails.org/v5.2.4.4/classes/ActiveRecord/Enum.html"><code>enum</code></a> in the <code>Task</code> class. This code is just grabbing the integer values for the given enums and joining them back into a comma-separated string.</p>
+<p>However, in this case, we know that <code class="language-plaintext highlighter-rouge">Task.statuses</code> is actually a constant - it’s defined using <a href="https://api.rubyonrails.org/v5.2.4.4/classes/ActiveRecord/Enum.html"><code class="language-plaintext highlighter-rouge">enum</code></a> in the <code class="language-plaintext highlighter-rouge">Task</code> class. This code is just grabbing the integer values for the given enums and joining them back into a comma-separated string.</p>
 
 <p>So how do we get Brakeman to understand that this value is actually safe?</p>
 
-<h2>Splatted Arrays</h2>
+<h2 id="splatted-arrays">Splatted Arrays</h2>
 
-<p>Let&#8217;s dive in!</p>
+<p>Let’s dive in!</p>
 
 <p>The call we care about:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Task</span><span class="o">.</span><span class="n">statuses</span><span class="o">.</span><span class="n">values_at</span><span class="p">(</span><span class="o">*[</span><span class="s2">&quot;pending&quot;</span><span class="p">,</span> <span class="s2">&quot;success&quot;</span><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Task</span><span class="p">.</span><span class="nf">statuses</span><span class="p">.</span><span class="nf">values_at</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="s2">"pending"</span><span class="p">,</span> <span class="s2">"success"</span><span class="p">]).</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+</code></pre></div></div>
 
-
-<p>First up is <code>*["pending", "success"]</code>. This code converts an array of strings to individual method arguments (i.e., <code>values_at("pending", "success")</code>.</p>
+<p>First up is <code class="language-plaintext highlighter-rouge">*["pending", "success"]</code>. This code converts an array of strings to individual method arguments (i.e., <code class="language-plaintext highlighter-rouge">values_at("pending", "success")</code>.</p>
 
 <p>This is pretty easy to handle. In the case where a splatted array is the only argument to a method, just use the elements of the array as the argument list. (Check out the <a href="https://github.com/presidentbeef/brakeman/pull/1564">pull request here</a>)</p>
 
 <p>This gets us to:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Task</span><span class="o">.</span><span class="n">statuses</span><span class="o">.</span><span class="n">values_at</span><span class="p">(</span><span class="s2">&quot;pending&quot;</span><span class="p">,</span> <span class="s2">&quot;success&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Task</span><span class="p">.</span><span class="nf">statuses</span><span class="p">.</span><span class="nf">values_at</span><span class="p">(</span><span class="s2">"pending"</span><span class="p">,</span> <span class="s2">"success"</span><span class="p">).</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+</code></pre></div></div>
 
 <p>Better!</p>
 
-<h2>Hash Values</h2>
+<h2 id="hash-values">Hash Values</h2>
 
-<p>In this case, <code>values_at</code> is <a href="https://rdoc.info/stdlib/core/Hash:values_at"><code>Hash#values_at</code></a> - it returns an array of values from the hash table for the given keys.</p>
+<p>In this case, <code class="language-plaintext highlighter-rouge">values_at</code> is <a href="https://rdoc.info/stdlib/core/Hash:values_at"><code class="language-plaintext highlighter-rouge">Hash#values_at</code></a> - it returns an array of values from the hash table for the given keys.</p>
 
-<p>This is also not too difficult to implement. I went ahead and covered <code>Hash#values</code> at the same time. (Check out the <a href="https://github.com/presidentbeef/brakeman/pull/1595">pull request here</a>)</p>
+<p>This is also not too difficult to implement. I went ahead and covered <code class="language-plaintext highlighter-rouge">Hash#values</code> at the same time. (Check out the <a href="https://github.com/presidentbeef/brakeman/pull/1595">pull request here</a>)</p>
 
 <p>Brakeman will now do something like this:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="n">h</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">a</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="ss">b</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="ss">c</span><span class="p">:</span> <span class="mi">3</span> <span class="p">}</span>
-</span><span class='line'><span class="n">h</span><span class="o">.</span><span class="n">values_at</span><span class="p">(</span><span class="ss">:a</span><span class="p">,</span> <span class="ss">:c</span><span class="p">)</span>  <span class="c1">#=&gt; [1, 3]</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">h</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">a: </span><span class="mi">1</span><span class="p">,</span> <span class="ss">b: </span><span class="mi">2</span><span class="p">,</span> <span class="ss">c: </span><span class="mi">3</span> <span class="p">}</span>
+<span class="n">h</span><span class="p">.</span><span class="nf">values_at</span><span class="p">(</span><span class="ss">:a</span><span class="p">,</span> <span class="ss">:c</span><span class="p">)</span>  <span class="c1">#=&gt; [1, 3]</span>
+</code></pre></div></div>
 
 <p>Great! Back to our code sample, how does it look now?</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Task</span><span class="o">.</span><span class="n">statuses</span><span class="o">.</span><span class="n">values_at</span><span class="p">(</span><span class="s2">&quot;pending&quot;</span><span class="p">,</span> <span class="s2">&quot;success&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Task</span><span class="p">.</span><span class="nf">statuses</span><span class="p">.</span><span class="nf">values_at</span><span class="p">(</span><span class="s2">"pending"</span><span class="p">,</span> <span class="s2">"success"</span><span class="p">).</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+</code></pre></div></div>
 
+<p>Oh… it looks exactly the same because Brakeman has no idea what <code class="language-plaintext highlighter-rouge">Task.statuses</code> is.</p>
 
-<p>Oh&#8230; it looks exactly the same because Brakeman has no idea what <code>Task.statuses</code> is.</p>
+<p>Okay, no problem. We just need to implement support for ActiveRecord’s <code class="language-plaintext highlighter-rouge">enum</code>.</p>
 
-<p>Okay, no problem. We just need to implement support for ActiveRecord&#8217;s <code>enum</code>.</p>
+<h2 id="detour">Detour!</h2>
 
-<h2>Detour!</h2>
-
-<p>Here I took a little detour. <code>Task.statuses</code> is a method that returns a hash value. Instead of just implementing that, I thought this would be a good time to support methods with single, simple return values.</p>
+<p>Here I took a little detour. <code class="language-plaintext highlighter-rouge">Task.statuses</code> is a method that returns a hash value. Instead of just implementing that, I thought this would be a good time to support methods with single, simple return values.</p>
 
 <p>For example:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Dog</span>
-</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">sound</span>
-</span><span class='line'>    <span class="s1">&#39;bark&#39;</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Dog</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">sound</span>
+    <span class="s1">'bark'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
 
-
-<p>If Brakeman could know that <code>Dog.sound</code> returns <code>'bark'</code>, I could implement enums as method definitions that return simple arrays or hashes. (More on this later!)</p>
+<p>If Brakeman could know that <code class="language-plaintext highlighter-rouge">Dog.sound</code> returns <code class="language-plaintext highlighter-rouge">'bark'</code>, I could implement enums as method definitions that return simple arrays or hashes. (More on this later!)</p>
 
 <p>To implement this functionality, I rewrote how Brakeman tracks methods (as real objects) and updated some method lookup code.</p>
 
-<p>The details aren&#8217;t particularly interesting, but the <a href="https://github.com/presidentbeef/brakeman/pull/1596">code changes are here</a>.</p>
+<p>The details aren’t particularly interesting, but the <a href="https://github.com/presidentbeef/brakeman/pull/1596">code changes are here</a>.</p>
 
-<h2>Back to Enums</h2>
+<h2 id="back-to-enums">Back to Enums</h2>
 
-<p>Calling <code>enum</code> essentially defines a bunch of methods.</p>
+<p>Calling <code class="language-plaintext highlighter-rouge">enum</code> essentially defines a bunch of methods.</p>
 
 <p>For example this code:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Task</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
-</span><span class='line'>  <span class="n">enum</span> <span class="ss">status</span><span class="p">:</span> <span class="p">{</span>
-</span><span class='line'>    <span class="ss">pending</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-</span><span class='line'>    <span class="ss">success</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-</span><span class='line'>    <span class="ss">failed</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-</span><span class='line'>  <span class="p">}</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Task</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="n">enum</span> <span class="ss">status: </span><span class="p">{</span>
+    <span class="ss">pending: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">success: </span><span class="mi">1</span><span class="p">,</span>
+    <span class="ss">failed: </span><span class="mi">3</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
 
 <p>Will define methods like</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Task</span><span class="o">.</span><span class="n">statuses</span> <span class="c1"># the one we care about!</span>
-</span><span class='line'><span class="no">Task</span><span class="o">.</span><span class="n">status</span>
-</span><span class='line'><span class="no">Task</span><span class="c1">#status</span>
-</span><span class='line'><span class="no">Task</span><span class="c1">#pending?</span>
-</span><span class='line'><span class="no">Task</span><span class="c1">#success?</span>
-</span><span class='line'><span class="c1"># ..etc.</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Task</span><span class="p">.</span><span class="nf">statuses</span> <span class="c1"># the one we care about!</span>
+<span class="no">Task</span><span class="p">.</span><span class="nf">status</span>
+<span class="no">Task</span><span class="c1">#status</span>
+<span class="no">Task</span><span class="c1">#pending?</span>
+<span class="no">Task</span><span class="c1">#success?</span>
+<span class="c1"># ..etc.</span>
+</code></pre></div></div>
 
 <p>You can pass in an explicit hash mapping keys to values or just an array of keys and Rails will do the mapping.</p>
 
-<p>To implement this in Brakeman, we simulate the creation of the <code>status</code> and <code>statuses</code> methods:</p>
+<p>To implement this in Brakeman, we simulate the creation of the <code class="language-plaintext highlighter-rouge">status</code> and <code class="language-plaintext highlighter-rouge">statuses</code> methods:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="k">class</span> <span class="nc">Task</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
-</span><span class='line'>  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">statuses</span>
-</span><span class='line'>    <span class="p">{</span>
-</span><span class='line'>      <span class="ss">pending</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-</span><span class='line'>      <span class="ss">success</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-</span><span class='line'>      <span class="ss">failed</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>  <span class="k">end</span>
-</span><span class='line'><span class="k">end</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Task</span> <span class="o">&lt;</span> <span class="no">ApplicationRecord</span>
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">statuses</span>
+    <span class="p">{</span>
+      <span class="ss">pending: </span><span class="mi">0</span><span class="p">,</span>
+      <span class="ss">success: </span><span class="mi">1</span><span class="p">,</span>
+      <span class="ss">failed: </span><span class="mi">3</span><span class="p">,</span>
+    <span class="p">}</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
 
+<p>Then rely on the previous changes for <code class="language-plaintext highlighter-rouge">Task.statuses</code> now returning a hash.</p>
 
-<p>Then rely on the previous changes for <code>Task.statuses</code> now returning a hash.</p>
+<h2 id="another-detour">Another Detour</h2>
 
-<h2>Another Detour</h2>
+<p>You might have noticed that the enum definition uses <code class="language-plaintext highlighter-rouge">status</code> but we need <code class="language-plaintext highlighter-rouge">statuses</code>.</p>
 
-<p>You might have noticed that the enum definition uses <code>status</code> but we need <code>statuses</code>.</p>
+<p>This required <a href="https://github.com/presidentbeef/brakeman/commit/c27f44ab8bf1d8dfad6c5e5908ba621ec067f9a7">a tiny tweak</a> to Brakeman’s extremely over-simplified <code class="language-plaintext highlighter-rouge">pluralize</code>.</p>
 
-<p>This required <a href="https://github.com/presidentbeef/brakeman/commit/c27f44ab8bf1d8dfad6c5e5908ba621ec067f9a7">a tiny tweak</a> to Brakeman&#8217;s extremely over-simplified <code>pluralize</code>.</p>
-
-<h2>Back to the False Positive</h2>
+<h2 id="back-to-the-false-positive">Back to the False Positive</h2>
 
 <p>Where are we now?</p>
 
-<p>With <code>enum</code> support and proper pluralization, this code:</p>
+<p>With <code class="language-plaintext highlighter-rouge">enum</code> support and proper pluralization, this code:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Task</span><span class="o">.</span><span class="n">statuses</span><span class="o">.</span><span class="n">values_at</span><span class="p">(</span><span class="o">*[</span><span class="s2">&quot;pending&quot;</span><span class="p">,</span> <span class="s2">&quot;success&quot;</span><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Task</span><span class="p">.</span><span class="nf">statuses</span><span class="p">.</span><span class="nf">values_at</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="s2">"pending"</span><span class="p">,</span> <span class="s2">"success"</span><span class="p">]).</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+</code></pre></div></div>
 
 <p>Gets reduced like this:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="ss">pending</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-</span><span class='line'>  <span class="ss">success</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-</span><span class='line'>  <span class="ss">failed</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-</span><span class='line'><span class="p">}</span><span class="o">.</span><span class="n">values_at</span><span class="p">(</span><span class="o">*[</span><span class="s2">&quot;pending&quot;</span><span class="p">,</span> <span class="s2">&quot;success&quot;</span><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
+  <span class="ss">pending: </span><span class="mi">0</span><span class="p">,</span>
+  <span class="ss">success: </span><span class="mi">1</span><span class="p">,</span>
+  <span class="ss">failed: </span><span class="mi">3</span><span class="p">,</span>
+<span class="p">}.</span><span class="nf">values_at</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="s2">"pending"</span><span class="p">,</span> <span class="s2">"success"</span><span class="p">]).</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+</code></pre></div></div>
 <p>to</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="p">{</span>
-</span><span class='line'>  <span class="ss">pending</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-</span><span class='line'>  <span class="ss">success</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-</span><span class='line'>  <span class="ss">failed</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-</span><span class='line'><span class="p">}</span><span class="o">.</span><span class="n">values_at</span><span class="p">(</span><span class="s2">&quot;pending&quot;</span><span class="p">,</span> <span class="s2">&quot;success&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
+  <span class="ss">pending: </span><span class="mi">0</span><span class="p">,</span>
+  <span class="ss">success: </span><span class="mi">1</span><span class="p">,</span>
+  <span class="ss">failed: </span><span class="mi">3</span><span class="p">,</span>
+<span class="p">}.</span><span class="nf">values_at</span><span class="p">(</span><span class="s2">"pending"</span><span class="p">,</span> <span class="s2">"success"</span><span class="p">).</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+</code></pre></div></div>
 <p>to</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="o">[</span><span class="ss">:BRAKEMAN_SAFE_LITERAL</span><span class="p">,</span> <span class="ss">:BRAKEMAN_SAFE_LITERAL</span><span class="o">].</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="ss">:BRAKEMAN_SAFE_LITERAL</span><span class="p">,</span> <span class="ss">:BRAKEMAN_SAFE_LITERAL</span><span class="p">].</span><span class="nf">join</span><span class="p">(</span><span class="s2">","</span><span class="p">)</span>
+</code></pre></div></div>
 <p>to</p>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s2">"BRAKEMAN_SAFE_LITERAL,BRAKEMAN_SAFE_LITERAL"</span>
+</code></pre></div></div>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="s2">&quot;BRAKEMAN_SAFE_LITERAL,BRAKEMAN_SAFE_LITERAL&quot;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Well&#8230; it&#8217;s not perfect. Note that the array values are strings, but our enum uses symbol keys. But Brakeman knows the enum is all literal values which are safe, so we end up with this.</p>
+<p>Well… it’s not perfect. Note that the array values are strings, but our enum uses symbol keys. But Brakeman knows the enum is all literal values which are safe, so we end up with this.</p>
 
 <p>The query now looks like:</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="no">Task</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">select_all</span><span class="p">(</span>
-</span><span class='line'>  <span class="s2">&quot;SELECT COUNT(*) \</span>
-</span><span class='line'><span class="s2">  FROM `filings` \</span>
-</span><span class='line'><span class="s2">  WHERE `filings`.`status` NOT IN (</span><span class="si">#{</span><span class="s2">&quot;BRAKEMAN_SAFE_LITERAL,BRAKEMAN_SAFE_LITERAL&quot;</span><span class="si">}</span><span class="s2">) \</span>
-</span><span class='line'><span class="s2">  AND `filings`.`time_end` BETWEEN </span><span class="si">#{</span><span class="no">Date</span><span class="o">.</span><span class="n">beginning_of_quarter</span><span class="si">}</span><span class="s2"> \</span>
-</span><span class='line'><span class="s2">  AND </span><span class="si">#{</span><span class="no">Date</span><span class="o">.</span><span class="n">end_of_quarter</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span class='line'><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">Task</span><span class="p">.</span><span class="nf">connection</span><span class="p">.</span><span class="nf">select_all</span><span class="p">(</span>
+  <span class="s2">"SELECT COUNT(*) \
+  FROM `filings` \
+  WHERE `filings`.`status` NOT IN (</span><span class="si">#{</span><span class="s2">"BRAKEMAN_SAFE_LITERAL,BRAKEMAN_SAFE_LITERAL"</span><span class="si">}</span><span class="s2">) \
+  AND `filings`.`time_end` BETWEEN </span><span class="si">#{</span><span class="no">Date</span><span class="p">.</span><span class="nf">beginning_of_quarter</span><span class="si">}</span><span class="s2"> \
+  AND </span><span class="si">#{</span><span class="no">Date</span><span class="p">.</span><span class="nf">end_of_quarter</span><span class="si">}</span><span class="s2">"</span>
+<span class="p">)</span>
+</code></pre></div></div>
 
+<p>Again, not perfect but at least Brakeman isn’t going to warn about interpolating a string literal into the query.</p>
 
-<p>Again, not perfect but at least Brakeman isn&#8217;t going to warn about interpolating a string literal into the query.</p>
-
-<h2>Not Done Yet</h2>
+<h2 id="not-done-yet">Not Done Yet</h2>
 
 <p>Ah, but wait. The warning is not gone!</p>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='ruby'><span class='line'><span class="ss">Confidence</span><span class="p">:</span> <span class="no">Medium</span>
-</span><span class='line'><span class="ss">Category</span><span class="p">:</span> <span class="no">SQL</span> <span class="no">Injection</span>
-</span><span class='line'><span class="ss">Check</span><span class="p">:</span> <span class="no">SQL</span>
-</span><span class='line'><span class="ss">Message</span><span class="p">:</span> <span class="no">Possible</span> <span class="no">SQL</span> <span class="n">injection</span>
-</span><span class='line'><span class="ss">Code</span><span class="p">:</span> <span class="no">Task</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">select_all</span><span class="p">(</span><span class="s2">&quot;SELECT COUNT(*)</span><span class="se">\n</span><span class="s2">FROM `filings`</span><span class="se">\n</span><span class="s2">WHERE `filings`.`status` NOT IN (</span><span class="si">#{</span><span class="s2">&quot;BRAKEMAN_SAFE_LITERAL,BRAKEMAN_SAFE_LITERAL&quot;</span><span class="si">}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">AND `filings`.`time_end` BETWEEN </span><span class="si">#{</span><span class="no">Date</span><span class="o">.</span><span class="n">beginning_of_quarter</span><span class="si">}</span><span class="s2"> AND </span><span class="si">#{</span><span class="no">Date</span><span class="o">.</span><span class="n">end_of_quarter</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span class='line'><span class="ss">File</span><span class="p">:</span> <span class="n">app</span><span class="o">/</span><span class="n">models</span><span class="o">/</span><span class="n">task</span><span class="o">.</span><span class="n">rb</span>
-</span><span class='line'><span class="ss">Line</span><span class="p">:</span> <span class="mi">25</span>
-</span></code></pre></td></tr></table></div></figure>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Confidence: Medium
+Category: SQL Injection
+Check: SQL
+Message: Possible SQL injection
+Code: Task.connection.select_all("SELECT COUNT(*)\nFROM `filings`\nWHERE `filings`.`status` NOT IN (#{"BRAKEMAN_SAFE_LITERAL,BRAKEMAN_SAFE_LITERAL"})\nAND `filings`.`time_end` BETWEEN #{Date.beginning_of_quarter} AND #{Date.end_of_quarter}\n")
+File: app/models/task.rb
+Line: 25
+</code></pre></div></div>
 
+<p>What’s wrong now?</p>
 
-<p>What&#8217;s wrong now?</p>
+<p>Brakeman doesn’t know what <code class="language-plaintext highlighter-rouge">Date.beginning_of_quarter</code> or <code class="language-plaintext highlighter-rouge">Date.end_of_quarter</code> are, so it generates a lower confidence warning about it. For SQL injection, Brakeman is pretty paranoid about any string interpolation, even if it’s not sure the values are “dangerous”.</p>
 
-<p>Brakeman doesn&#8217;t know what <code>Date.beginning_of_quarter</code> or <code>Date.end_of_quarter</code> are, so it generates a lower confidence warning about it. For SQL injection, Brakeman is pretty paranoid about any string interpolation, even if it&#8217;s not sure the values are &#8220;dangerous&#8221;.</p>
+<p>But anything coming from <code class="language-plaintext highlighter-rouge">Date</code> is likely to be safe, so now <a href="https://github.com/presidentbeef/brakeman/pull/1615">Brakeman ignores <code class="language-plaintext highlighter-rouge">Date</code> calls in SQL</a>.</p>
 
-<p>But anything coming from <code>Date</code> is likely to be safe, so now <a href="https://github.com/presidentbeef/brakeman/pull/1615">Brakeman ignores <code>Date</code> calls in SQL</a>.</p>
-
-<h2>Whew. Done?</h2>
+<h2 id="whew-done">Whew. Done?</h2>
 
 <p>Yep - now that code will no longer warn.</p>
 
-<p>Except&#8230; in the months it took me to address this false positive, the code has changed in such a way that Brakeman now has a false <em>negative</em> problem (should be warning about some things, but isn&#8217;t). But that&#8217;s a different problem for a different day.</p>
+<p>Except… in the months it took me to address this false positive, the code has changed in such a way that Brakeman now has a false <em>negative</em> problem (should be warning about some things, but isn’t). But that’s a different problem for a different day.</p>
 
 <p>At least that one false positive is fixed!</p>
-</div>
 
-
-  <footer>
-    <p class="meta">
-      
-  
-
-<span class="byline author vcard">Posted by <span class="fn"><a href="/about" title="About the author (Justin Collins)" rel="author">Justin Collins</a></span></span>
-
-      
-
-
-
-
-
-
-
-
-  
-
-
-<time datetime="2021-11-08T11:30:00-08:00" pubdate data-updated="true">Nov 8<span>th</span>, 2021</time>
-      
-
-
-    </p>
-    
-      <div class="sharing">
-  
-  <a href="http://twitter.com/share" class="twitter-share-button" data-url="https://blog.presidentbeef.com/blog/2021/11/08/fixing-just-one-false-positive-in-brakeman/" data-via="presidentbeef" data-counturl="https://blog.presidentbeef.com/blog/2021/11/08/fixing-just-one-false-positive-in-brakeman/" >Tweet</a>
-  
-  
-  
-</div>
-
-    
-    <p class="meta">
-      
-        <a class="basic-alignment left" href="/blog/2021/07/21/rails-6-dot-1-sql-injection-updates/" title="Previous Post: Rails 6.1 SQL Injection Updates">&laquo; Rails 6.1 SQL Injection Updates</a>
-      
-      
-        <a class="basic-alignment right" href="/blog/2022/01/05/api-levels-in-dragonruby-game-toolkit/" title="next Post: API Levels in DragonRuby Game Toolkit">API Levels in DragonRuby Game Toolkit &raquo;</a>
-      
-    </p>
-  </footer>
+  </div><a class="u-url" href="/blog/2021/11/08/fixing-just-one-false-positive-in-brakeman/" hidden></a>
 </article>
 
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Justin&#39;s Blurgh</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/presidentbeef"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">presidentbeef</span></a></li></ul>
 </div>
-  </section>
 
-</div>
-
-
+      <div class="footer-col footer-col-3">
+      </div>
     </div>
+
   </div>
-  <footer role="contentinfo"><p>
-  Copyright &copy; 2022 - Justin Collins -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span> -
-  <span class="credit">Theme by <a href="http://aron.cedercrantz.com/">Aron Cedercrantz</a></span>
-</p>
 
 </footer>
-  
-
-<script type="text/javascript">
-      var disqus_shortname = 'presidentbeefblog';
-      
-        
-        // var disqus_developer = 1;
-        var disqus_identifier = 'https://blog.presidentbeef.com/blog/2021/11/08/fixing-just-one-false-positive-in-brakeman/';
-        var disqus_url = 'https://blog.presidentbeef.com/blog/2021/11/08/fixing-just-one-false-positive-in-brakeman/';
-        var disqus_script = 'embed.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = 'https://' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
-
-
-
-
-
-
-
-  <script type="text/javascript">
-    (function(){
-      var twitterWidgets = document.createElement('script');
-      twitterWidgets.type = 'text/javascript';
-      twitterWidgets.async = true;
-      twitterWidgets.src = 'https://platform.twitter.com/widgets.js';
-      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
-    })();
-  </script>
-
-
-
-
-
 </body>
+
 </html>
