@@ -1,0 +1,10 @@
+{% capture date %}{{ page.date }}{{ post.date }}{% endcapture %}
+{% capture date_formatted %}{{ post.date | date_to_string: "ordinal", "US" }}{% endcapture %}
+{% capture has_date %}{{ date | size }}{% endcapture %}
+
+{% capture updated %}{{ page.updated }}{{ post.updated }}{% endcapture %}
+{% capture updated_formatted %}{{ page.updated_formatted }}{{ post.updated_formatted }}{% endcapture %}
+
+{% if has_date != '0' %}
+  {% capture time %}<time datetime="{{ date | datetime | date_to_xmlschema }}" pubdate{% if updated %} data-updated="true"{% endif %} style="color: #a2a2a2">{{ date_formatted }}</time>{% endcapture %}
+{% endif %}
