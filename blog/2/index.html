@@ -45,6 +45,191 @@
       
   <header>
     
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2023/12/22/dragonruby-following-the-mouse/">DragonRuby: Following the Mouse</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2023-12-22T14:18:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Dec 22nd, 2023</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Recently I discovered it is very easy to have objects move towards (or away from) any points in <a href="https://dragonruby.org/toolkit/game">DragonRuby</a>.</p>
+
+<p>This post might be a little easier if you’ve already read my post on <a href="https://dev.to/presidentbeef/dragonruby-moving-in-arbitrary-directions-5eja">moving in arbitrary directions</a>, but actually the code here is even simpler.</p>
+
+<p>If I skip any explanations here, the concepts should have been covered <a href="https://dev.to/presidentbeef/series/16166">earlier in the series</a>.</p>
+
+<h3 id="setup">Setup</h3>
+
+<p>To get started, let’s just output a square (roughly) in the middle of the screen.</p>
+
+<p><code class="language-plaintext highlighter-rouge">args.grid.center_x</code> and <code class="language-plaintext highlighter-rouge">args.grid.center_y</code> are helpful for this instead of remembering/hardcoding the screen size.</p>
+
+<p>In addition, the code uses <code class="language-plaintext highlighter-rouge">args.state.tick_count == 0</code> to do some setup on the first tick.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+  <span class="c1"># On the first tick...</span>
+  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="c1"># Create a 50x50 pixel square in the middle of the screen</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span> <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span><span class="p">,</span> <span class="ss">h: </span><span class="mi">50</span><span class="p">,</span> <span class="ss">w: </span><span class="mi">50</span><span class="p">}</span>
+
+    <span class="c1"># Output that square on every tick</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">static_solids</span> <span class="o">&lt;&lt;</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/durocwoj9tj6uzzfdp5x.png" alt="A square in the middle of a window" /></p>
+
+<p>Pretty basic!</p>
+
+<p>(Note I’m skipping straight to <a href="https://dev.to/presidentbeef/dragonruby-static-outputs-p2c"><code class="language-plaintext highlighter-rouge">static_solids</code></a> because that’s what I’d prefer in a “real” game.)</p>
+
+<h3 id="moving-to-a-point">Moving to a Point</h3>
+
+<p>Now we’ll move the “player” to a given point - in this case where the mouse is. In typical DragonRuby fashion, <code class="language-plaintext highlighter-rouge">args.inputs.mouse</code> can be used to as a point, even though it has a bunch of other information attached to it.</p>
+
+<p>To get the angle from the player to the mouse, there is a very convenient <code class="language-plaintext highlighter-rouge">angle_to</code> method! (Also <code class="language-plaintext highlighter-rouge">angle_from</code> depending on which way you’d like to go.)</p>
+
+<p>Just like <code class="language-plaintext highlighter-rouge">args.inputs.mouse</code>, the <code class="language-plaintext highlighter-rouge">player</code> solid can be treated as if it is a point, too.</p>
+
+<p>One the angle is calculated, <code class="language-plaintext highlighter-rouge">vector_x</code> and <code class="language-plaintext highlighter-rouge">vector_y</code> will provide the magnitude to move in the <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> directions.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span>
+      <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span><span class="p">,</span>
+      <span class="ss">h: </span><span class="mi">50</span><span class="p">,</span>
+      <span class="ss">w: </span><span class="mi">50</span>
+    <span class="p">}</span>
+
+    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">static_solids</span> <span class="o">&lt;&lt;</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Find angle from the square to the current location of the mouse</span>
+  <span class="n">angle</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span><span class="p">.</span><span class="nf">angle_to</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">inputs</span><span class="p">.</span><span class="nf">mouse</span><span class="p">)</span>
+  
+  <span class="c1"># Move towards the mouse using the unit vector</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span><span class="p">.</span><span class="nf">x</span> <span class="o">+=</span> <span class="n">angle</span><span class="p">.</span><span class="nf">vector_x</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span><span class="p">.</span><span class="nf">y</span> <span class="o">+=</span> <span class="n">angle</span><span class="p">.</span><span class="nf">vector_y</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/rh6qfnxypx8f744jrkww.gif" alt="Square following the mouse around" /></p>
+
+<p>And… that’s it!! Less than 10 lines of code (without comments/spaces) and it just works.</p>
+
+<p><em>So now let’s make it more complicated…</em></p>
+
+<h3 id="centering">Centering</h3>
+
+<p>It is annoying that the player moves so the <em>bottom, right-hand</em> corner meets the mouse, there is a simple fix: use <code class="language-plaintext highlighter-rouge">anchor_x</code> and <code class="language-plaintext highlighter-rouge">anchor_y</code>. DragonRuby will automatically use the anchor point for calculations.</p>
+
+<p>To learn more about anchor points, see this <a href="https://dev.to/presidentbeef/smoothly-growing-and-shrinking-sprites-in-dragonruby-53d1">earlier post</a>. But typically the values are set to <code class="language-plaintext highlighter-rouge">0.5</code> which means “middle of the object”.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span>
+      <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span><span class="p">,</span>
+      <span class="ss">h: </span><span class="mi">50</span><span class="p">,</span>
+      <span class="ss">w: </span><span class="mi">50</span><span class="p">,</span>
+      <span class="ss">anchor_x: </span><span class="mf">0.5</span><span class="p">,</span>
+      <span class="ss">anchor_y: </span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">static_solids</span> <span class="o">&lt;&lt;</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span>
+  <span class="k">end</span>
+
+  <span class="n">angle</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span><span class="p">.</span><span class="nf">angle_to</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">inputs</span><span class="p">.</span><span class="nf">mouse</span><span class="p">)</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span><span class="p">.</span><span class="nf">x</span> <span class="o">+=</span> <span class="n">angle</span><span class="p">.</span><span class="nf">vector_x</span>
+  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span><span class="p">.</span><span class="nf">y</span> <span class="o">+=</span> <span class="n">angle</span><span class="p">.</span><span class="nf">vector_y</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/0brhvw3f6clhe1jizpjf.gif" alt="Square following the mouse around, but centered" /></p>
+
+<h3 id="moving-to-classes">Moving to Classes</h3>
+
+<p>I continue to prefer taking an object/class-based approach in my own code. This makes it much easier to manage as the code grows larger, even if it seems silly for these small examples.</p>
+
+<p>In a little departure from previous posts, I am not walking through the code in detail. (Please check out my other posts in this series to learn more!)</p>
+
+<p>The main difference from the above is adding a <code class="language-plaintext highlighter-rouge">speed</code> to the movement calculation. Other than that, this is how I generally move from simple code like the above into a structure more suitable (in my opinion) as the code.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Game</span>
+  <span class="n">attr_gtk</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="c1"># Separate setup method is easier if you need to</span>
+    <span class="c1"># reset during the game</span>
+    <span class="n">setup</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="c1"># Since static_sprites persists between ticks,</span>
+    <span class="c1"># need to clear it in case of reset</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">static_sprites</span><span class="p">.</span><span class="nf">clear</span>
+
+    <span class="vi">@player</span> <span class="o">=</span> <span class="no">Player</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span> <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span><span class="p">,</span> <span class="ss">h: </span><span class="mi">50</span><span class="p">,</span> <span class="ss">w: </span><span class="mi">50</span><span class="p">,</span> <span class="ss">speed: </span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">static_sprites</span> <span class="o">&lt;&lt;</span> <span class="vi">@player</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="vi">@player</span><span class="p">.</span><span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">Player</span>
+  <span class="n">attr_sprite</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">x</span><span class="p">:,</span> <span class="n">y</span><span class="p">:,</span> <span class="n">h</span><span class="p">:,</span> <span class="n">w</span><span class="p">:,</span> <span class="n">speed</span><span class="p">:)</span>
+    <span class="vi">@x</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="vi">@y</span> <span class="o">=</span> <span class="n">y</span>
+    <span class="vi">@h</span> <span class="o">=</span> <span class="n">h</span>
+    <span class="vi">@w</span> <span class="o">=</span> <span class="n">w</span>
+    <span class="vi">@anchor_x</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="vi">@anchor_y</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="vi">@speed</span> <span class="o">=</span> <span class="n">speed</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="nf">angle_to</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">inputs</span><span class="p">.</span><span class="nf">mouse</span><span class="p">)</span>
+
+    <span class="vi">@x</span> <span class="o">+=</span> <span class="n">angle</span><span class="p">.</span><span class="nf">vector_x</span> <span class="o">*</span> <span class="vi">@speed</span>
+    <span class="vi">@y</span> <span class="o">+=</span> <span class="n">angle</span><span class="p">.</span><span class="nf">vector_y</span> <span class="o">*</span> <span class="vi">@speed</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+  <span class="vg">$Game</span> <span class="o">||=</span> <span class="no">Game</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+  <span class="vg">$Game</span><span class="p">.</span><span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>One minor note if you actually run this code - the square will be white (default for sprites) instead of black (default for solids).</p>
+</div>
+
+
+    </article>
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
       <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2023/07/06/dragonruby-smoothly-growing-and-shrinking-sprites/">DragonRuby: Smoothly Growing and Shrinking Sprites</a></h1>
     
     
@@ -679,230 +864,6 @@
 <h2 id="conclusion">Conclusion</h2>
 
 <p>And there we go. In less than 50 lines of code and with no complicated math, we can move an object around in arbitrary directions!</p>
-</div>
-
-
-    </article>
-  
-  
-    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
-      
-  <header>
-    
-      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2022/06/26/dragonruby-basic-sprite-animation/">DragonRuby: Basic Sprite Animation</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-<time datetime="2022-06-26T14:11:00-06:00" pubdate data-updated="true" style="color: #a2a2a2">Jun 26th, 2022</time>
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Animating sprites in <a href="https://dragonruby.org/">DragonRuby</a> is fairly simple, but it does require putting a couple ideas together.</p>
-
-<p>First, it’s best to have a single image with all frames of the animation together, equally spaced apart. I prefer the frames are arranged horizontally from left-to-right, so that is what we will use here.</p>
-
-<p>Here is an example, <a href="https://kenney.nl/assets/toon-characters-1">borrowed from here</a>:</p>
-
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/jv9eg653bi1mdwk3ea8m.png" alt="Animation frames of a walking adventurer" /></p>
-
-<p>The first frame can be displayed like this:</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
-  <span class="n">height</span> <span class="o">=</span> <span class="mi">195</span>
-  <span class="n">width</span> <span class="o">=</span> <span class="mi">192</span>
-
-  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
-    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span> <span class="o">-</span> <span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
-    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span> <span class="o">-</span> <span class="p">(</span><span class="n">height</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
-    <span class="ss">h: </span><span class="n">height</span><span class="p">,</span>
-    <span class="ss">w: </span><span class="n">width</span><span class="p">,</span>
-    <span class="ss">source_x: </span><span class="mi">0</span><span class="p">,</span>
-    <span class="ss">source_y: </span><span class="mi">0</span><span class="p">,</span>
-    <span class="ss">source_w: </span><span class="n">width</span><span class="p">,</span>
-    <span class="ss">source_h: </span><span class="n">height</span><span class="p">,</span>
-    <span class="ss">path: </span><span class="s1">'sprites/walking.png'</span><span class="p">,</span>
-  <span class="p">}</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">source_x</code> and <code class="language-plaintext highlighter-rouge">source_y</code> set the <em>bottom left</em> corner of a “tile” or basically a slice of the image. (To use the <em>top</em> left instead, set <code class="language-plaintext highlighter-rouge">tile_x</code> and <code class="language-plaintext highlighter-rouge">tile_y</code>). <code class="language-plaintext highlighter-rouge">source_w</code> and <code class="language-plaintext highlighter-rouge">source_h</code> set the width and height of the tile. The sprite can be scaled when displayed with <code class="language-plaintext highlighter-rouge">w</code> and <code class="language-plaintext highlighter-rouge">h</code>.</p>
-
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/a4t2zh97adawgjgo5em8.png" alt="Single frame of adventurer" /></p>
-
-<p>If the frames are laid out horizontally, then all one needs to do is update the <code class="language-plaintext highlighter-rouge">source_x</code> value (typically by the width of the tile) in order to change the frame.</p>
-
-<p>Here is an illustration for a few frames:</p>
-
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/9w8p5wzlp482b8c6gg8k.png" alt="Frame index illustration" /></p>
-
-<p>We could accomplish this by using the multiplying the width of the tile by the current tick (modulo the number of frames, so it loops):</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
-  <span class="n">height</span> <span class="o">=</span> <span class="mi">195</span>
-  <span class="n">width</span> <span class="o">=</span> <span class="mi">192</span>
-  <span class="n">num_frames</span> <span class="o">=</span> <span class="mi">8</span>
-
-  <span class="n">source_x</span> <span class="o">=</span> <span class="n">width</span> <span class="o">*</span> <span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">%</span> <span class="n">num_frames</span><span class="p">)</span>
-
-  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
-    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span> <span class="o">-</span> <span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
-    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span> <span class="o">-</span> <span class="p">(</span><span class="n">height</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
-    <span class="ss">h: </span><span class="n">height</span><span class="p">,</span>
-    <span class="ss">w: </span><span class="n">width</span><span class="p">,</span>
-    <span class="ss">source_x: </span><span class="n">source_x</span><span class="p">,</span>
-    <span class="ss">source_y: </span><span class="mi">0</span><span class="p">,</span>
-    <span class="ss">source_w: </span><span class="n">width</span><span class="p">,</span>
-    <span class="ss">source_h: </span><span class="n">height</span><span class="p">,</span>
-    <span class="ss">path: </span><span class="s1">'sprites/walking.png'</span><span class="p">,</span>
-  <span class="p">}</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<p>This works… but it’s a bit fast for a walk!</p>
-
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/aeeeimw4tx4a9gjg9egh.gif" alt="Very fast walk" /></p>
-
-<p>This is where DragonRuby helps out. The <a href="https://docs.dragonruby.org/#/api/numeric?id=frame_index"><code class="language-plaintext highlighter-rouge">frame_index</code> method</a> will do the calculation of the current frame for us.</p>
-
-<p><code class="language-plaintext highlighter-rouge">frame_index</code> accepts these arguments:</p>
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">count</code>: total number of frames in the animation</li>
-  <li><code class="language-plaintext highlighter-rouge">hold_for</code>: how many ticks to wait between frames</li>
-  <li><code class="language-plaintext highlighter-rouge">repeat</code>: whether or not to loop</li>
-</ul>
-
-<p><code class="language-plaintext highlighter-rouge">frame_index</code> can be called on any integer, but typically uses the tick number on which the animation started. Below, the code sets this to <code class="language-plaintext highlighter-rouge">0</code> (the first tick). This could instead be when an event happens, based on input, or anything else.</p>
-
-<p>Multiplying the <code class="language-plaintext highlighter-rouge">width</code> of the tile by the frame index results in the <code class="language-plaintext highlighter-rouge">source_x</code> value for the current frame of the animation:</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
-  <span class="n">height</span> <span class="o">=</span> <span class="mi">195</span>
-  <span class="n">width</span> <span class="o">=</span> <span class="mi">192</span>
-  <span class="n">num_frames</span> <span class="o">=</span> <span class="mi">8</span>
-  <span class="n">start_tick</span> <span class="o">=</span> <span class="mi">0</span>
-  <span class="n">delay</span> <span class="o">=</span> <span class="mi">4</span>
-
-  <span class="n">source_x</span> <span class="o">=</span> <span class="n">width</span> <span class="o">*</span> <span class="n">start_tick</span><span class="p">.</span><span class="nf">frame_index</span><span class="p">(</span><span class="ss">count: </span><span class="n">num_frames</span><span class="p">,</span> <span class="ss">hold_for: </span><span class="n">delay</span><span class="p">,</span> <span class="ss">repeat: </span><span class="kp">true</span><span class="p">)</span>
-
-  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
-    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span> <span class="o">-</span> <span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
-    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span> <span class="o">-</span> <span class="p">(</span><span class="n">height</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
-    <span class="ss">h: </span><span class="n">height</span><span class="p">,</span>
-    <span class="ss">w: </span><span class="n">width</span><span class="p">,</span>
-    <span class="ss">source_x: </span><span class="n">source_x</span><span class="p">,</span>
-    <span class="ss">source_y: </span><span class="mi">0</span><span class="p">,</span>
-    <span class="ss">source_w: </span><span class="n">width</span><span class="p">,</span>
-    <span class="ss">source_h: </span><span class="n">height</span><span class="p">,</span>
-    <span class="ss">path: </span><span class="s1">'sprites/walking.png'</span><span class="p">,</span>
-  <span class="p">}</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/7wnj69rllj4561g02hvg.gif" alt="Slower walk" /></p>
-
-<p>And that’s it!</p>
-
-<h2 id="but-with-ruby-classes">But With Ruby Classes</h2>
-
-<p>Once a game starts to get moderately complex, I like to arrange behavior into classes. It’s also convenient to use <code class="language-plaintext highlighter-rouge">attr_gtk</code> to avoid passing <code class="language-plaintext highlighter-rouge">args</code> around and to save on some typing (e.g. <code class="language-plaintext highlighter-rouge">args.outputs</code> becomes just <code class="language-plaintext highlighter-rouge">outputs</code>).</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">MyGame</span>
-  <span class="n">attr_gtk</span>
-
-  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-    <span class="vi">@my_sprite</span> <span class="o">=</span> <span class="no">MySprite</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span><span class="p">)</span>
-    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">static_sprites</span> <span class="o">&lt;&lt;</span> <span class="vi">@my_sprite</span>
-  <span class="k">end</span>
-
-  <span class="k">def</span> <span class="nf">tick</span>
-    <span class="k">if</span> <span class="n">inputs</span><span class="p">.</span><span class="nf">mouse</span><span class="p">.</span><span class="nf">click</span>
-      <span class="k">if</span> <span class="vi">@my_sprite</span><span class="p">.</span><span class="nf">running?</span>
-        <span class="vi">@my_sprite</span><span class="p">.</span><span class="nf">stop</span>
-      <span class="k">else</span>
-        <span class="vi">@my_sprite</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">tick_count</span><span class="p">)</span>
-      <span class="k">end</span>
-    <span class="k">end</span>
-
-    <span class="vi">@my_sprite</span><span class="p">.</span><span class="nf">update</span>
-  <span class="k">end</span>
-<span class="k">end</span>
-
-<span class="k">class</span> <span class="nc">MySprite</span>
-  <span class="n">attr_sprite</span>
-
-  <span class="k">def</span> <span class="nf">initialize</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
-    <span class="vi">@x</span> <span class="o">=</span> <span class="n">x</span>
-    <span class="vi">@y</span> <span class="o">=</span> <span class="n">y</span>
-
-    <span class="vi">@w</span> <span class="o">=</span> <span class="mi">192</span>
-    <span class="vi">@h</span> <span class="o">=</span> <span class="mi">195</span>
-    <span class="vi">@source_x</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="vi">@source_y</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="vi">@source_w</span> <span class="o">=</span> <span class="vi">@w</span>
-    <span class="vi">@source_h</span> <span class="o">=</span> <span class="vi">@h</span>
-    <span class="vi">@path</span> <span class="o">=</span> <span class="s1">'sprites/walking.png'</span>
-
-    <span class="vi">@running</span> <span class="o">=</span> <span class="kp">false</span>
-  <span class="k">end</span>
-
-  <span class="c1"># Set @running to the current tick number</span>
-  <span class="c1"># this is so the frame_index can use that as the</span>
-  <span class="c1"># start of the animation timing.</span>
-  <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">tick_count</span><span class="p">)</span>
-    <span class="vi">@running</span> <span class="o">=</span> <span class="n">tick_count</span>
-  <span class="k">end</span>
-
-  <span class="k">def</span> <span class="nf">stop</span>
-    <span class="vi">@running</span> <span class="o">=</span> <span class="kp">false</span>
-  <span class="k">end</span>
-
-  <span class="k">def</span> <span class="nf">running?</span>
-    <span class="vi">@running</span>
-  <span class="k">end</span>
-
-  <span class="c1"># Update source_x based on frame_index</span>
-  <span class="c1"># if currently running</span>
-  <span class="k">def</span> <span class="nf">update</span>
-    <span class="k">if</span> <span class="vi">@running</span>
-      <span class="vi">@source_x</span> <span class="o">=</span> <span class="vi">@source_w</span> <span class="o">*</span> <span class="vi">@running</span><span class="p">.</span><span class="nf">frame_index</span><span class="p">(</span><span class="ss">count: </span><span class="mi">8</span><span class="p">,</span> <span class="ss">hold_for: </span><span class="mi">4</span><span class="p">,</span> <span class="ss">repeat: </span><span class="kp">true</span><span class="p">)</span>
-    <span class="k">end</span>
-  <span class="k">end</span>
-<span class="k">end</span>
-
-<span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
-  <span class="vg">$my_game</span> <span class="o">||=</span> <span class="no">MyGame</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-  <span class="vg">$my_game</span><span class="p">.</span><span class="nf">args</span> <span class="o">=</span> <span class="n">args</span>
-  <span class="vg">$my_game</span><span class="p">.</span><span class="nf">tick</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<p>This example essentially follows my <a href="https://dev.to/presidentbeef/dragonruby-object-oriented-starter-3plg">Object-Oriented Starter</a> approach and moves the logic into a game class and a sprite class.</p>
-
-<p>When the mouse is clicked, the sprite starts moving (using the current <code class="language-plaintext highlighter-rouge">tick_count</code> as the starting tick). When the mouse is clicked again, the sprite stops.</p>
-
-<h2 id="source-vs-tile">Source vs. Tile</h2>
-
-<p>To use just a piece of an image (for animations or otherwise), there are two options: <code class="language-plaintext highlighter-rouge">source_(x|y|h|w)</code> or <code class="language-plaintext highlighter-rouge">tile_(x|y|h|w)</code>.</p>
-
-<p>These options are nearly identical, except <code class="language-plaintext highlighter-rouge">source_y</code> is bottom left and <code class="language-plaintext highlighter-rouge">tile_y</code> is top left.</p>
-
-<p>The <code class="language-plaintext highlighter-rouge">source_</code> options were added in DragonRuby 1.6 and are more consistent with the rest of DragonRuby where the origin is the bottom left. On the other hand, the <code class="language-plaintext highlighter-rouge">tile_</code> options align easier with image editors.</p>
-
-<p>Either option works, depending on what is important to you.</p>
-
-<h2 id="go">Go!</h2>
-
-<p>Now that’s really it! Get moving!</p>
 </div>
 
 

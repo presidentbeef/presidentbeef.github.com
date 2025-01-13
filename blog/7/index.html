@@ -45,6 +45,170 @@
       
   <header>
     
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2020/01/14/injection-prevention-sanitizing-vs-escaping/">Sanitizing, Escaping, and Encoding</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2020-01-14T14:24:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Jan 14th, 2020</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><em>“We need to sanitize this data”</em> is a phrase I have heard too many times in the context of web security.
+It always makes me a little nervous.</p>
+
+<p>The implication of the term “sanitize” is somehow cleaning the data or rendering it “safe”.
+But the details of how that safety is achieved are a little vague.</p>
+
+<p>Often it means simply searching for a function containing <code class="language-plaintext highlighter-rouge">sanitize</code> and blindly using that function.</p>
+
+<p>That is usually the wrong thing!</p>
+
+<h3 id="injection-vulnerabilities">Injection Vulnerabilities</h3>
+
+<p>Injection vulnerabilities, including <a href="https://www.owasp.org/index.php/Top_10-2017_A7-Cross-Site_Scripting_\(XSS\)">cross-site scripting</a>, are a <a href="https://www.owasp.org/index.php/Top_10-2017_Top_10">top category of web vulnerabilities</a>.</p>
+
+<p>The root cause of injection vulnerabilities is the mixing of code and data which is then handed to a parser (the browser, database driver, shell, etc).
+Injection is possible when the data is treated as code.</p>
+
+<p>(<a href="https://youtu.be/g_24036NDhM">See my talk about injection for a deeper dive!</a>)</p>
+
+<p>Since proper escaping or sanitization is the mitigation for injection vulnerabilities, it is important to have a clear understanding of what those terms mean.</p>
+
+<h3 id="escaping">Escaping</h3>
+
+<p>The term “escaping” originates from situations where text is being interpreted in some mode
+and we want to “escape” from that mode into a different mode.</p>
+
+<p>For example, there are <a href="https://en.wikipedia.org/wiki/ANSI_escape_code">ANSI “escape codes”</a>
+to tell your terminal to switch from a text mode to interpreting a sequence of control characters.</p>
+
+<p>The more common situation is when a developer needs to tell a parser to <em>not</em> interpret a value as code.
+For example, when one is writing a string and wants to include a double-quote inside the string:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"blah\"blah"
+</code></pre></div></div>
+
+<p>The backslash <code class="language-plaintext highlighter-rouge">\</code> is an escape character that tells the parser to treat the following character as just a value,
+not the end of the string literal.</p>
+
+<p>However, especially in web security, when we say “escaping” we typically mean “encoding”:</p>
+
+<h3 id="encoding">Encoding</h3>
+
+<p><strong>Encoding</strong> involves replacing special characters with a different representation.</p>
+
+<p>HTML encoding uses <a href="https://developer.mozilla.org/en-US/docs/Glossary/Entity">HTML entities</a>.</p>
+
+<p>For example, <code class="language-plaintext highlighter-rouge">&lt;</code> would normally be interpreted as the start of an HTML tag.
+To display a <code class="language-plaintext highlighter-rouge">&lt;</code> character without it being interpreted as a tag, use <code class="language-plaintext highlighter-rouge">&amp;lt;</code>.</p>
+
+<p>In HTML, <code class="language-plaintext highlighter-rouge">&amp;</code> is the escape character. So now you can see how encoding and escaping are intertwined.</p>
+
+<p>In URLs, encoding involves replacing characters with <code class="language-plaintext highlighter-rouge">%</code> followed by a hexadecimal number that corresponds
+to the ASCII code for that character.</p>
+
+<p>For example, <code class="language-plaintext highlighter-rouge">/</code> in a URL would normally be interpreted as a path separator.
+To pass in <code class="language-plaintext highlighter-rouge">/</code> without it being interpreted that way, use <code class="language-plaintext highlighter-rouge">%2F</code>.</p>
+
+<p>This is called “URL encoding” or “<a href="https://en.wikipedia.org/wiki/Percent-encoding">percent encoding</a>” and the <code class="language-plaintext highlighter-rouge">%</code> character is the escape character.
+The value after <code class="language-plaintext highlighter-rouge">%</code> is the hex representation of the ASCII code for the desired display character.</p>
+
+<p>Encoding special characters is typically a very simple and straightforward process.
+Characters are simply replaced with their encoded value in a linear fashion.</p>
+
+<p>The encoding scheme used depends on context.
+For any type of interpretation (HTML, JavaScript, URLs, CSS, SQL, JSON, …) there will be a different
+encoding scheme. It is important to use the correct encoding for the context.</p>
+
+<p><strong>Also note that encoding is a completely reversible process!</strong>
+Given an encoded string, we can easily decode it back to the original value.</p>
+
+<h3 id="sanitizing">Sanitizing</h3>
+
+<p>Unlike encoding and escaping, <strong>sanitization</strong> involves <em>removing</em> characters entirely in order to make the value “safe”.</p>
+
+<p>This is a complicated, error-prone process.</p>
+
+<p>Here is a classic example of bad sanitization:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Remove script tags!</span>
+<span class="k">def</span> <span class="nf">sanitize_js</span><span class="p">(</span><span class="n">input</span><span class="p">)</span>
+  <span class="n">input</span><span class="p">.</span><span class="nf">gsub</span><span class="p">(</span><span class="sr">/&lt;\/?script&gt;/</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+<span class="k">end</span>
+
+<span class="n">sanitize_js</span><span class="p">(</span><span class="s2">"&lt;script&gt;alert(1)&lt;/script&gt;"</span><span class="p">)</span> <span class="c1"># =&gt; "alert(1)"</span>
+
+<span class="n">sanitize_js</span><span class="p">(</span><span class="s2">"&lt;scri&lt;script&gt;pt&gt;alert(1)&lt;/scr&lt;/script&gt;ipt&gt;"</span><span class="p">)</span> <span class="c1"># =&gt; "&lt;script&gt;alert(1)&lt;/script&gt;"</span>
+</code></pre></div></div>
+
+<p>This is not just an amusing theoretical example - I have seen this exact approach used in production applications.</p>
+
+<p>Since sanitization is so difficult - nearly impossible - to do correctly, most sanitization implementations have seen
+<a href="https://www.google.com/search?q=html+sanitize+bypass">a number of bypasses</a>.</p>
+
+<p>Also, unlike encoding, sanitization is not reversible!
+Information is lost when the data is sanitized.
+You cannot retrieve the original input once it has gone through a sanitization process.
+This is rarely a desirable side-effect.</p>
+
+<p><em>Sanitization can also mean removal or replacement of sensitive data.
+That is a different usage not being discussed here.</em></p>
+
+<h3 id="using-the-right-approach">Using the Right Approach</h3>
+
+<p>From a security perspective, contextually encoding untrusted values <em>at time of use</em> is the preferred approach.</p>
+
+<p>The tricky part is understanding the output context of the data and which encoding to use.
+HTML can easily have more than four different contexts in a single document!
+Also, it makes no sense to use HTML encoding in SQL.</p>
+
+<p>When possible, use encoding routines provided by libraries or frameworks.</p>
+
+<p>Sanitization should be reserved for cases when encoding is simply not possible.
+For example, if an application must accept and display HTML from users.
+There is no way to use encoding in that scenario.</p>
+
+<p>Again, when possible, do not write your own sanitization! Use existing libraries.</p>
+
+<h3 id="summary">Summary</h3>
+
+<p>When discussing handling potentially dangerous data, be precise with terms!</p>
+
+<p>The security industry seems to have settled on “escaping” to actually mean “encoding”.
+In other words, a reversible transformation that encodes special characters so
+they will not be interpreted as code.</p>
+
+<p>Sanitization, in this context, means an irreversible stripping of special characters.</p>
+
+<p>When possible, prefer encoding/escaping to sanitization!</p>
+
+<h3 id="see-also">See Also</h3>
+
+<p><a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet">OWASP Cross-Site Scripting Prevention Cheatsheet</a></p>
+
+<p><a href="https://cheatsheetseries.owasp.org/cheatsheets/Injection_Prevention_Cheat_Sheet.html">OWASP Injection Prevention Cheatsheet</a></p>
+
+<p><a href="https://youtu.be/g_24036NDhM">Taking on the King: Killing Injection Vulnerabilities</a></p>
+</div>
+
+
+    </article>
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
       <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2019/08/04/reviving-an-hp660lx-in-2019/">Reviving an HP 660LX in 2019</a></h1>
     
     
@@ -429,54 +593,6 @@ This means we can wrap all that code in a condition, like this:</p>
 <p>The final version of the changes applied by Ryan are in <a href="https://github.com/seattlerb/ruby_parser/commit/358e5a058e1eca75c6d6ab075ae31c2cc44827a5">this commit</a>.</p>
 
 <p>I expect these improvements will be in the next RubyParser and Brakeman releases.</p>
-</div>
-
-
-    </article>
-  
-  
-    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
-      
-  <header>
-    
-      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2017/12/21/price-transparency-with-brakeman-pro/">Price Transparency with Brakeman Pro</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-<time datetime="2017-12-21T19:39:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Dec 21st, 2017</time>
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Pricing in the static analysis security tool (SAST) world is difficult. Do you charge per project? Per repository? Per line of code? Per language? Per user? What defines a “user”?
-None of these approaches are very satisfying, because no single approach will cover all types of customers.</p>
-
-<p>Instead, companies come up with per-customer pricing. Meaning they will look at a potential customer’s needs and size, and then come up with a number they think the customer might be willing to pay.</p>
-
-<p>Then the negotation dance begins, where the customer attempts to talk the seller down 20-50% from the initial quote (which was kind of made up anyway).</p>
-
-<p>To me, that’s stressful, time-consuming, and a little shady.</p>
-
-<p>Personally, I do not want to deal with salespeople (and their relentless follow up emails/calls) just to get a rough idea of what a product will cost.</p>
-
-<p>With Brakeman Pro, I wanted to be upfront and honest with customers. That’s why, as far as I know, we are the only commercial SAST with <a href="https://brakemanpro.com/purchase/pricing">publicly-available pricing</a>.</p>
-
-<p>Want to purchase a license? You can buy with a credit card on the website and you never have to talk to anyone! That is the kind of interaction I like to have with a company - not “request a quote” or “contact us for pricing”.</p>
-
-<p>Does that mean we make less money than if we had hidden price lists and made up numbers based on what we think a customer would pay? Almost certainly. Our customers range from companies making billions per year to individual users. It would be “smarter” to have the large companies pay more.</p>
-
-<p>But the “mission” of the company is not to maximize profit. It is to fund development of a security product that will <em>help make the world a little safer</em>.</p>
-
-<p>That is why it has been more important to me that we focus on number of customers, rather than overall revenue.</p>
 </div>
 
 

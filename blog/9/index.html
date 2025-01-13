@@ -45,6 +45,63 @@
       
   <header>
     
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2016/06/12/automatically-lock-old-closed-github-issues/">Automatically Lock Old Closed GitHub Issues</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2016-06-12T22:27:00-06:00" pubdate data-updated="true" style="color: #a2a2a2">Jun 12th, 2016</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I am not sure this is a problem everyone has, but I grew tired of people commenting on old, resolved GitHub issues.
+Almost every time someone would comment “I have this problem, too” it would actually be a different issue. Then I’d
+go through the routine of asking them to open a new issue with details about their specific problem.
+Sometimes they would, and sometimes they’d never come back.</p>
+
+<p>Fortunately, right around the time I decided I should do something about this annoyance, <a href="https://developer.github.com/changes/2016-02-11-issue-locking-api/">GitHub released an API</a>
+to lock issues. (<a href="https://github.com/blog/1847-locking-conversations">Locking issues or pull requests</a> prevents any new comments except from repo collaborators.)</p>
+
+<p>So I put together a little gem called <a href="https://github.com/presidentbeef/github-auto-locker">github-auto-locker</a> to fetch and lock old, closed issues.</p>
+
+<p>To install it (requires Ruby):</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gem install github-auto-locker
+</code></pre></div></div>
+
+<p>Then run:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>github-auto-locker USER REPO TOKEN [age in days]
+</code></pre></div></div>
+
+<p>For example, I run this to lock resolved issues over 60 days old:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>github-auto-locker presidentbeef brakeman N0TM1R34L70K3N 60
+</code></pre></div></div>
+
+<p>The default is 120 days.</p>
+
+<p>I’ve been running it periodically myself since February without any complaints.
+Perhaps it will be useful to you!</p>
+</div>
+
+
+    </article>
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
       <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2014/02/28/simple-readers-writer-lock-gem/">Simple Readers-Writer Lock Gem</a></h1>
     
     
@@ -485,151 +542,6 @@
 <p>With so many applications and nearly 14,000 warnings, there is a lot more information to go through here.</p>
 
 <p>For now this process is used to help test new Brakeman code and avoid regressions. It’s stopped quite a few bugs from going out!</p>
-</div>
-
-
-    </article>
-  
-  
-    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
-      
-  <header>
-    
-      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2013/09/02/fast-compact-sparse-bitsets/">Fast Compact Sparse Bit Sets</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-<time datetime="2013-09-02T14:49:00-06:00" pubdate data-updated="true" style="color: #a2a2a2">Sep 2nd, 2013</time>
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Imagine you need a relatively compact data structure for quickly checking membership of mostly-consecutive non-negative integers. (If this sounds really specific, it is because it is precisely what I needed for a particular project.)</p>
-
-<p>The Ruby standard library contains a <a href="http://rdoc.info/stdlib/set/1.9.3/Set">Set</a> class which may be a good starting point. Set is actually implemented as a Hash with the Set elements as keys and <code class="language-plaintext highlighter-rouge">true</code> as the values. Thus the overhead for storing a value in the Set is essentially only the value itself since all keys point to the same <code class="language-plaintext highlighter-rouge">true</code> object. Assuming a 64-bit machine, the overhead will be 64 bits per value. This seems reasonable, but given the specific limitations of the values we wish to store, perhaps we can do better?</p>
-
-<h3 id="bit-sets">Bit Sets</h3>
-
-<p>A bit set is a compact data structure of binary values where membership is indicated by setting a bit to 1. The position of the bit indicates the element value. For example, the second bit from the right might be used to indicate whether or not the value 1 is in the set.</p>
-
-<p>One method to determine membership is to AND the bit set with a mask with only the desired bit set to 1. If the result is 0, the value is not in the set. If it is any other result (actually the mask itself, but the zero check is sufficinet), the value is a member of the set.</p>
-
-<p>In Ruby, this looks like</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">bitset</span> <span class="o">&amp;</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="n">num</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span>
-</code></pre></div></div>
-
-<p>For example, to check if the value 4 is in the set, we use the mask <code class="language-plaintext highlighter-rouge">00010000</code> (the 5th bit from the right is set to 1) which is the decimal value <code class="language-plaintext highlighter-rouge">8</code>:</p>
-
-<p><img src="/images/blog/bitset-example1.png" alt="Bit Set Checking Example 1" /></p>
-
-<p>Since the result is zero, we know the value 4 is not in the set.</p>
-
-<p>If we check for the value <code class="language-plaintext highlighter-rouge">6</code>, the result is not zero, indicating the value is a member of the set:</p>
-
-<p><img src="/images/blog/bitset-example2.png" alt="Bit Set Checking Example 2" /></p>
-
-<p>Now, instead of 64 bits per value, it only requires a single bit! Now we just need to put a lot of bits together, either by using a long string or a bunch of integers in an array.</p>
-
-<h3 id="sparse-bit-sets">Sparse Bit Sets</h3>
-
-<p>The problem with a long binary string or an array of integers is that membership is entirely position-based. To store the value <code class="language-plaintext highlighter-rouge">1000</code>, the data structure requires 1001 bits, all but one of which is set to 0. This is quite inefficient, especially for very large values.</p>
-
-<p>One solution is to create a sparse bit set by combining a hash table with bit sets as values. The hash table keys provide fast look up of the correct bit set, then the bit set is checked for the desired element. The keys indicate the lowest value stored in the bit set (e.g., the decimal key <code class="language-plaintext highlighter-rouge">4</code> pointing to the binary bit set <code class="language-plaintext highlighter-rouge">00000001</code> would mean the value <code class="language-plaintext highlighter-rouge">4</code> is in the set).</p>
-
-<p>Below is an example of a hash table using integer keys and 8 bit integers for the bit sets:</p>
-
-<p><img src="/images/blog/sparse-bitset-example.png" alt="Sparse Bit Set Example" /></p>
-
-<p>The average overhead is <code class="language-plaintext highlighter-rouge">⌊(m * n) / w⌋ + m</code> bits, where <em>m</em> is the number of values (assumed to be consecutive), <em>w</em> is the number of bits per bit set, and <em>n</em> is the number of bits per key. In 64-bit Ruby, if we use integers for the bit sets, <em>n</em> = 64 and <em>w</em> = 62<a href="#footnote">*</a>. This works out to an average of 2 bits per value in the set. Of course, a single value incurs the overhead of both the key and the bit set: 128 bits! But if there are many consecutive values, the cost per value begins to shrink. For example, the numbers 0 to 61 can be stored in a single bit set, so 62 values can be stored in the 128 bits and we are back to about 2 bits per value.</p>
-
-<p>Note that while it is best to use consecutive values which fit neatly into the bit sets (in this case, runs of 62 integers), the sequences can start and end at arbitrary points with only a little “wasted” overhead. To store just the number <code class="language-plaintext highlighter-rouge">1000</code>, we now only need 128 bits, not 1001.</p>
-
-<p>On top of the space savings, the membership checks remain fast. Still assuming 64-bit Ruby, to determine if a value is in the table look up index <code class="language-plaintext highlighter-rouge">i = value / 61</code>. Then check the bit set with <code class="language-plaintext highlighter-rouge">bitset &amp; (1 &lt;&lt; (value % 61) != 0</code> as previously. (The divisor is 61 because there are 62 bits, but the values are 0 to 61).</p>
-
-<h3 id="space-efficiency">Space Efficiency</h3>
-
-<p>I have implemented a Ruby version of the data structure described above which I call the <a href="https://github.com/presidentbeef/dumb-numb-set">Dumb Numb Set</a> (DNS).</p>
-
-<p>To measure the space used by the bit sets, we compare the Marshal data size for the bit sets versus regular Hashes (using <code class="language-plaintext highlighter-rouge">true</code> for all values, just like a Ruby Set).</p>
-
-<p>These are the results for perfectly ordered data on a 64-bit version of Ruby 1.9.3 (size is number of bytes):</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    Items        Hash         DNS      %reduction
-    ---------------------------------------------
-       1   |           7  |        41   |-486%
-     100   |         307  |        61   |  80%
-      1k   |        4632  |       253   |  95%
-     10k   |       49632  |      2211   |  96%
-    100k   |      534098  |     24254   |  95%
-      1M   |     5934098  |    245565   |  96%
-     10M   |    59934098  |   2557080   |  96%
-    100M   |   683156884  |  26163639   |  96%
-      1B   |         ?    | 262229211   |   ?
-    ---------------------------------------------
-</code></pre></div></div>
-
-<p>At 1 billion items, my machine ran out of memory.</p>
-
-<p>For a single item, as expected, overhead in the DNS is quite high. But for as little as 100 items in the set, the DNS is considerably more compact.</p>
-
-<p>This is, however, the best case scenario for the DNS. Less perfectly dense values cause it to <a href="https://github.com/presidentbeef/dumb-numb-set#less-dense-data">be less efficient</a>. For <em>very</em> sparse values, a Hash/Set is probably a better choice.</p>
-
-<h3 id="even-better-space-efficiency">Even Better Space Efficiency</h3>
-
-<p>It may not surprise you to find out I was very interested in minimizing the serialized version of the sparse bit set for sending it over a network. In investigating easy but compact ways of doing so, I realized the Marshal data for Hashes and integers is not very compact, especially for large integers.</p>
-
-<p>Fortunately, there is an existing solution for this scenario called <a href="http://msgpack.org/">MessagePack</a>. For storing 1 million values, serialized size is reduced from 245,565 to 196,378 bytes (20%). The DNS will use MessagePack automatically if it is installed.</p>
-
-<h3 id="performance">Performance</h3>
-
-<p>Somewhat surprisingly, the DNS is quite fast even when compared to MRI Ruby’s Hash implementation.</p>
-
-<p>With MRI Ruby 1.9.3p448 (x86_64) and 1 million values:</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>                               user     system      total        real
-Hash add random            0.540000   0.020000   0.560000 (  0.549499)
-DumbNumbSet add random     0.850000   0.020000   0.870000 (  0.864700)
-Hash add in order          0.540000   0.020000   0.560000 (  0.556441)
-DumbNumbSet add in order   0.490000   0.000000   0.490000 (  0.483713)
-Hash add shuffled          0.570000   0.020000   0.590000 (  0.589316)
-DumbNumbSet add shuffled   0.540000   0.010000   0.550000 (  0.538420)
-Hash look up               0.930000   0.010000   0.940000 (  0.940849)
-DNS look up                0.820000   0.000000   0.820000 (  0.818728)
-Hash remove                0.980000   0.030000   1.010000 (  0.999362)
-DNS remove                 0.950000   0.000000   0.950000 (  0.953170)
-</code></pre></div></div>
-
-<p>The only operation slower than a regular Hash is inserting many random values. All other operations are roughly equal.</p>
-
-<h3 id="conclusion">Conclusion</h3>
-
-<p>For my specific scenario, a simple custom data structure was just as fast as a built-in data structure, but required significantly less space for the expected use case.</p>
-
-<p>There are other solutions for this type of problem, but it should be noted I only really care about fast insertion, fast membership checks, and compact representation. Additionally, values may be very large, although I attempt to keep them within the Fixnum range for Ruby (i.e. less than 2<sup>62</sup> - 1). This rules out some implementations which require arrays the size of the maximum value!</p>
-
-<p>I also did not want to deal with compression schemes, of which there are quite a few, since my sets were going to be dynamic. I imagine there are very efficient implementations for fixed data sets.</p>
-
-<p><a name="footnote"></a></p>
-<h4 id="footnote-integer-size-in-ruby">Footnote: Integer Size in Ruby</h4>
-
-<p>Integers in 32-bit MRI Ruby only have 30 bits available, and in 64-bit MRI Ruby they only have 62 bits available:</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ irb
-1.9.3p448 :001 &gt; ("1" * 62).to_i(2).class
- =&gt; Fixnum 
-1.9.3p448 :002 &gt; ("1" * 63).to_i(2).class
- =&gt; Bignum 
-</code></pre></div></div>
 </div>
 
 

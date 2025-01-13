@@ -45,6 +45,124 @@
       
   <header>
     
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2022/01/31/sounds-in-dragonruby/">Sounds in DragonRuby</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2022-01-31T11:00:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Jan 31st, 2022</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>The sound API in <a href="https://dragonruby.itch.io/dragonruby-gtk">DragonRuby</a> is a little tricky because at first it seems similar to the sprite API (e.g. using <code class="language-plaintext highlighter-rouge">args.outputs</code>) but it diverges sharply when you want to have some more control.</p>
+
+<p>So let’s take a quick look at audio in DragonRuby!</p>
+
+<h3 id="simple-music">Simple Music</h3>
+
+<p>As usual with DragonRuby, the simple stuff is simple.</p>
+
+<p>To play a looping sound, for example as background music, get a sound file in <code class="language-plaintext highlighter-rouge">.ogg</code> format and then add it on to <code class="language-plaintext highlighter-rouge">args.outputs.sounds</code>:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sounds</span> <span class="o">&lt;&lt;</span> <span class="s1">'sounds/my_music.ogg'</span>
+</code></pre></div></div>
+
+<p>The audio will loop forever.</p>
+
+<h3 id="simple-sound-effects">Simple Sound Effects</h3>
+
+<p>Want to fire off a single sound effect?</p>
+
+<p>Get a sound file in <code class="language-plaintext highlighter-rouge">.wav</code> format and then add it on to <code class="language-plaintext highlighter-rouge">args.outputs.sounds</code>:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sounds</span> <span class="o">&lt;&lt;</span> <span class="s1">'sounds/my_effect.wav'</span>
+</code></pre></div></div>
+
+<p>The sound will play once.</p>
+
+<p><em>Wait so the API behaves differently based on the file format?</em></p>
+
+<p>Yep. A little odd but it works.</p>
+
+<h3 id="adjusting-the-volume-knob">Adjusting the Volume Knob</h3>
+
+<p>Playing a sound effect in DragonRuby is pretty easy. But what if we need to adjust the volume or some other attribute of the audio? Or maybe loop a <code class="language-plaintext highlighter-rouge">.wav</code> or not loop a <code class="language-plaintext highlighter-rouge">.ogg</code> file?</p>
+
+<p>You might think, based on how sprites work in DragonRuby, you could do something like this:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># This does not work!</span>
+<span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sounds</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+  <span class="ss">input: </span><span class="s1">'sounds/my_music.ogg'</span><span class="p">,</span>
+  <span class="ss">gain: </span><span class="mf">0.5</span><span class="p">,</span>      <span class="c1"># Half volume</span>
+  <span class="ss">looping: </span><span class="kp">false</span>  <span class="c1"># Don't loop</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>But this does not work.</p>
+
+<p>Instead, you need to use an entirely different interface: <code class="language-plaintext highlighter-rouge">args.audio</code>.</p>
+
+<p><code class="language-plaintext highlighter-rouge">args.audio</code> is a hash table of sounds.</p>
+
+<p>To add a new sound, assign it with a name:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">audio</span><span class="p">[</span><span class="ss">:music</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="ss">input: </span><span class="s1">'sounds/my_music.ogg'</span><span class="p">,</span>
+  <span class="ss">gain: </span><span class="mf">0.5</span><span class="p">,</span>
+  <span class="ss">looping: </span><span class="kp">false</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>To adjust an attribute of the audio, access it by the same name:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Turn up the volume</span>
+<span class="n">args</span><span class="p">.</span><span class="nf">audio</span><span class="p">[</span><span class="ss">:music</span><span class="p">].</span><span class="nf">gain</span> <span class="o">=</span> <span class="mf">0.75</span>
+</code></pre></div></div>
+
+<p>To pause a sound:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">audio</span><span class="p">[</span><span class="ss">:music</span><span class="p">].</span><span class="nf">paused</span> <span class="o">=</span> <span class="kp">true</span>
+</code></pre></div></div>
+
+<p>To completely remove a sound:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">audio</span><span class="p">.</span><span class="nf">delete</span> <span class="ss">:music</span>
+</code></pre></div></div>
+
+<h3 id="more-music-manipulation">More Music Manipulation</h3>
+
+<p>This is the full set of options for audio from <a href="http://docs.dragonruby.org/#--docs---gtk--args#audio-">the documentation</a>:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">audio</span><span class="p">[</span><span class="ss">:my_music</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="ss">input: </span><span class="s1">'sounds/my_music.ogg'</span><span class="p">,</span>
+  <span class="ss">x: </span><span class="mf">0.0</span><span class="p">,</span> <span class="ss">y: </span><span class="mf">0.0</span><span class="p">,</span> <span class="ss">z: </span><span class="mf">0.0</span><span class="p">,</span>   <span class="c1"># Relative position to the listener, x, y, z from -1.0 to 1.0</span>
+  <span class="ss">gain: </span><span class="mf">1.0</span><span class="p">,</span>                <span class="c1"># Volume (0.0 to 1.0)</span>
+  <span class="ss">pitch: </span><span class="mf">1.0</span><span class="p">,</span>               <span class="c1"># Pitch of the sound (1.0 = original pitch)</span>
+  <span class="ss">paused: </span><span class="kp">false</span><span class="p">,</span>            <span class="c1"># Set to true to pause</span>
+  <span class="ss">looping: </span><span class="kp">false</span><span class="p">,</span>           <span class="c1"># Set to true to loop</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>That’s it!</p>
+</div>
+
+
+    </article>
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
       <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2022/01/24/dragon-ruby-render-targets/">DragonRuby: Render Targets</a></h1>
     
     
@@ -537,200 +655,6 @@
 <p>But as a game (or any project) grows, pulling bits out into modular pieces is going to be an advantage. Personally I fall back on this structure pretty quickly when I start a new DragonRuby project.</p>
 
 <p>Hopefully this post is useful to Rubyists trying to get into DragonRuby!</p>
-</div>
-
-
-    </article>
-  
-  
-    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
-      
-  <header>
-    
-      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2022/01/08/dragon-ruby-static-outputs/">DragonRuby: Static Outputs</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-<time datetime="2022-01-08T11:00:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Jan 8th, 2022</time>
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>In a <a href="https://dev.to/presidentbeef/api-levels-in-dragonruby-game-toolkit-4jb4">previous post</a> we looked at different ways to render outputs (sprites, rectangles, lines, etc.) in the <a href="https://dragonruby.org/toolkit/game">DragonRuby Game Toolkit</a>.</p>
-
-<p>The post ended by hinting at a more efficient way to render outputs instead of adding them to e.g. <code class="language-plaintext highlighter-rouge">args.outputs.solids</code> or <code class="language-plaintext highlighter-rouge">args.outputs.sprites</code> each tick.</p>
-
-<p>This post explores the world of “static outputs”!</p>
-
-<h2 id="static-what">Static What?</h2>
-
-<p>First of all, we should address the most confusing part of all this.</p>
-
-<p><strong>“Static” does not mean the images don’t move or change.</strong> Instead, it means that render “queue” is not cleared after every tick.</p>
-
-<p>Normally, one would load up the queue each tick, like this:</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
-
-  <span class="c1"># Render a black rectangle</span>
-  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">solids</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
-    <span class="ss">x: </span><span class="mi">100</span><span class="p">,</span>
-    <span class="ss">y: </span><span class="mi">200</span><span class="p">,</span>
-    <span class="ss">w: </span><span class="mi">300</span><span class="p">,</span>  <span class="c1"># width</span>
-    <span class="ss">h: </span><span class="mi">400</span>   <span class="c1"># height</span>
-  <span class="p">}</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<p>But this is kind of wasteful. We are creating a new hash table each tick (60 ticks/second) and then throwing it away. Also each tick we are filling up the <code class="language-plaintext highlighter-rouge">args.outputs.solids</code> queue and then emptying it.</p>
-
-<p>Instead, why not create the hash table once, load up the queue once, and then re-use them?</p>
-
-<p>That’s the idea of static outputs!</p>
-
-<p>There are static versions for each rendered type:</p>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">args.outputs.static_borders</code></li>
-  <li><code class="language-plaintext highlighter-rouge">args.outputs.static_labels</code></li>
-  <li><code class="language-plaintext highlighter-rouge">args.outputs.static_primitives</code></li>
-  <li><code class="language-plaintext highlighter-rouge">args.outputs.static_solids</code></li>
-  <li><code class="language-plaintext highlighter-rouge">args.outputs.static_sprites</code></li>
-</ul>
-
-<h2 id="going-static">Going Static</h2>
-
-<h3 id="starting-out">Starting Out</h3>
-
-<p>Here’s an example with comments explaining what the code is doing. This “game” simply moves a square back and forth across the screen. This is the entire program!</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
-  <span class="c1"># Initialize the x location of the square</span>
-  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">x</span> <span class="o">||=</span> <span class="mi">0</span>
-
-  <span class="c1"># Initialize the direction/velocity</span>
-  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">direction</span> <span class="o">||=</span> <span class="mi">10</span>
-
-  <span class="c1"># If we hit the sides, change direction</span>
-  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">x</span> <span class="o">&gt;</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">right</span> <span class="n">or</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">x</span> <span class="o">&lt;</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">left</span>
-    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">direction</span> <span class="o">=</span> <span class="o">-</span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">direction</span>
-  <span class="k">end</span>
-
-  <span class="c1"># Update the x location</span>
-  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">x</span> <span class="o">+=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">direction</span>
-
-  <span class="c1"># Build the square</span>
-  <span class="n">square</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">x</span><span class="p">,</span>
-    <span class="ss">y: </span><span class="mi">400</span><span class="p">,</span>
-    <span class="ss">w: </span><span class="mi">40</span><span class="p">,</span>
-    <span class="ss">h: </span><span class="mi">40</span><span class="p">,</span>
-  <span class="p">}</span>
-
-  <span class="c1"># Add the square to the render queue</span>
-  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">solids</span> <span class="o">&lt;&lt;</span> <span class="n">square</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<p>The resulting output looks like:</p>
-
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/o56m4w483wxr46y07zh0.gif" alt="Image description" /></p>
-
-<p>This example introduces <code class="language-plaintext highlighter-rouge">args.state</code>. This is basically a persistent bag you can throw anything into. (For Rubyists - this is like <a href="https://ruby-doc.org/stdlib-3.1.0/libdoc/ostruct/rdoc/OpenStruct.html">OpenStruct</a>.)</p>
-
-<p><code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">direction</code> are not special, they are just variables we are defining. We use <code class="language-plaintext highlighter-rouge">||=</code> to initialize them because we only want to set the values on the first tick.</p>
-
-<p>This example illustrates the point from above - every tick it creates a new square and adds it to the queue. The queue is emptied out and then the code starts all over again.</p>
-
-<p>Seems wasteful, right?</p>
-
-<h3 id="caching-the-objects">Caching the Objects</h3>
-
-<p>First thing I think of is - “why not create the square once, then just update the object each tick? Does that work?” Yes! It does.</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
-  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">direction</span> <span class="o">||=</span> <span class="mi">10</span>
-  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">square</span> <span class="o">||=</span> <span class="p">{</span>
-    <span class="ss">x: </span><span class="mi">0</span><span class="p">,</span>
-    <span class="ss">y: </span><span class="mi">400</span><span class="p">,</span>
-    <span class="ss">w: </span><span class="mi">40</span><span class="p">,</span>
-    <span class="ss">h: </span><span class="mi">40</span><span class="p">,</span>
-  <span class="p">}</span>
-
-  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">square</span><span class="p">[</span><span class="ss">:x</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">right</span> <span class="n">or</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">square</span><span class="p">[</span><span class="ss">:x</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">left</span>
-    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">direction</span> <span class="o">=</span> <span class="o">-</span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">direction</span>
-  <span class="k">end</span>
-
-  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">square</span><span class="p">[</span><span class="ss">:x</span><span class="p">]</span> <span class="o">+=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">direction</span>
-
-  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">solids</span> <span class="o">&lt;&lt;</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">square</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<p>In this code, we create the <code class="language-plaintext highlighter-rouge">square</code> only once and then store it in <code class="language-plaintext highlighter-rouge">args.state.square</code>.</p>
-
-<p>Instead of having a separate <code class="language-plaintext highlighter-rouge">x</code> variable, the code updates the <code class="language-plaintext highlighter-rouge">x</code> property on the square directly.</p>
-
-<p>This is <em>better</em>, but we are still updating <code class="language-plaintext highlighter-rouge">args.outputs.solids</code> each tick.</p>
-
-<h3 id="full-static">Full Static</h3>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
-  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">direction</span> <span class="o">||=</span> <span class="mi">10</span>
-  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">square</span> <span class="o">||=</span> <span class="p">{</span>
-    <span class="ss">x: </span><span class="mi">0</span><span class="p">,</span>
-    <span class="ss">y: </span><span class="mi">400</span><span class="p">,</span>
-    <span class="ss">w: </span><span class="mi">40</span><span class="p">,</span>
-    <span class="ss">h: </span><span class="mi">40</span><span class="p">,</span>
-  <span class="p">}</span>
-
-  <span class="c1"># On the first tick, add the square to the render queue</span>
-  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">==</span> <span class="mi">0</span>
-    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">static_solids</span> <span class="o">&lt;&lt;</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">square</span>
-  <span class="k">end</span>
-
-  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">square</span><span class="p">[</span><span class="ss">:x</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">right</span> <span class="n">or</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">square</span><span class="p">[</span><span class="ss">:x</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">left</span>
-    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">direction</span> <span class="o">=</span> <span class="o">-</span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">direction</span>
-  <span class="k">end</span>
-
-  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">square</span><span class="p">[</span><span class="ss">:x</span><span class="p">]</span> <span class="o">+=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">direction</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<p>In this code, we use the fact that the first <code class="language-plaintext highlighter-rouge">args.tick_count</code> is <code class="language-plaintext highlighter-rouge">0</code> to add the <code class="language-plaintext highlighter-rouge">square</code> to <code class="language-plaintext highlighter-rouge">args.outputs.static_solids</code> just <em>once</em>. It will continue to be rendered on each tick.</p>
-
-<h2 id="performance">Performance</h2>
-
-<p>Intuitively, since the code is doing less, it should be faster. But does it really make a difference?</p>
-
-<p>It depends on your game, how much it’s doing per tick, how many sprites you are rendering, and what platform/hardware it’s running on.</p>
-
-<p>The examples above? Not going to see any difference using <code class="language-plaintext highlighter-rouge">static_solids</code>.</p>
-
-<p>But DragonRuby contains two examples that directly compare <code class="language-plaintext highlighter-rouge">args.outputs.sprites</code> vs. <code class="language-plaintext highlighter-rouge">args.outputs.static_sprites</code> (<a href="http://docs.dragonruby.org/#----performance---sprites-as-classes---main-rb">here</a> and <a href="http://docs.dragonruby.org/#----performance---static-sprites-as-classes---main-rb">here</a>).</p>
-
-<p>In these examples, you can play with the number of “stars” rendered to see different performance. On my ancient laptop, I do not see a performance difference until around 3,000 stars.</p>
-
-<p>Your mileage may vary, though!</p>
-
-<h2 id="should-i-always-use-the-static-versions">Should I Always Use the Static Versions?</h2>
-
-<p>It depends! Probably not?</p>
-
-<p>If your code mainly manipulates the same objects around the screen <em>and</em> always renders them in the same order, then using the <code class="language-plaintext highlighter-rouge">static_</code> approach might be simpler and faster.</p>
-
-<p>But in many cases it might be easier to simply set up the render queues each tick, especially if the objects rendered or their ordering change regularly. Otherwise, managing the state of the rendering queues can become cumbersome. (We haven’t even talked about clearing the static queues, for example.)</p>
-
-<p>Some of this comes down to personal preference and how you would like to structure your code. But hopefully this post has helped explain how to use the <code class="language-plaintext highlighter-rouge">args.outputs.static_*</code> methods in your game!</p>
 </div>
 
 

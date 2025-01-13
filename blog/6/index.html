@@ -45,6 +45,147 @@
       
   <header>
     
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2021/07/21/rails-6-dot-1-sql-injection-updates/">Rails 6.1 SQL Injection Updates</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2021-07-21T12:14:00-06:00" pubdate data-updated="true" style="color: #a2a2a2">Jul 21st, 2021</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Since early 2013, I have been maintaining <a href="https://rails-sqli.org">rails-sqli.org</a>, a collection of Rails ActiveRecord methods that can be vulnerable to <a href="https://guides.rubyonrails.org/security.html#sql-injection">SQL injection</a>.</p>
+
+<p>Rails 6 has been out <a href="https://guides.rubyonrails.org/6_0_release_notes.html">since December 2019</a>, but sadly the site has been missing information about changes and new methods in Rails 6.</p>
+
+<p>As that deficiency has recently been rectified, let’s walk through what has changed since Rails 5!</p>
+
+<h2 id="delete_all-destroy_all"><code class="language-plaintext highlighter-rouge">delete_all</code>, <code class="language-plaintext highlighter-rouge">destroy_all</code></h2>
+
+<p>In earlier versions of Rails, <code class="language-plaintext highlighter-rouge">delete_all</code> and <code class="language-plaintext highlighter-rouge">destroy_all</code> could be passed a string of raw SQL.</p>
+
+<p>In Rails 6, these two methods no longer accept any arguments.</p>
+
+<p>Instead, you can use…</p>
+
+<h2 id="delete_by-destroy_by"><code class="language-plaintext highlighter-rouge">delete_by</code>, <code class="language-plaintext highlighter-rouge">destroy_by</code></h2>
+
+<p>New in Rails 6, <a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/Relation.html#method-i-delete_by"><code class="language-plaintext highlighter-rouge">delete_by</code></a> and <a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/Relation.html#method-i-destroy_by"><code class="language-plaintext highlighter-rouge">destroy_by</code></a> accept the same type of arguments as <code class="language-plaintext highlighter-rouge">where</code>: a Hash, an Array, or a raw SQL String.</p>
+
+<p>This means they are vulnerable to the same kind of SQL injection.</p>
+
+<p>For example:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"1) OR 1=1--"</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">delete_by</span><span class="p">(</span><span class="s2">"id = </span><span class="si">#{</span><span class="n">params</span><span class="p">[</span><span class="ss">:id</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Resulting query that deletes all users:</p>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">DELETE</span> <span class="k">FROM</span> <span class="nv">"users"</span> <span class="k">WHERE</span> <span class="p">(</span><span class="n">id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">OR</span> <span class="mi">1</span><span class="o">=</span><span class="mi">1</span><span class="c1">--)</span>
+</code></pre></div></div>
+
+<h2 id="order-reorder"><code class="language-plaintext highlighter-rouge">order</code>, <code class="language-plaintext highlighter-rouge">reorder</code></h2>
+
+<p>Prior to Rails 6, it was possible to pass arbitrary SQL to the <a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/QueryMethods.html#method-i-order"><code class="language-plaintext highlighter-rouge">order</code></a> and <a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/QueryMethods.html#method-i-reorder"><code class="language-plaintext highlighter-rouge">reorder</code></a> methods.</p>
+
+<p>Since Rails did not offer an easy way of setting sort direction, this kind of code was common:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">User</span><span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="s2">"name </span><span class="si">#{</span><span class="n">params</span><span class="p">[</span><span class="ss">:direction</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>In Rails 6.0, injection attempts would raise a deprecation warning:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="no">DEPRECATION</span> <span class="no">WARNING</span><span class="p">:</span> <span class="no">Dangerous</span> <span class="n">query</span> <span class="nb">method</span> <span class="p">(</span><span class="nb">method</span> <span class="n">whose</span> <span class="n">arguments</span> <span class="n">are</span> <span class="n">used</span> <span class="n">as</span> <span class="n">raw</span> <span class="no">SQL</span><span class="p">)</span> <span class="n">called</span> <span class="n">with</span> <span class="n">non</span><span class="o">-</span><span class="n">attribute</span> <span class="n">argument</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="s2">"--"</span><span class="o">.</span> <span class="no">Non</span><span class="o">-</span><span class="n">attribute</span> <span class="n">arguments</span> <span class="n">will</span> <span class="n">be</span> <span class="n">disallowed</span> <span class="k">in</span> <span class="no">Rails</span> <span class="mf">6.1</span><span class="o">.</span> <span class="no">This</span> <span class="nb">method</span> <span class="n">should</span> <span class="n">not</span> <span class="n">be</span> <span class="n">called</span> <span class="n">with</span> <span class="n">user</span><span class="o">-</span><span class="n">provided</span> <span class="n">values</span><span class="p">,</span> <span class="n">such</span> <span class="n">as</span> <span class="n">request</span> <span class="n">parameters</span> <span class="n">or</span> <span class="n">model</span> <span class="n">attributes</span><span class="o">.</span> <span class="no">Known</span><span class="o">-</span><span class="n">safe</span> <span class="n">values</span> <span class="n">can</span> <span class="n">be</span> <span class="n">passed</span> <span class="n">by</span> <span class="n">wrapping</span> <span class="n">them</span> <span class="k">in</span> <span class="no">Arel</span><span class="p">.</span><span class="nf">sql</span><span class="p">()</span><span class="o">.</span>
+</code></pre></div></div>
+
+<p>Starting with Rails 6.1, some logic to check the arguments to <code class="language-plaintext highlighter-rouge">order</code>. If the arguments do not appear to be column names or sort order, they will be rejected:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="no">User</span><span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="s2">"name ARGLBARGHL"</span><span class="p">)</span>
+<span class="no">Traceback</span> <span class="p">(</span><span class="n">most</span> <span class="n">recent</span> <span class="n">call</span> <span class="n">last</span><span class="p">):</span>
+        <span class="mi">1</span><span class="p">:</span> <span class="n">from</span> <span class="p">(</span><span class="n">irb</span><span class="p">):</span><span class="mi">12</span>
+<span class="no">ActiveRecord</span><span class="o">::</span><span class="no">UnknownAttributeReference</span> <span class="p">(</span><span class="no">Query</span> <span class="nb">method</span> <span class="n">called</span> <span class="n">with</span> <span class="n">non</span><span class="o">-</span><span class="n">attribute</span> <span class="n">argument</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="s2">"name ARGLBARGHL"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>It is still possible to inject additional columns to extract some information from the table, such as number of columns or names of the columns:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">params</span><span class="p">[</span><span class="ss">:direction</span><span class="p">]</span> <span class="o">=</span> <span class="s2">", 8"</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">order</span><span class="p">(</span><span class="s2">"name </span><span class="si">#{</span><span class="n">params</span><span class="p">[</span><span class="ss">:direction</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Resulting exception:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ActiveRecord::StatementInvalid (SQLite3::SQLException: 2nd ORDER BY term out of range - should be between 1 and 7)
+</code></pre></div></div>
+
+<h2 id="pluck"><code class="language-plaintext highlighter-rouge">pluck</code></h2>
+
+<p><a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/Associations/CollectionProxy.html#method-i-pluck"><code class="language-plaintext highlighter-rouge">pluck</code></a> pulls out specified columns from a query, instead of loading whole records.</p>
+
+<p>In previous versions of Rails, <code class="language-plaintext highlighter-rouge">pluck</code> (somewhat surprisingly!) accepted arbitrary SQL strings if they were passed in as an array.</p>
+
+<p>Like <code class="language-plaintext highlighter-rouge">order</code>/<code class="language-plaintext highlighter-rouge">reorder</code>, Rails 6.0 started warning about this:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="o">&gt;</span> <span class="no">User</span><span class="p">.</span><span class="nf">pluck</span><span class="p">([</span><span class="s2">"1"</span><span class="p">])</span>
+<span class="no">DEPRECATION</span> <span class="no">WARNING</span><span class="p">:</span> <span class="no">Dangerous</span> <span class="n">query</span> <span class="nb">method</span> <span class="p">(</span><span class="nb">method</span> <span class="n">whose</span> <span class="n">arguments</span> <span class="n">are</span> <span class="n">used</span> <span class="n">as</span> <span class="n">raw</span> <span class="no">SQL</span><span class="p">)</span> <span class="n">called</span> <span class="n">with</span> <span class="n">non</span><span class="o">-</span><span class="n">attribute</span> <span class="n">argument</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="p">[</span><span class="s2">"1"</span><span class="p">]</span><span class="o">.</span> <span class="no">Non</span><span class="o">-</span><span class="n">attribute</span> <span class="n">arguments</span> <span class="n">will</span> <span class="n">be</span> <span class="n">disallowed</span> <span class="k">in</span> <span class="no">Rails</span> <span class="mf">6.1</span><span class="o">.</span> <span class="no">This</span> <span class="nb">method</span> <span class="n">should</span> <span class="n">not</span> <span class="n">be</span> <span class="n">called</span> <span class="n">with</span> <span class="n">user</span><span class="o">-</span><span class="n">provided</span> <span class="n">values</span><span class="p">,</span> <span class="n">such</span> <span class="n">as</span> <span class="n">request</span> <span class="n">parameters</span> <span class="n">or</span> <span class="n">model</span> <span class="n">attributes</span><span class="o">.</span> <span class="no">Known</span><span class="o">-</span><span class="n">safe</span> <span class="n">values</span> <span class="n">can</span> <span class="n">be</span> <span class="n">passed</span> <span class="n">by</span> <span class="n">wrapping</span> <span class="n">them</span> <span class="k">in</span> <span class="no">Arel</span><span class="p">.</span><span class="nf">sql</span><span class="p">()</span><span class="o">.</span>
+</code></pre></div></div>
+
+<p>In Rails 6.1, <code class="language-plaintext highlighter-rouge">pluck</code> now only accepts attribute names!</p>
+
+<h2 id="reselect"><code class="language-plaintext highlighter-rouge">reselect</code></h2>
+
+<p>Rails 6 introduced <a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/QueryMethods.html#method-i-reselect"><code class="language-plaintext highlighter-rouge">reselect</code></a>, which allows one to completely replace the <code class="language-plaintext highlighter-rouge">SELECT</code> clause of a query. Like <code class="language-plaintext highlighter-rouge">select</code>, it accepts any SQL string. Since <code class="language-plaintext highlighter-rouge">SELECT</code> is at the very beginning of the SQL query, it makes it a great target for SQL injection.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">params</span><span class="p">[</span><span class="ss">:column</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"* FROM orders -- "</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">select</span><span class="p">(</span><span class="ss">:name</span><span class="p">).</span><span class="nf">reselect</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="ss">:column</span><span class="p">])</span>
+</code></pre></div></div>
+
+<p>Note this selects <em>all</em> columns <em>from a different table</em>:</p>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">orders</span> <span class="c1">-- FROM "users"</span>
+</code></pre></div></div>
+
+<h2 id="rewhere"><code class="language-plaintext highlighter-rouge">rewhere</code></h2>
+
+<p><a href="https://api.rubyonrails.org/v6.1.4/classes/ActiveRecord/QueryMethods.html#method-i-rewhere"><code class="language-plaintext highlighter-rouge">rewhere</code></a> is analogous to <code class="language-plaintext highlighter-rouge">reselect</code> but it replaces the <code class="language-plaintext highlighter-rouge">WHERE</code> clause.</p>
+
+<p>Like <code class="language-plaintext highlighter-rouge">where</code>, it is very easy to open up <code class="language-plaintext highlighter-rouge">rewhere</code> to SQL injection.</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">params</span><span class="p">[</span><span class="ss">:age</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"1=1) OR 1=1--"</span>
+<span class="no">User</span><span class="p">.</span><span class="nf">where</span><span class="p">(</span><span class="ss">name: </span><span class="s2">"Bob"</span><span class="p">).</span><span class="nf">rewhere</span><span class="p">(</span><span class="s2">"age &gt; </span><span class="si">#{</span><span class="n">params</span><span class="p">[</span><span class="ss">:age</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Resulting query:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SELECT "users".* FROM "users" WHERE "users"."name" = ? AND (age &gt; 1=1) OR 1=1--)
+</code></pre></div></div>
+
+<h2 id="wrapping-up">Wrapping Up</h2>
+
+<p>Any other new methods that allow SQL injection? Let me know!</p>
+
+<p>Want to find out more?</p>
+
+<ul>
+  <li><a href="https://rails-sqli.org">rails-sqli.org</a> for the complete list.</li>
+  <li><a href="https://brakemanscanner.org/">Brakeman</a> to help find vulnerable queries in your code.</li>
+  <li><a href="https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html">OWASP SQL Injection Cheat Sheet</a> to learn more about preventing SQL injection.</li>
+</ul>
+</div>
+
+
+    </article>
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
       <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2020/09/14/another-reason-to-avoid-constantize-in-rails/">Another Reason to Avoid constantize in Rails</a></h1>
     
     
@@ -348,170 +489,6 @@ In the end, the server is just returning a mishmash of code for the browser to i
 Methods like <code class="language-plaintext highlighter-rouge">escape_javascript</code> make it tempting to do so because the name sounds like it will make the code safe.</p>
 
 <p>If at all possible, avoid dynamic code generation!</p>
-</div>
-
-
-    </article>
-  
-  
-    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
-      
-  <header>
-    
-      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2020/01/14/injection-prevention-sanitizing-vs-escaping/">Sanitizing, Escaping, and Encoding</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-<time datetime="2020-01-14T14:24:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Jan 14th, 2020</time>
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p><em>“We need to sanitize this data”</em> is a phrase I have heard too many times in the context of web security.
-It always makes me a little nervous.</p>
-
-<p>The implication of the term “sanitize” is somehow cleaning the data or rendering it “safe”.
-But the details of how that safety is achieved are a little vague.</p>
-
-<p>Often it means simply searching for a function containing <code class="language-plaintext highlighter-rouge">sanitize</code> and blindly using that function.</p>
-
-<p>That is usually the wrong thing!</p>
-
-<h3 id="injection-vulnerabilities">Injection Vulnerabilities</h3>
-
-<p>Injection vulnerabilities, including <a href="https://www.owasp.org/index.php/Top_10-2017_A7-Cross-Site_Scripting_\(XSS\)">cross-site scripting</a>, are a <a href="https://www.owasp.org/index.php/Top_10-2017_Top_10">top category of web vulnerabilities</a>.</p>
-
-<p>The root cause of injection vulnerabilities is the mixing of code and data which is then handed to a parser (the browser, database driver, shell, etc).
-Injection is possible when the data is treated as code.</p>
-
-<p>(<a href="https://youtu.be/g_24036NDhM">See my talk about injection for a deeper dive!</a>)</p>
-
-<p>Since proper escaping or sanitization is the mitigation for injection vulnerabilities, it is important to have a clear understanding of what those terms mean.</p>
-
-<h3 id="escaping">Escaping</h3>
-
-<p>The term “escaping” originates from situations where text is being interpreted in some mode
-and we want to “escape” from that mode into a different mode.</p>
-
-<p>For example, there are <a href="https://en.wikipedia.org/wiki/ANSI_escape_code">ANSI “escape codes”</a>
-to tell your terminal to switch from a text mode to interpreting a sequence of control characters.</p>
-
-<p>The more common situation is when a developer needs to tell a parser to <em>not</em> interpret a value as code.
-For example, when one is writing a string and wants to include a double-quote inside the string:</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"blah\"blah"
-</code></pre></div></div>
-
-<p>The backslash <code class="language-plaintext highlighter-rouge">\</code> is an escape character that tells the parser to treat the following character as just a value,
-not the end of the string literal.</p>
-
-<p>However, especially in web security, when we say “escaping” we typically mean “encoding”:</p>
-
-<h3 id="encoding">Encoding</h3>
-
-<p><strong>Encoding</strong> involves replacing special characters with a different representation.</p>
-
-<p>HTML encoding uses <a href="https://developer.mozilla.org/en-US/docs/Glossary/Entity">HTML entities</a>.</p>
-
-<p>For example, <code class="language-plaintext highlighter-rouge">&lt;</code> would normally be interpreted as the start of an HTML tag.
-To display a <code class="language-plaintext highlighter-rouge">&lt;</code> character without it being interpreted as a tag, use <code class="language-plaintext highlighter-rouge">&amp;lt;</code>.</p>
-
-<p>In HTML, <code class="language-plaintext highlighter-rouge">&amp;</code> is the escape character. So now you can see how encoding and escaping are intertwined.</p>
-
-<p>In URLs, encoding involves replacing characters with <code class="language-plaintext highlighter-rouge">%</code> followed by a hexadecimal number that corresponds
-to the ASCII code for that character.</p>
-
-<p>For example, <code class="language-plaintext highlighter-rouge">/</code> in a URL would normally be interpreted as a path separator.
-To pass in <code class="language-plaintext highlighter-rouge">/</code> without it being interpreted that way, use <code class="language-plaintext highlighter-rouge">%2F</code>.</p>
-
-<p>This is called “URL encoding” or “<a href="https://en.wikipedia.org/wiki/Percent-encoding">percent encoding</a>” and the <code class="language-plaintext highlighter-rouge">%</code> character is the escape character.
-The value after <code class="language-plaintext highlighter-rouge">%</code> is the hex representation of the ASCII code for the desired display character.</p>
-
-<p>Encoding special characters is typically a very simple and straightforward process.
-Characters are simply replaced with their encoded value in a linear fashion.</p>
-
-<p>The encoding scheme used depends on context.
-For any type of interpretation (HTML, JavaScript, URLs, CSS, SQL, JSON, …) there will be a different
-encoding scheme. It is important to use the correct encoding for the context.</p>
-
-<p><strong>Also note that encoding is a completely reversible process!</strong>
-Given an encoded string, we can easily decode it back to the original value.</p>
-
-<h3 id="sanitizing">Sanitizing</h3>
-
-<p>Unlike encoding and escaping, <strong>sanitization</strong> involves <em>removing</em> characters entirely in order to make the value “safe”.</p>
-
-<p>This is a complicated, error-prone process.</p>
-
-<p>Here is a classic example of bad sanitization:</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Remove script tags!</span>
-<span class="k">def</span> <span class="nf">sanitize_js</span><span class="p">(</span><span class="n">input</span><span class="p">)</span>
-  <span class="n">input</span><span class="p">.</span><span class="nf">gsub</span><span class="p">(</span><span class="sr">/&lt;\/?script&gt;/</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
-<span class="k">end</span>
-
-<span class="n">sanitize_js</span><span class="p">(</span><span class="s2">"&lt;script&gt;alert(1)&lt;/script&gt;"</span><span class="p">)</span> <span class="c1"># =&gt; "alert(1)"</span>
-
-<span class="n">sanitize_js</span><span class="p">(</span><span class="s2">"&lt;scri&lt;script&gt;pt&gt;alert(1)&lt;/scr&lt;/script&gt;ipt&gt;"</span><span class="p">)</span> <span class="c1"># =&gt; "&lt;script&gt;alert(1)&lt;/script&gt;"</span>
-</code></pre></div></div>
-
-<p>This is not just an amusing theoretical example - I have seen this exact approach used in production applications.</p>
-
-<p>Since sanitization is so difficult - nearly impossible - to do correctly, most sanitization implementations have seen
-<a href="https://www.google.com/search?q=html+sanitize+bypass">a number of bypasses</a>.</p>
-
-<p>Also, unlike encoding, sanitization is not reversible!
-Information is lost when the data is sanitized.
-You cannot retrieve the original input once it has gone through a sanitization process.
-This is rarely a desirable side-effect.</p>
-
-<p><em>Sanitization can also mean removal or replacement of sensitive data.
-That is a different usage not being discussed here.</em></p>
-
-<h3 id="using-the-right-approach">Using the Right Approach</h3>
-
-<p>From a security perspective, contextually encoding untrusted values <em>at time of use</em> is the preferred approach.</p>
-
-<p>The tricky part is understanding the output context of the data and which encoding to use.
-HTML can easily have more than four different contexts in a single document!
-Also, it makes no sense to use HTML encoding in SQL.</p>
-
-<p>When possible, use encoding routines provided by libraries or frameworks.</p>
-
-<p>Sanitization should be reserved for cases when encoding is simply not possible.
-For example, if an application must accept and display HTML from users.
-There is no way to use encoding in that scenario.</p>
-
-<p>Again, when possible, do not write your own sanitization! Use existing libraries.</p>
-
-<h3 id="summary">Summary</h3>
-
-<p>When discussing handling potentially dangerous data, be precise with terms!</p>
-
-<p>The security industry seems to have settled on “escaping” to actually mean “encoding”.
-In other words, a reversible transformation that encodes special characters so
-they will not be interpreted as code.</p>
-
-<p>Sanitization, in this context, means an irreversible stripping of special characters.</p>
-
-<p>When possible, prefer encoding/escaping to sanitization!</p>
-
-<h3 id="see-also">See Also</h3>
-
-<p><a href="https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet">OWASP Cross-Site Scripting Prevention Cheatsheet</a></p>
-
-<p><a href="https://cheatsheetseries.owasp.org/cheatsheets/Injection_Prevention_Cheat_Sheet.html">OWASP Injection Prevention Cheatsheet</a></p>
-
-<p><a href="https://youtu.be/g_24036NDhM">Taking on the King: Killing Injection Vulnerabilities</a></p>
 </div>
 
 

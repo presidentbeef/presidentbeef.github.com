@@ -1,4 +1,82 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="https://blog.presidentbeef.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.presidentbeef.com/" rel="alternate" type="text/html" /><updated>2025-01-12T22:36:10-07:00</updated><id>https://blog.presidentbeef.com/feed.xml</id><title type="html">Justin’s Blurgh</title><subtitle></subtitle><entry><title type="html">Tiny E-Ink Picture Display</title><link href="https://blog.presidentbeef.com/blog/2024/04/14/tiny-e-ink-picture-display/" rel="alternate" type="text/html" title="Tiny E-Ink Picture Display" /><published>2024-04-14T14:23:00-06:00</published><updated>2024-04-14T14:23:00-06:00</updated><id>https://blog.presidentbeef.com/blog/2024/04/14/tiny-e-ink-picture-display</id><content type="html" xml:base="https://blog.presidentbeef.com/blog/2024/04/14/tiny-e-ink-picture-display/"><![CDATA[<p>After being surprised by the capabilities of a three-color e-ink display (and struggling to get it to work!), I thought I’d put together a little guide.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="https://blog.presidentbeef.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.presidentbeef.com/" rel="alternate" type="text/html" /><updated>2025-01-12T22:43:04-07:00</updated><id>https://blog.presidentbeef.com/feed.xml</id><title type="html">Justin’s Blurgh</title><subtitle></subtitle><entry><title type="html">Brakeman LSP Support</title><link href="https://blog.presidentbeef.com/blog/2025/01/10/brakeman-lsp-support/" rel="alternate" type="text/html" title="Brakeman LSP Support" /><published>2025-01-10T09:23:00-07:00</published><updated>2025-01-10T09:23:00-07:00</updated><id>https://blog.presidentbeef.com/blog/2025/01/10/brakeman-lsp-support</id><content type="html" xml:base="https://blog.presidentbeef.com/blog/2025/01/10/brakeman-lsp-support/"><![CDATA[<p>Announcing the <a href="https://github.com/presidentbeef/ruby-lsp-brakeman">ruby-lsp-brakeman</a> project!</p>
+
+<p>This new gem allows Brakeman scans to be integrated into code editors via <a href="https://shopify.github.io/ruby-lsp/">ruby-lsp</a>. Scans will run asynchronously in the background and warnings will can be shown inline in the editor.</p>
+
+<h2 id="using-ruby-lsp-brakeman">Using Ruby-LSP-Brakeman</h2>
+
+<p>Add <code class="language-plaintext highlighter-rouge">ruby-lsp-brakeman</code> to your <code class="language-plaintext highlighter-rouge">Gemfile</code>:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">gem</span> <span class="s1">'ruby-lsp-brakeman'</span><span class="p">,</span> <span class="ss">require: </span><span class="kp">false</span>
+</code></pre></div></div>
+
+<h3 id="in-vs-code">In VS Code</h3>
+
+<p>If using with VS Code, make sure to install the <a href="https://marketplace.visualstudio.com/items?itemName=Shopify.ruby-lsp">Ruby LSP extension</a>.</p>
+
+<p><code class="language-plaintext highlighter-rouge">bundle install</code> and then restart the Ruby LSP extension to enable the add-on.</p>
+
+<p>To double-check that Brakeman is running, examine the <code class="language-plaintext highlighter-rouge">output</code> tab in the VS Code panel for output like:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[info] (example-app) Finished initializing Ruby LSP!
+[info] (example-app) [Brakeman] Activated Ruby LSP Brakeman, running initial scan
+[info] (example-app) [Brakeman] Initial Brakeman scan complete - 0 warnings found
+</code></pre></div></div>
+
+<p>When files are saved, there should be logs like:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[info] (example-app) [Brakeman] Queued example-app/app/controllers/some_controller.rb
+[info] (example-app) [Brakeman] Rescanning example-app/app/controllers/some_controller.rb
+[info] (example-app) [Brakeman] Rescanned example-app/app/controllers/some_controller.rb
+[info] (example-app) [Brakeman] Warnings: 0 new, 1 fixed, 2 total
+</code></pre></div></div>
+
+<p>Findings will show up with squiggly underlines:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/hqftm3nn87fekg79in2s.png" alt="Inline Brakeman warning in VS Code" /></p>
+
+<h2 id="background-information">Background Information</h2>
+
+<p>Just for those interested in what’s going on behind the scenes!</p>
+
+<h3 id="language-server-protocol">Language Server Protocol</h3>
+
+<p><a href="https://microsoft.github.io/language-server-protocol/">Language Server Protocol (LSP)</a> is a standard for communication between code editors and code-related tools. It enables tools to hook into standard events for code review, code completion, formatting, etc.</p>
+
+<p>In the Ruby world, Shopify’s <code class="language-plaintext highlighter-rouge">ruby-lsp</code> provides a convenient implementation of LSP and the ability to build “add-ons” like <code class="language-plaintext highlighter-rouge">ruby-lsp-brakeman</code>.</p>
+
+<h3 id="how-brakeman-is-integrated">How Brakeman is Integrated</h3>
+
+<p>The Brakeman add-on primarily hooks into the file change monitoring, which is triggered when a file is saved or deleted. The file is then added to a queue for rescanning. All files in the queue will be rescanned in the next scan. This is to avoid either triggering multiple concurrent scans or missing file updates because a scan was already in progress.</p>
+
+<p>When the scan is complete, the warnings are reported back as a “<a href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnostic">diagnostic</a>” to be displayed in the editor.</p>
+
+<p>Interestingly, it’s also necessary to return <em>empty</em> sets of diagnostics (per changed file) to clear any fixed warnings that were previously reported.</p>
+
+<h3 id="brakeman-rescanning">Brakeman Rescanning</h3>
+
+<p>Unlike some other code review or formatting tools, Brakeman works across the entire application, not one file at a time. Code in one file can have effects elsewhere in the application.</p>
+
+<p>A long time ago, “rescanning”/incremental scans were added to Brakeman. To achieve this, Brakeman needs to keep the entire state of the scan in memory, then attempt to update only the relevant information as files change. (This is as opposed to running scans on only a subset of files or caching results offline somehow. Side note: do not use <code class="language-plaintext highlighter-rouge">--only-files</code> to try to make this work!)</p>
+
+<p>To know what to update internally, Brakeman would try to guess based on the file that changed (including cascading effects). This was always pretty heavy on heuristics and not very well tested. But it kind of mostly worked!</p>
+
+<p>All the way back in Brakeman 5.0, the scan implementation moved away from using file names and paths to determine the type of file (e.g., controllers vs. models) to using the contents of the file instead. However, the re-scanning was not updated to use this information. Since it was still operating based on file paths, it was no longer aligned with the files being scanned by Brakeman normally.</p>
+
+<p>What all this means is that rescanning has been in a broken and slowly deteriorating state since Brakeman 5.0!</p>
+
+<p>With Brakeman 7.0, rescanning has been revised. For now, rescanning focuses on caching parsed files and only re-parsing changed files. The rest of the scan starts from “scratch”. Finding, reading, and parsing files is often one of the slowest parts of scans, so this should still save time for most folks.</p>
+
+<p>Since caching all the parsed files introduces a bit of memory overhead, the functionality is off by default. To enable, initial scans must be run with <code class="language-plaintext highlighter-rouge">support_rescanning: true</code>.</p>
+
+<p>Hopefully future work will be able to expand out the “incremental” part of rescanning again.</p>
+
+<h2 id="whats-next">What’s Next</h2>
+
+<p>While the add-on generally works with VS Code, I’d love to polish it up a bit more and move to a 1.0 release.</p>
+
+<p>I’m also considering if <code class="language-plaintext highlighter-rouge">ruby-lsp-brakeman</code> should depend on Brakeman, or if it should actually be a Brakeman dependency so everyone has it available by default. Let me know if you have thoughts on that.</p>
+
+<p>Please help by testing out <a href="https://github.com/presidentbeef/ruby-lsp-brakeman">ruby-lsp-brakeman</a> and <a href="https://github.com/presidentbeef/ruby-lsp-brakeman">sharing any feedback/bugs</a>!</p>]]></content><author><name></name></author><summary type="html"><![CDATA[Announcing the ruby-lsp-brakeman project!]]></summary></entry><entry><title type="html">Tiny E-Ink Picture Display</title><link href="https://blog.presidentbeef.com/blog/2024/04/14/tiny-e-ink-picture-display/" rel="alternate" type="text/html" title="Tiny E-Ink Picture Display" /><published>2024-04-14T14:23:00-06:00</published><updated>2024-04-14T14:23:00-06:00</updated><id>https://blog.presidentbeef.com/blog/2024/04/14/tiny-e-ink-picture-display</id><content type="html" xml:base="https://blog.presidentbeef.com/blog/2024/04/14/tiny-e-ink-picture-display/"><![CDATA[<p>After being surprised by the capabilities of a three-color e-ink display (and struggling to get it to work!), I thought I’d put together a little guide.</p>
 
 <h2 id="hardware">Hardware</h2>
 
@@ -1689,195 +1767,4 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>That’s it!</p>]]></content><author><name></name></author><summary type="html"><![CDATA[The sound API in DragonRuby is a little tricky because at first it seems similar to the sprite API (e.g. using args.outputs) but it diverges sharply when you want to have some more control.]]></summary></entry><entry><title type="html">DragonRuby: Render Targets</title><link href="https://blog.presidentbeef.com/blog/2022/01/24/dragon-ruby-render-targets/" rel="alternate" type="text/html" title="DragonRuby: Render Targets" /><published>2022-01-24T11:00:00-07:00</published><updated>2022-01-24T11:00:00-07:00</updated><id>https://blog.presidentbeef.com/blog/2022/01/24/dragon-ruby-render-targets</id><content type="html" xml:base="https://blog.presidentbeef.com/blog/2022/01/24/dragon-ruby-render-targets/"><![CDATA[<p>Next up in my notes on <a href="https://dragonruby.itch.io/dragonruby-gtk">DragonRuby</a>: render targets!</p>
-
-<p>Weirdly, the <a href="http://docs.dragonruby.org/#----advanced-rendering---simple-render-targets---main-rb">documentation on DragonRuby’s render targets</a> is limited to example code. Personally, I prefer prose when I am trying to learn… so here we are!</p>
-
-<p>In DragonRuby, a render target is like an infinite canvas you can render as many regular sprites onto as you want, then manipulate the whole thing as if it is one sprite.</p>
-
-<p>This is especially good for things like tiled backgrounds that are built once and do not change.</p>
-
-<p>Let’s take an example.</p>
-
-<h2 id="clouds">Clouds!</h2>
-
-<p>Let’s start off very simple and build up.</p>
-
-<p>First, here’s all the code to render a single 250x250 pixel image to the screen:</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
-  <span class="n">clouds</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="ss">x: </span><span class="mi">0</span><span class="p">,</span>
-    <span class="ss">y: </span><span class="mi">0</span><span class="p">,</span>
-    <span class="ss">h: </span><span class="mi">250</span><span class="p">,</span>
-    <span class="ss">w: </span><span class="mi">250</span><span class="p">,</span>
-    <span class="ss">path: </span><span class="s1">'sprites/cloud.png'</span>
-  <span class="p">}</span>
-
-  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="n">clouds</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/o4bpadbxwln2zp3gsuai.png" alt="Single cloud tile" /></p>
-
-<h3 id="more-clouds">More Clouds</h3>
-
-<p>Cool, but I’d like to fill the whole window with clouds, so I’m going to tile them.</p>
-
-<p>The code below makes a 6x3 grid of the cloud image.</p>
-
-<p>(In DragonRuby, the screen is always 1280x720. Our grid is 1500x750 but I’m not trying to be too precise with the numbers here.)</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
-  <span class="n">clouds</span> <span class="o">=</span> <span class="p">[]</span>
-
-  <span class="mi">6</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
-    <span class="mi">3</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">y</span><span class="o">|</span>
-      <span class="n">clouds</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
-        <span class="ss">x: </span><span class="n">x</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
-        <span class="ss">y: </span><span class="n">y</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
-        <span class="ss">h: </span><span class="mi">250</span><span class="p">,</span>
-        <span class="ss">w: </span><span class="mi">250</span><span class="p">,</span>
-        <span class="ss">path: </span><span class="s1">'sprites/cloud.png'</span>
-      <span class="p">}</span>
-    <span class="k">end</span>
-  <span class="k">end</span>
-
-  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="n">clouds</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/o99o7jjmnfxupewak1n9.png" alt="Screen full of blue clouds" /></p>
-
-<p>Ah… blue clouds. Nice.</p>
-
-<p>On every tick, the code builds up an array of 18 sprites (images) and renders it out to the screen.</p>
-
-<p>(There are a number of ways to make this more efficient - check out the <a href="https://dev.to/presidentbeef/series/16166">previous posts</a> in this series for different ways to “cache” the sprite information.)</p>
-
-<h3 id="render-targets">Render Targets</h3>
-
-<p>But in this post we are talking about render targets - which is a way of rendering a bunch of sprites (or any other renderable thing) just once, and then treating the whole group of sprites as a single sprite. This is <em>faster</em>, simpler, and enables some neat effects.</p>
-
-<p>The code only needs minor changes to switch the cloud grid to using a render target instead:</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Move cloud grid creation into a helper method</span>
-<span class="k">def</span> <span class="nf">make_clouds</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-  <span class="n">clouds</span> <span class="o">=</span> <span class="p">[]</span>
-
-  <span class="mi">6</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
-    <span class="mi">3</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">y</span><span class="o">|</span>
-      <span class="n">clouds</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
-        <span class="ss">x: </span><span class="n">x</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
-        <span class="ss">y: </span><span class="n">y</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
-        <span class="ss">h: </span><span class="mi">250</span><span class="p">,</span>
-        <span class="ss">w: </span><span class="mi">250</span><span class="p">,</span>
-        <span class="ss">path: </span><span class="s1">'sprites/cloud.png'</span>
-      <span class="p">}</span>
-    <span class="k">end</span>
-  <span class="k">end</span>
-
-  <span class="c1"># Similar to `args.outputs`,</span>
-  <span class="c1"># render targets have `.sprites`, `.solids`, etc.</span>
-  <span class="c1"># The argument will be used as the path below</span>
-  <span class="n">args</span><span class="p">.</span><span class="nf">render_target</span><span class="p">(</span><span class="ss">:clouds</span><span class="p">).</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="n">clouds</span>
-<span class="k">end</span>
-
-<span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-  <span class="c1"># Set up the render target on the first tick</span>
-  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">==</span> <span class="mi">0</span>
-    <span class="n">make_clouds</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-  <span class="k">end</span>
-
-  <span class="c1"># Output a single sprite</span>
-  <span class="c1"># located at 0,0 and the size of the whole grid</span>
-  <span class="c1"># created in `make_clouds`</span>
-  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
-    <span class="ss">x: </span><span class="mi">0</span><span class="p">,</span>
-    <span class="ss">y: </span><span class="mi">0</span><span class="p">,</span>
-    <span class="ss">w: </span><span class="mi">250</span> <span class="o">*</span> <span class="mi">6</span><span class="p">,</span>
-    <span class="ss">h: </span><span class="mi">250</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>
-    <span class="ss">path: :clouds</span> <span class="c1"># Name of the render target!</span>
-  <span class="p">}</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<p>For convenience, the code above moves the creation of the cloud grid and the render target into a helper method which gets called on the first tick of the game.</p>
-
-<p><code class="language-plaintext highlighter-rouge">args.render_target(:clouds)</code> automatically creates a new render target named <code class="language-plaintext highlighter-rouge">:clouds</code> if it does not already exist. Then we can render things to it just as if it were <code class="language-plaintext highlighter-rouge">args.outputs</code>.</p>
-
-<p>Interestingly, render targets do not seem to have an innate width or height. In order to avoid unintentional scaling, you will need to “know” how big the render target is. In this case, we know it is a 6x3 grid of 250x250 images, so the size is fairly straightforward. I left the math in to make it clearer.</p>
-
-<p>Finally, we reference the render target similarly to an image file, but pass in the name of the render target as the <code class="language-plaintext highlighter-rouge">:path</code> instead of an actual file path.</p>
-
-<h2 id="static-sprites-too">Static Sprites, Too!</h2>
-
-<p><a href="https://blog.presidentbeef.com/blog/2022/01/08/dragon-ruby-static-outputs/">As explored in a different post</a>, we can use <code class="language-plaintext highlighter-rouge">static_sprites</code> to “render” the sprite <em>once</em>.</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># No changes here</span>
-<span class="k">def</span> <span class="nf">make_clouds</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-  <span class="n">clouds</span> <span class="o">=</span> <span class="p">[]</span>
-
-  <span class="mi">6</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
-    <span class="mi">3</span><span class="p">.</span><span class="nf">times</span> <span class="k">do</span> <span class="o">|</span><span class="n">y</span><span class="o">|</span>
-      <span class="n">clouds</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
-        <span class="ss">x: </span><span class="n">x</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
-        <span class="ss">y: </span><span class="n">y</span> <span class="o">*</span> <span class="mi">250</span><span class="p">,</span>
-        <span class="ss">h: </span><span class="mi">250</span><span class="p">,</span>
-        <span class="ss">w: </span><span class="mi">250</span><span class="p">,</span>
-        <span class="ss">path: </span><span class="s1">'sprites/cloud.png'</span>
-      <span class="p">}</span>
-    <span class="k">end</span>
-  <span class="k">end</span>
-
-  <span class="n">args</span><span class="p">.</span><span class="nf">render_target</span><span class="p">(</span><span class="ss">:clouds</span><span class="p">).</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="n">clouds</span>
-<span class="k">end</span>
-
-<span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">==</span> <span class="mi">0</span>
-    <span class="n">make_clouds</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-
-    <span class="c1"># Create the clouds sprite once</span>
-    <span class="c1"># and keep it in `args.state`.</span>
-    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">clouds</span> <span class="o">=</span> <span class="p">{</span>
-      <span class="ss">x: </span><span class="mi">0</span><span class="p">,</span>
-      <span class="ss">y: </span><span class="mi">0</span><span class="p">,</span>
-      <span class="ss">w: </span><span class="mi">250</span> <span class="o">*</span> <span class="mi">6</span><span class="p">,</span>
-      <span class="ss">h: </span><span class="mi">250</span> <span class="o">*</span> <span class="mi">3</span><span class="p">,</span>
-      <span class="ss">path: :clouds</span>
-    <span class="p">}</span>
-
-    <span class="c1"># Add the clouds sprite just once</span>
-    <span class="c1"># as a "static" sprite</span>
-    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">static_sprites</span> <span class="o">&lt;&lt;</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">clouds</span>
-  <span class="k">end</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<p>And now we can move the clouds around just by changing the attributes on the render target.</p>
-
-<p>Adding a little bit of code at the end of <code class="language-plaintext highlighter-rouge">tick</code>:</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">clouds</span><span class="p">.</span><span class="nf">x</span> <span class="o">=</span> <span class="p">(</span><span class="no">Math</span><span class="p">.</span><span class="nf">sin</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">/</span> <span class="mi">20</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="o">-</span> <span class="mi">100</span>
-</code></pre></div></div>
-
-<p>(The calculation and numbers aren’t really important here, I just fiddled around until something looked decent.)</p>
-
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/hw1qpqotbcg6pfpqo2bq.gif" alt="Clouds moving back and forth" /></p>
-
-<p>Oh hey! Those extra pixels on the sides of the cloud grid actually came in handy.</p>
-
-<h3 id="what-else">What Else?</h3>
-
-<p>Remember, the entire render target is like one sprite now. That means all the regular sprite attributes (e.g. color, size, blending, flipping, rotation) can be applied to the entire thing at once.</p>
-
-<p><em>Wait, did you say rotation?</em></p>
-
-<p>Sure, let’s make ourselves dizzy.</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">clouds</span><span class="p">.</span><span class="nf">angle</span> <span class="o">=</span> <span class="p">(</span><span class="no">Math</span><span class="p">.</span><span class="nf">sin</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">/</span> <span class="mi">120</span><span class="p">)</span> <span class="o">*</span> <span class="mi">180</span><span class="p">)</span>
-</code></pre></div></div>
-
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/g5n2ug9ehwbn8yzh2orq.gif" alt="Spinning clouds" /></p>
-
-<p>Okay, that’s as deep as we’ll go on render targets in this post!</p>]]></content><author><name></name></author><summary type="html"><![CDATA[Next up in my notes on DragonRuby: render targets!]]></summary></entry></feed>
+<p>That’s it!</p>]]></content><author><name></name></author><summary type="html"><![CDATA[The sound API in DragonRuby is a little tricky because at first it seems similar to the sprite API (e.g. using args.outputs) but it diverges sharply when you want to have some more control.]]></summary></entry></feed>

@@ -44,6 +44,113 @@
       
   <header>
     
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2025/01/10/brakeman-lsp-support/">Brakeman LSP Support</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2025-01-10T09:23:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Jan 10th, 2025</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Announcing the <a href="https://github.com/presidentbeef/ruby-lsp-brakeman">ruby-lsp-brakeman</a> project!</p>
+
+<p>This new gem allows Brakeman scans to be integrated into code editors via <a href="https://shopify.github.io/ruby-lsp/">ruby-lsp</a>. Scans will run asynchronously in the background and warnings will can be shown inline in the editor.</p>
+
+<h2 id="using-ruby-lsp-brakeman">Using Ruby-LSP-Brakeman</h2>
+
+<p>Add <code class="language-plaintext highlighter-rouge">ruby-lsp-brakeman</code> to your <code class="language-plaintext highlighter-rouge">Gemfile</code>:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">gem</span> <span class="s1">'ruby-lsp-brakeman'</span><span class="p">,</span> <span class="ss">require: </span><span class="kp">false</span>
+</code></pre></div></div>
+
+<h3 id="in-vs-code">In VS Code</h3>
+
+<p>If using with VS Code, make sure to install the <a href="https://marketplace.visualstudio.com/items?itemName=Shopify.ruby-lsp">Ruby LSP extension</a>.</p>
+
+<p><code class="language-plaintext highlighter-rouge">bundle install</code> and then restart the Ruby LSP extension to enable the add-on.</p>
+
+<p>To double-check that Brakeman is running, examine the <code class="language-plaintext highlighter-rouge">output</code> tab in the VS Code panel for output like:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[info] (example-app) Finished initializing Ruby LSP!
+[info] (example-app) [Brakeman] Activated Ruby LSP Brakeman, running initial scan
+[info] (example-app) [Brakeman] Initial Brakeman scan complete - 0 warnings found
+</code></pre></div></div>
+
+<p>When files are saved, there should be logs like:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[info] (example-app) [Brakeman] Queued example-app/app/controllers/some_controller.rb
+[info] (example-app) [Brakeman] Rescanning example-app/app/controllers/some_controller.rb
+[info] (example-app) [Brakeman] Rescanned example-app/app/controllers/some_controller.rb
+[info] (example-app) [Brakeman] Warnings: 0 new, 1 fixed, 2 total
+</code></pre></div></div>
+
+<p>Findings will show up with squiggly underlines:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/hqftm3nn87fekg79in2s.png" alt="Inline Brakeman warning in VS Code" /></p>
+
+<h2 id="background-information">Background Information</h2>
+
+<p>Just for those interested in what’s going on behind the scenes!</p>
+
+<h3 id="language-server-protocol">Language Server Protocol</h3>
+
+<p><a href="https://microsoft.github.io/language-server-protocol/">Language Server Protocol (LSP)</a> is a standard for communication between code editors and code-related tools. It enables tools to hook into standard events for code review, code completion, formatting, etc.</p>
+
+<p>In the Ruby world, Shopify’s <code class="language-plaintext highlighter-rouge">ruby-lsp</code> provides a convenient implementation of LSP and the ability to build “add-ons” like <code class="language-plaintext highlighter-rouge">ruby-lsp-brakeman</code>.</p>
+
+<h3 id="how-brakeman-is-integrated">How Brakeman is Integrated</h3>
+
+<p>The Brakeman add-on primarily hooks into the file change monitoring, which is triggered when a file is saved or deleted. The file is then added to a queue for rescanning. All files in the queue will be rescanned in the next scan. This is to avoid either triggering multiple concurrent scans or missing file updates because a scan was already in progress.</p>
+
+<p>When the scan is complete, the warnings are reported back as a “<a href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnostic">diagnostic</a>” to be displayed in the editor.</p>
+
+<p>Interestingly, it’s also necessary to return <em>empty</em> sets of diagnostics (per changed file) to clear any fixed warnings that were previously reported.</p>
+
+<h3 id="brakeman-rescanning">Brakeman Rescanning</h3>
+
+<p>Unlike some other code review or formatting tools, Brakeman works across the entire application, not one file at a time. Code in one file can have effects elsewhere in the application.</p>
+
+<p>A long time ago, “rescanning”/incremental scans were added to Brakeman. To achieve this, Brakeman needs to keep the entire state of the scan in memory, then attempt to update only the relevant information as files change. (This is as opposed to running scans on only a subset of files or caching results offline somehow. Side note: do not use <code class="language-plaintext highlighter-rouge">--only-files</code> to try to make this work!)</p>
+
+<p>To know what to update internally, Brakeman would try to guess based on the file that changed (including cascading effects). This was always pretty heavy on heuristics and not very well tested. But it kind of mostly worked!</p>
+
+<p>All the way back in Brakeman 5.0, the scan implementation moved away from using file names and paths to determine the type of file (e.g., controllers vs. models) to using the contents of the file instead. However, the re-scanning was not updated to use this information. Since it was still operating based on file paths, it was no longer aligned with the files being scanned by Brakeman normally.</p>
+
+<p>What all this means is that rescanning has been in a broken and slowly deteriorating state since Brakeman 5.0!</p>
+
+<p>With Brakeman 7.0, rescanning has been revised. For now, rescanning focuses on caching parsed files and only re-parsing changed files. The rest of the scan starts from “scratch”. Finding, reading, and parsing files is often one of the slowest parts of scans, so this should still save time for most folks.</p>
+
+<p>Since caching all the parsed files introduces a bit of memory overhead, the functionality is off by default. To enable, initial scans must be run with <code class="language-plaintext highlighter-rouge">support_rescanning: true</code>.</p>
+
+<p>Hopefully future work will be able to expand out the “incremental” part of rescanning again.</p>
+
+<h2 id="whats-next">What’s Next</h2>
+
+<p>While the add-on generally works with VS Code, I’d love to polish it up a bit more and move to a 1.0 release.</p>
+
+<p>I’m also considering if <code class="language-plaintext highlighter-rouge">ruby-lsp-brakeman</code> should depend on Brakeman, or if it should actually be a Brakeman dependency so everyone has it available by default. Let me know if you have thoughts on that.</p>
+
+<p>Please help by testing out <a href="https://github.com/presidentbeef/ruby-lsp-brakeman">ruby-lsp-brakeman</a> and <a href="https://github.com/presidentbeef/ruby-lsp-brakeman">sharing any feedback/bugs</a>!</p>
+</div>
+
+
+    </article>
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
       <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2024/04/14/tiny-e-ink-picture-display/">Tiny E-Ink Picture Display</a></h1>
     
     
@@ -372,191 +479,6 @@
   <span class="n">gtk</span><span class="p">.</span><span class="nf">request_quit</span>
 <span class="k">end</span>
 </code></pre></div></div>
-</div>
-
-
-    </article>
-  
-  
-    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
-      
-  <header>
-    
-      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2023/12/22/dragonruby-following-the-mouse/">DragonRuby: Following the Mouse</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-<time datetime="2023-12-22T14:18:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Dec 22nd, 2023</time>
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Recently I discovered it is very easy to have objects move towards (or away from) any points in <a href="https://dragonruby.org/toolkit/game">DragonRuby</a>.</p>
-
-<p>This post might be a little easier if you’ve already read my post on <a href="https://dev.to/presidentbeef/dragonruby-moving-in-arbitrary-directions-5eja">moving in arbitrary directions</a>, but actually the code here is even simpler.</p>
-
-<p>If I skip any explanations here, the concepts should have been covered <a href="https://dev.to/presidentbeef/series/16166">earlier in the series</a>.</p>
-
-<h3 id="setup">Setup</h3>
-
-<p>To get started, let’s just output a square (roughly) in the middle of the screen.</p>
-
-<p><code class="language-plaintext highlighter-rouge">args.grid.center_x</code> and <code class="language-plaintext highlighter-rouge">args.grid.center_y</code> are helpful for this instead of remembering/hardcoding the screen size.</p>
-
-<p>In addition, the code uses <code class="language-plaintext highlighter-rouge">args.state.tick_count == 0</code> to do some setup on the first tick.</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-  <span class="c1"># On the first tick...</span>
-  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">==</span> <span class="mi">0</span>
-    <span class="c1"># Create a 50x50 pixel square in the middle of the screen</span>
-    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span> <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span><span class="p">,</span> <span class="ss">h: </span><span class="mi">50</span><span class="p">,</span> <span class="ss">w: </span><span class="mi">50</span><span class="p">}</span>
-
-    <span class="c1"># Output that square on every tick</span>
-    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">static_solids</span> <span class="o">&lt;&lt;</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span>
-  <span class="k">end</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/durocwoj9tj6uzzfdp5x.png" alt="A square in the middle of a window" /></p>
-
-<p>Pretty basic!</p>
-
-<p>(Note I’m skipping straight to <a href="https://dev.to/presidentbeef/dragonruby-static-outputs-p2c"><code class="language-plaintext highlighter-rouge">static_solids</code></a> because that’s what I’d prefer in a “real” game.)</p>
-
-<h3 id="moving-to-a-point">Moving to a Point</h3>
-
-<p>Now we’ll move the “player” to a given point - in this case where the mouse is. In typical DragonRuby fashion, <code class="language-plaintext highlighter-rouge">args.inputs.mouse</code> can be used to as a point, even though it has a bunch of other information attached to it.</p>
-
-<p>To get the angle from the player to the mouse, there is a very convenient <code class="language-plaintext highlighter-rouge">angle_to</code> method! (Also <code class="language-plaintext highlighter-rouge">angle_from</code> depending on which way you’d like to go.)</p>
-
-<p>Just like <code class="language-plaintext highlighter-rouge">args.inputs.mouse</code>, the <code class="language-plaintext highlighter-rouge">player</code> solid can be treated as if it is a point, too.</p>
-
-<p>One the angle is calculated, <code class="language-plaintext highlighter-rouge">vector_x</code> and <code class="language-plaintext highlighter-rouge">vector_y</code> will provide the magnitude to move in the <code class="language-plaintext highlighter-rouge">x</code> and <code class="language-plaintext highlighter-rouge">y</code> directions.</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">==</span> <span class="mi">0</span>
-    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span> <span class="o">=</span> <span class="p">{</span>
-      <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span>
-      <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span><span class="p">,</span>
-      <span class="ss">h: </span><span class="mi">50</span><span class="p">,</span>
-      <span class="ss">w: </span><span class="mi">50</span>
-    <span class="p">}</span>
-
-    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">static_solids</span> <span class="o">&lt;&lt;</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span>
-  <span class="k">end</span>
-
-  <span class="c1"># Find angle from the square to the current location of the mouse</span>
-  <span class="n">angle</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span><span class="p">.</span><span class="nf">angle_to</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">inputs</span><span class="p">.</span><span class="nf">mouse</span><span class="p">)</span>
-  
-  <span class="c1"># Move towards the mouse using the unit vector</span>
-  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span><span class="p">.</span><span class="nf">x</span> <span class="o">+=</span> <span class="n">angle</span><span class="p">.</span><span class="nf">vector_x</span>
-  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span><span class="p">.</span><span class="nf">y</span> <span class="o">+=</span> <span class="n">angle</span><span class="p">.</span><span class="nf">vector_y</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/rh6qfnxypx8f744jrkww.gif" alt="Square following the mouse around" /></p>
-
-<p>And… that’s it!! Less than 10 lines of code (without comments/spaces) and it just works.</p>
-
-<p><em>So now let’s make it more complicated…</em></p>
-
-<h3 id="centering">Centering</h3>
-
-<p>It is annoying that the player moves so the <em>bottom, right-hand</em> corner meets the mouse, there is a simple fix: use <code class="language-plaintext highlighter-rouge">anchor_x</code> and <code class="language-plaintext highlighter-rouge">anchor_y</code>. DragonRuby will automatically use the anchor point for calculations.</p>
-
-<p>To learn more about anchor points, see this <a href="https://dev.to/presidentbeef/smoothly-growing-and-shrinking-sprites-in-dragonruby-53d1">earlier post</a>. But typically the values are set to <code class="language-plaintext highlighter-rouge">0.5</code> which means “middle of the object”.</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-  <span class="k">if</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">==</span> <span class="mi">0</span>
-    <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span> <span class="o">=</span> <span class="p">{</span>
-      <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span>
-      <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span><span class="p">,</span>
-      <span class="ss">h: </span><span class="mi">50</span><span class="p">,</span>
-      <span class="ss">w: </span><span class="mi">50</span><span class="p">,</span>
-      <span class="ss">anchor_x: </span><span class="mf">0.5</span><span class="p">,</span>
-      <span class="ss">anchor_y: </span><span class="mf">0.5</span><span class="p">,</span>
-    <span class="p">}</span>
-
-    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">static_solids</span> <span class="o">&lt;&lt;</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span>
-  <span class="k">end</span>
-
-  <span class="n">angle</span> <span class="o">=</span> <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span><span class="p">.</span><span class="nf">angle_to</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">inputs</span><span class="p">.</span><span class="nf">mouse</span><span class="p">)</span>
-  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span><span class="p">.</span><span class="nf">x</span> <span class="o">+=</span> <span class="n">angle</span><span class="p">.</span><span class="nf">vector_x</span>
-  <span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">player</span><span class="p">.</span><span class="nf">y</span> <span class="o">+=</span> <span class="n">angle</span><span class="p">.</span><span class="nf">vector_y</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/0brhvw3f6clhe1jizpjf.gif" alt="Square following the mouse around, but centered" /></p>
-
-<h3 id="moving-to-classes">Moving to Classes</h3>
-
-<p>I continue to prefer taking an object/class-based approach in my own code. This makes it much easier to manage as the code grows larger, even if it seems silly for these small examples.</p>
-
-<p>In a little departure from previous posts, I am not walking through the code in detail. (Please check out my other posts in this series to learn more!)</p>
-
-<p>The main difference from the above is adding a <code class="language-plaintext highlighter-rouge">speed</code> to the movement calculation. Other than that, this is how I generally move from simple code like the above into a structure more suitable (in my opinion) as the code.</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Game</span>
-  <span class="n">attr_gtk</span>
-
-  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-    <span class="c1"># Separate setup method is easier if you need to</span>
-    <span class="c1"># reset during the game</span>
-    <span class="n">setup</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-  <span class="k">end</span>
-
-  <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-    <span class="c1"># Since static_sprites persists between ticks,</span>
-    <span class="c1"># need to clear it in case of reset</span>
-    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">static_sprites</span><span class="p">.</span><span class="nf">clear</span>
-
-    <span class="vi">@player</span> <span class="o">=</span> <span class="no">Player</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span> <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span><span class="p">,</span> <span class="ss">h: </span><span class="mi">50</span><span class="p">,</span> <span class="ss">w: </span><span class="mi">50</span><span class="p">,</span> <span class="ss">speed: </span><span class="mi">2</span><span class="p">)</span>
-
-    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">static_sprites</span> <span class="o">&lt;&lt;</span> <span class="vi">@player</span>
-  <span class="k">end</span>
-
-  <span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-    <span class="vi">@player</span><span class="p">.</span><span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-  <span class="k">end</span>
-<span class="k">end</span>
-
-<span class="k">class</span> <span class="nc">Player</span>
-  <span class="n">attr_sprite</span>
-
-  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">x</span><span class="p">:,</span> <span class="n">y</span><span class="p">:,</span> <span class="n">h</span><span class="p">:,</span> <span class="n">w</span><span class="p">:,</span> <span class="n">speed</span><span class="p">:)</span>
-    <span class="vi">@x</span> <span class="o">=</span> <span class="n">x</span>
-    <span class="vi">@y</span> <span class="o">=</span> <span class="n">y</span>
-    <span class="vi">@h</span> <span class="o">=</span> <span class="n">h</span>
-    <span class="vi">@w</span> <span class="o">=</span> <span class="n">w</span>
-    <span class="vi">@anchor_x</span> <span class="o">=</span> <span class="mf">0.5</span>
-    <span class="vi">@anchor_y</span> <span class="o">=</span> <span class="mf">0.5</span>
-    <span class="vi">@speed</span> <span class="o">=</span> <span class="n">speed</span>
-  <span class="k">end</span>
-
-  <span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-    <span class="n">angle</span> <span class="o">=</span> <span class="nb">self</span><span class="p">.</span><span class="nf">angle_to</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">inputs</span><span class="p">.</span><span class="nf">mouse</span><span class="p">)</span>
-
-    <span class="vi">@x</span> <span class="o">+=</span> <span class="n">angle</span><span class="p">.</span><span class="nf">vector_x</span> <span class="o">*</span> <span class="vi">@speed</span>
-    <span class="vi">@y</span> <span class="o">+=</span> <span class="n">angle</span><span class="p">.</span><span class="nf">vector_y</span> <span class="o">*</span> <span class="vi">@speed</span>
-  <span class="k">end</span>
-<span class="k">end</span>
-
-<span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-  <span class="vg">$Game</span> <span class="o">||=</span> <span class="no">Game</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-  <span class="vg">$Game</span><span class="p">.</span><span class="nf">tick</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-<span class="k">end</span>
-</code></pre></div></div>
-
-<p>One minor note if you actually run this code - the square will be white (default for sprites) instead of black (default for solids).</p>
 </div>
 
 

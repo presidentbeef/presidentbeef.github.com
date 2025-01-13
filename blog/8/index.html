@@ -45,6 +45,54 @@
       
   <header>
     
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2017/12/21/price-transparency-with-brakeman-pro/">Price Transparency with Brakeman Pro</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2017-12-21T19:39:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Dec 21st, 2017</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Pricing in the static analysis security tool (SAST) world is difficult. Do you charge per project? Per repository? Per line of code? Per language? Per user? What defines a “user”?
+None of these approaches are very satisfying, because no single approach will cover all types of customers.</p>
+
+<p>Instead, companies come up with per-customer pricing. Meaning they will look at a potential customer’s needs and size, and then come up with a number they think the customer might be willing to pay.</p>
+
+<p>Then the negotation dance begins, where the customer attempts to talk the seller down 20-50% from the initial quote (which was kind of made up anyway).</p>
+
+<p>To me, that’s stressful, time-consuming, and a little shady.</p>
+
+<p>Personally, I do not want to deal with salespeople (and their relentless follow up emails/calls) just to get a rough idea of what a product will cost.</p>
+
+<p>With Brakeman Pro, I wanted to be upfront and honest with customers. That’s why, as far as I know, we are the only commercial SAST with <a href="https://brakemanpro.com/purchase/pricing">publicly-available pricing</a>.</p>
+
+<p>Want to purchase a license? You can buy with a credit card on the website and you never have to talk to anyone! That is the kind of interaction I like to have with a company - not “request a quote” or “contact us for pricing”.</p>
+
+<p>Does that mean we make less money than if we had hidden price lists and made up numbers based on what we think a customer would pay? Almost certainly. Our customers range from companies making billions per year to individual users. It would be “smarter” to have the large companies pay more.</p>
+
+<p>But the “mission” of the company is not to maximize profit. It is to fund development of a security product that will <em>help make the world a little safer</em>.</p>
+
+<p>That is why it has been more important to me that we focus on number of customers, rather than overall revenue.</p>
+</div>
+
+
+    </article>
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
       <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2017/03/08/challenges-when-building-commercial-versions-of-oss/">Challenges When Building Commercial Versions of Open Source</a></h1>
     
     
@@ -250,63 +298,6 @@ system "BM_PACKAGE=true gem build brakeman.gemspec"
 </code></pre></div></div>
 
 <p>When bundling gems and building the gem, the script sets the <code class="language-plaintext highlighter-rouge">BM_PACKAGE</code> variable so that development dependencies <a href="https://github.com/presidentbeef/brakeman/blob/fb4f9de160fd97a2b72d5e01c16058718941ec3d/brakeman.gemspec#L22">are not included</a> in the bundled gems.</p>
-</div>
-
-
-    </article>
-  
-  
-    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
-      
-  <header>
-    
-      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2016/06/12/automatically-lock-old-closed-github-issues/">Automatically Lock Old Closed GitHub Issues</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-<time datetime="2016-06-12T22:27:00-06:00" pubdate data-updated="true" style="color: #a2a2a2">Jun 12th, 2016</time>
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>I am not sure this is a problem everyone has, but I grew tired of people commenting on old, resolved GitHub issues.
-Almost every time someone would comment “I have this problem, too” it would actually be a different issue. Then I’d
-go through the routine of asking them to open a new issue with details about their specific problem.
-Sometimes they would, and sometimes they’d never come back.</p>
-
-<p>Fortunately, right around the time I decided I should do something about this annoyance, <a href="https://developer.github.com/changes/2016-02-11-issue-locking-api/">GitHub released an API</a>
-to lock issues. (<a href="https://github.com/blog/1847-locking-conversations">Locking issues or pull requests</a> prevents any new comments except from repo collaborators.)</p>
-
-<p>So I put together a little gem called <a href="https://github.com/presidentbeef/github-auto-locker">github-auto-locker</a> to fetch and lock old, closed issues.</p>
-
-<p>To install it (requires Ruby):</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gem install github-auto-locker
-</code></pre></div></div>
-
-<p>Then run:</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>github-auto-locker USER REPO TOKEN [age in days]
-</code></pre></div></div>
-
-<p>For example, I run this to lock resolved issues over 60 days old:</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>github-auto-locker presidentbeef brakeman N0TM1R34L70K3N 60
-</code></pre></div></div>
-
-<p>The default is 120 days.</p>
-
-<p>I’ve been running it periodically myself since February without any complaints.
-Perhaps it will be useful to you!</p>
 </div>
 
 

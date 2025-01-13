@@ -45,6 +45,230 @@
       
   <header>
     
+      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2022/06/26/dragonruby-basic-sprite-animation/">DragonRuby: Basic Sprite Animation</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+<time datetime="2022-06-26T14:11:00-06:00" pubdate data-updated="true" style="color: #a2a2a2">Jun 26th, 2022</time>
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Animating sprites in <a href="https://dragonruby.org/">DragonRuby</a> is fairly simple, but it does require putting a couple ideas together.</p>
+
+<p>First, it’s best to have a single image with all frames of the animation together, equally spaced apart. I prefer the frames are arranged horizontally from left-to-right, so that is what we will use here.</p>
+
+<p>Here is an example, <a href="https://kenney.nl/assets/toon-characters-1">borrowed from here</a>:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/jv9eg653bi1mdwk3ea8m.png" alt="Animation frames of a walking adventurer" /></p>
+
+<p>The first frame can be displayed like this:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="n">height</span> <span class="o">=</span> <span class="mi">195</span>
+  <span class="n">width</span> <span class="o">=</span> <span class="mi">192</span>
+
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span> <span class="o">-</span> <span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span> <span class="o">-</span> <span class="p">(</span><span class="n">height</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="ss">h: </span><span class="n">height</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="n">width</span><span class="p">,</span>
+    <span class="ss">source_x: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">source_y: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">source_w: </span><span class="n">width</span><span class="p">,</span>
+    <span class="ss">source_h: </span><span class="n">height</span><span class="p">,</span>
+    <span class="ss">path: </span><span class="s1">'sprites/walking.png'</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">source_x</code> and <code class="language-plaintext highlighter-rouge">source_y</code> set the <em>bottom left</em> corner of a “tile” or basically a slice of the image. (To use the <em>top</em> left instead, set <code class="language-plaintext highlighter-rouge">tile_x</code> and <code class="language-plaintext highlighter-rouge">tile_y</code>). <code class="language-plaintext highlighter-rouge">source_w</code> and <code class="language-plaintext highlighter-rouge">source_h</code> set the width and height of the tile. The sprite can be scaled when displayed with <code class="language-plaintext highlighter-rouge">w</code> and <code class="language-plaintext highlighter-rouge">h</code>.</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/a4t2zh97adawgjgo5em8.png" alt="Single frame of adventurer" /></p>
+
+<p>If the frames are laid out horizontally, then all one needs to do is update the <code class="language-plaintext highlighter-rouge">source_x</code> value (typically by the width of the tile) in order to change the frame.</p>
+
+<p>Here is an illustration for a few frames:</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/9w8p5wzlp482b8c6gg8k.png" alt="Frame index illustration" /></p>
+
+<p>We could accomplish this by using the multiplying the width of the tile by the current tick (modulo the number of frames, so it loops):</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="n">height</span> <span class="o">=</span> <span class="mi">195</span>
+  <span class="n">width</span> <span class="o">=</span> <span class="mi">192</span>
+  <span class="n">num_frames</span> <span class="o">=</span> <span class="mi">8</span>
+
+  <span class="n">source_x</span> <span class="o">=</span> <span class="n">width</span> <span class="o">*</span> <span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">tick_count</span> <span class="o">%</span> <span class="n">num_frames</span><span class="p">)</span>
+
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span> <span class="o">-</span> <span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span> <span class="o">-</span> <span class="p">(</span><span class="n">height</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="ss">h: </span><span class="n">height</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="n">width</span><span class="p">,</span>
+    <span class="ss">source_x: </span><span class="n">source_x</span><span class="p">,</span>
+    <span class="ss">source_y: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">source_w: </span><span class="n">width</span><span class="p">,</span>
+    <span class="ss">source_h: </span><span class="n">height</span><span class="p">,</span>
+    <span class="ss">path: </span><span class="s1">'sprites/walking.png'</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>This works… but it’s a bit fast for a walk!</p>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/aeeeimw4tx4a9gjg9egh.gif" alt="Very fast walk" /></p>
+
+<p>This is where DragonRuby helps out. The <a href="https://docs.dragonruby.org/#/api/numeric?id=frame_index"><code class="language-plaintext highlighter-rouge">frame_index</code> method</a> will do the calculation of the current frame for us.</p>
+
+<p><code class="language-plaintext highlighter-rouge">frame_index</code> accepts these arguments:</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">count</code>: total number of frames in the animation</li>
+  <li><code class="language-plaintext highlighter-rouge">hold_for</code>: how many ticks to wait between frames</li>
+  <li><code class="language-plaintext highlighter-rouge">repeat</code>: whether or not to loop</li>
+</ul>
+
+<p><code class="language-plaintext highlighter-rouge">frame_index</code> can be called on any integer, but typically uses the tick number on which the animation started. Below, the code sets this to <code class="language-plaintext highlighter-rouge">0</code> (the first tick). This could instead be when an event happens, based on input, or anything else.</p>
+
+<p>Multiplying the <code class="language-plaintext highlighter-rouge">width</code> of the tile by the frame index results in the <code class="language-plaintext highlighter-rouge">source_x</code> value for the current frame of the animation:</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="n">height</span> <span class="o">=</span> <span class="mi">195</span>
+  <span class="n">width</span> <span class="o">=</span> <span class="mi">192</span>
+  <span class="n">num_frames</span> <span class="o">=</span> <span class="mi">8</span>
+  <span class="n">start_tick</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="n">delay</span> <span class="o">=</span> <span class="mi">4</span>
+
+  <span class="n">source_x</span> <span class="o">=</span> <span class="n">width</span> <span class="o">*</span> <span class="n">start_tick</span><span class="p">.</span><span class="nf">frame_index</span><span class="p">(</span><span class="ss">count: </span><span class="n">num_frames</span><span class="p">,</span> <span class="ss">hold_for: </span><span class="n">delay</span><span class="p">,</span> <span class="ss">repeat: </span><span class="kp">true</span><span class="p">)</span>
+
+  <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sprites</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
+    <span class="ss">x: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span> <span class="o">-</span> <span class="p">(</span><span class="n">width</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="ss">y: </span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span> <span class="o">-</span> <span class="p">(</span><span class="n">height</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="ss">h: </span><span class="n">height</span><span class="p">,</span>
+    <span class="ss">w: </span><span class="n">width</span><span class="p">,</span>
+    <span class="ss">source_x: </span><span class="n">source_x</span><span class="p">,</span>
+    <span class="ss">source_y: </span><span class="mi">0</span><span class="p">,</span>
+    <span class="ss">source_w: </span><span class="n">width</span><span class="p">,</span>
+    <span class="ss">source_h: </span><span class="n">height</span><span class="p">,</span>
+    <span class="ss">path: </span><span class="s1">'sprites/walking.png'</span><span class="p">,</span>
+  <span class="p">}</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p><img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/7wnj69rllj4561g02hvg.gif" alt="Slower walk" /></p>
+
+<p>And that’s it!</p>
+
+<h2 id="but-with-ruby-classes">But With Ruby Classes</h2>
+
+<p>Once a game starts to get moderately complex, I like to arrange behavior into classes. It’s also convenient to use <code class="language-plaintext highlighter-rouge">attr_gtk</code> to avoid passing <code class="language-plaintext highlighter-rouge">args</code> around and to save on some typing (e.g. <code class="language-plaintext highlighter-rouge">args.outputs</code> becomes just <code class="language-plaintext highlighter-rouge">outputs</code>).</p>
+
+<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">MyGame</span>
+  <span class="n">attr_gtk</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="vi">@my_sprite</span> <span class="o">=</span> <span class="no">MySprite</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_x</span><span class="p">,</span> <span class="n">args</span><span class="p">.</span><span class="nf">grid</span><span class="p">.</span><span class="nf">center_y</span><span class="p">)</span>
+    <span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">static_sprites</span> <span class="o">&lt;&lt;</span> <span class="vi">@my_sprite</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">tick</span>
+    <span class="k">if</span> <span class="n">inputs</span><span class="p">.</span><span class="nf">mouse</span><span class="p">.</span><span class="nf">click</span>
+      <span class="k">if</span> <span class="vi">@my_sprite</span><span class="p">.</span><span class="nf">running?</span>
+        <span class="vi">@my_sprite</span><span class="p">.</span><span class="nf">stop</span>
+      <span class="k">else</span>
+        <span class="vi">@my_sprite</span><span class="p">.</span><span class="nf">start</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="nf">state</span><span class="p">.</span><span class="nf">tick_count</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="vi">@my_sprite</span><span class="p">.</span><span class="nf">update</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">MySprite</span>
+  <span class="n">attr_sprite</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
+    <span class="vi">@x</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="vi">@y</span> <span class="o">=</span> <span class="n">y</span>
+
+    <span class="vi">@w</span> <span class="o">=</span> <span class="mi">192</span>
+    <span class="vi">@h</span> <span class="o">=</span> <span class="mi">195</span>
+    <span class="vi">@source_x</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="vi">@source_y</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="vi">@source_w</span> <span class="o">=</span> <span class="vi">@w</span>
+    <span class="vi">@source_h</span> <span class="o">=</span> <span class="vi">@h</span>
+    <span class="vi">@path</span> <span class="o">=</span> <span class="s1">'sprites/walking.png'</span>
+
+    <span class="vi">@running</span> <span class="o">=</span> <span class="kp">false</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Set @running to the current tick number</span>
+  <span class="c1"># this is so the frame_index can use that as the</span>
+  <span class="c1"># start of the animation timing.</span>
+  <span class="k">def</span> <span class="nf">start</span><span class="p">(</span><span class="n">tick_count</span><span class="p">)</span>
+    <span class="vi">@running</span> <span class="o">=</span> <span class="n">tick_count</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">stop</span>
+    <span class="vi">@running</span> <span class="o">=</span> <span class="kp">false</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">running?</span>
+    <span class="vi">@running</span>
+  <span class="k">end</span>
+
+  <span class="c1"># Update source_x based on frame_index</span>
+  <span class="c1"># if currently running</span>
+  <span class="k">def</span> <span class="nf">update</span>
+    <span class="k">if</span> <span class="vi">@running</span>
+      <span class="vi">@source_x</span> <span class="o">=</span> <span class="vi">@source_w</span> <span class="o">*</span> <span class="vi">@running</span><span class="p">.</span><span class="nf">frame_index</span><span class="p">(</span><span class="ss">count: </span><span class="mi">8</span><span class="p">,</span> <span class="ss">hold_for: </span><span class="mi">4</span><span class="p">,</span> <span class="ss">repeat: </span><span class="kp">true</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">def</span> <span class="nf">tick</span> <span class="n">args</span>
+  <span class="vg">$my_game</span> <span class="o">||=</span> <span class="no">MyGame</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+  <span class="vg">$my_game</span><span class="p">.</span><span class="nf">args</span> <span class="o">=</span> <span class="n">args</span>
+  <span class="vg">$my_game</span><span class="p">.</span><span class="nf">tick</span>
+<span class="k">end</span>
+</code></pre></div></div>
+
+<p>This example essentially follows my <a href="https://dev.to/presidentbeef/dragonruby-object-oriented-starter-3plg">Object-Oriented Starter</a> approach and moves the logic into a game class and a sprite class.</p>
+
+<p>When the mouse is clicked, the sprite starts moving (using the current <code class="language-plaintext highlighter-rouge">tick_count</code> as the starting tick). When the mouse is clicked again, the sprite stops.</p>
+
+<h2 id="source-vs-tile">Source vs. Tile</h2>
+
+<p>To use just a piece of an image (for animations or otherwise), there are two options: <code class="language-plaintext highlighter-rouge">source_(x|y|h|w)</code> or <code class="language-plaintext highlighter-rouge">tile_(x|y|h|w)</code>.</p>
+
+<p>These options are nearly identical, except <code class="language-plaintext highlighter-rouge">source_y</code> is bottom left and <code class="language-plaintext highlighter-rouge">tile_y</code> is top left.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">source_</code> options were added in DragonRuby 1.6 and are more consistent with the rest of DragonRuby where the origin is the bottom left. On the other hand, the <code class="language-plaintext highlighter-rouge">tile_</code> options align easier with image editors.</p>
+
+<p>Either option works, depending on what is important to you.</p>
+
+<h2 id="go">Go!</h2>
+
+<p>Now that’s really it! Get moving!</p>
+</div>
+
+
+    </article>
+  
+  
+    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
+      
+  <header>
+    
       <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2022/04/30/dragonruby-rotating-rectangles/">DragonRuby: Rotating Rectangles</a></h1>
     
     
@@ -478,124 +702,6 @@
 </code></pre></div></div>
 
 <p>And now your queries can be faster and cheaper!</p>
-</div>
-
-
-    </article>
-  
-  
-    <article style='border-bottom-width: 4px; border-bottom-style: solid; padding-top: 3em; padding-bottom: 2em'>
-      
-  <header>
-    
-      <h1 class="entry-title" style="font-size: 2.6em; line-height: 1.2em;"><a href="/blog/2022/01/31/sounds-in-dragonruby/">Sounds in DragonRuby</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-<time datetime="2022-01-31T11:00:00-07:00" pubdate data-updated="true" style="color: #a2a2a2">Jan 31st, 2022</time>
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>The sound API in <a href="https://dragonruby.itch.io/dragonruby-gtk">DragonRuby</a> is a little tricky because at first it seems similar to the sprite API (e.g. using <code class="language-plaintext highlighter-rouge">args.outputs</code>) but it diverges sharply when you want to have some more control.</p>
-
-<p>So let’s take a quick look at audio in DragonRuby!</p>
-
-<h3 id="simple-music">Simple Music</h3>
-
-<p>As usual with DragonRuby, the simple stuff is simple.</p>
-
-<p>To play a looping sound, for example as background music, get a sound file in <code class="language-plaintext highlighter-rouge">.ogg</code> format and then add it on to <code class="language-plaintext highlighter-rouge">args.outputs.sounds</code>:</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sounds</span> <span class="o">&lt;&lt;</span> <span class="s1">'sounds/my_music.ogg'</span>
-</code></pre></div></div>
-
-<p>The audio will loop forever.</p>
-
-<h3 id="simple-sound-effects">Simple Sound Effects</h3>
-
-<p>Want to fire off a single sound effect?</p>
-
-<p>Get a sound file in <code class="language-plaintext highlighter-rouge">.wav</code> format and then add it on to <code class="language-plaintext highlighter-rouge">args.outputs.sounds</code>:</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sounds</span> <span class="o">&lt;&lt;</span> <span class="s1">'sounds/my_effect.wav'</span>
-</code></pre></div></div>
-
-<p>The sound will play once.</p>
-
-<p><em>Wait so the API behaves differently based on the file format?</em></p>
-
-<p>Yep. A little odd but it works.</p>
-
-<h3 id="adjusting-the-volume-knob">Adjusting the Volume Knob</h3>
-
-<p>Playing a sound effect in DragonRuby is pretty easy. But what if we need to adjust the volume or some other attribute of the audio? Or maybe loop a <code class="language-plaintext highlighter-rouge">.wav</code> or not loop a <code class="language-plaintext highlighter-rouge">.ogg</code> file?</p>
-
-<p>You might think, based on how sprites work in DragonRuby, you could do something like this:</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># This does not work!</span>
-<span class="n">args</span><span class="p">.</span><span class="nf">outputs</span><span class="p">.</span><span class="nf">sounds</span> <span class="o">&lt;&lt;</span> <span class="p">{</span>
-  <span class="ss">input: </span><span class="s1">'sounds/my_music.ogg'</span><span class="p">,</span>
-  <span class="ss">gain: </span><span class="mf">0.5</span><span class="p">,</span>      <span class="c1"># Half volume</span>
-  <span class="ss">looping: </span><span class="kp">false</span>  <span class="c1"># Don't loop</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<p>But this does not work.</p>
-
-<p>Instead, you need to use an entirely different interface: <code class="language-plaintext highlighter-rouge">args.audio</code>.</p>
-
-<p><code class="language-plaintext highlighter-rouge">args.audio</code> is a hash table of sounds.</p>
-
-<p>To add a new sound, assign it with a name:</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">audio</span><span class="p">[</span><span class="ss">:music</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-  <span class="ss">input: </span><span class="s1">'sounds/my_music.ogg'</span><span class="p">,</span>
-  <span class="ss">gain: </span><span class="mf">0.5</span><span class="p">,</span>
-  <span class="ss">looping: </span><span class="kp">false</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<p>To adjust an attribute of the audio, access it by the same name:</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Turn up the volume</span>
-<span class="n">args</span><span class="p">.</span><span class="nf">audio</span><span class="p">[</span><span class="ss">:music</span><span class="p">].</span><span class="nf">gain</span> <span class="o">=</span> <span class="mf">0.75</span>
-</code></pre></div></div>
-
-<p>To pause a sound:</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">audio</span><span class="p">[</span><span class="ss">:music</span><span class="p">].</span><span class="nf">paused</span> <span class="o">=</span> <span class="kp">true</span>
-</code></pre></div></div>
-
-<p>To completely remove a sound:</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">audio</span><span class="p">.</span><span class="nf">delete</span> <span class="ss">:music</span>
-</code></pre></div></div>
-
-<h3 id="more-music-manipulation">More Music Manipulation</h3>
-
-<p>This is the full set of options for audio from <a href="http://docs.dragonruby.org/#--docs---gtk--args#audio-">the documentation</a>:</p>
-
-<div class="language-ruby highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">args</span><span class="p">.</span><span class="nf">audio</span><span class="p">[</span><span class="ss">:my_music</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-  <span class="ss">input: </span><span class="s1">'sounds/my_music.ogg'</span><span class="p">,</span>
-  <span class="ss">x: </span><span class="mf">0.0</span><span class="p">,</span> <span class="ss">y: </span><span class="mf">0.0</span><span class="p">,</span> <span class="ss">z: </span><span class="mf">0.0</span><span class="p">,</span>   <span class="c1"># Relative position to the listener, x, y, z from -1.0 to 1.0</span>
-  <span class="ss">gain: </span><span class="mf">1.0</span><span class="p">,</span>                <span class="c1"># Volume (0.0 to 1.0)</span>
-  <span class="ss">pitch: </span><span class="mf">1.0</span><span class="p">,</span>               <span class="c1"># Pitch of the sound (1.0 = original pitch)</span>
-  <span class="ss">paused: </span><span class="kp">false</span><span class="p">,</span>            <span class="c1"># Set to true to pause</span>
-  <span class="ss">looping: </span><span class="kp">false</span><span class="p">,</span>           <span class="c1"># Set to true to loop</span>
-<span class="p">}</span>
-</code></pre></div></div>
-
-<p>That’s it!</p>
 </div>
 
 
