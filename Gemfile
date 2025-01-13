@@ -9,13 +9,13 @@ source "https://rubygems.org"
 # Happy Jekylling!
 # This is the default theme for new Jekyll sites. You may change this to anything you like.
 
-# gem "minima", "~> 2.5"
+gem "minima", git: "git@github.com:jekyll/minima.git", ref: "6b9b78dad3e5c9f733c901e10287465735b36169"
 
 # If you have any plugins, put them here!
 group :jekyll_plugins do
   gem "jekyll-feed", "~> 0.12"
   gem "jekyll-paginate"
-  gem "github-pages"
+  gem "kramdown-parser-gfm"
 end
 
 # Windows and JRuby does not include zoneinfo files, so bundle the tzinfo-data gem

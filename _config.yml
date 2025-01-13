@@ -28,6 +28,8 @@ subscribe_rss: /atom.xml
 
 # Build settings
 theme: minima
+minima:
+  skin: auto
 plugins:
   - jekyll-feed
   - jekyll-paginate
