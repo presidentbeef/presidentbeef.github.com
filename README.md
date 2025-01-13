@@ -7,3 +7,7 @@ then
     cd _site
     git commit
     git push
+
+or copy-paste this:
+
+    jekyll build && cd _site/ && git commit -av && git push
