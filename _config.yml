@@ -28,8 +28,6 @@ subscribe_rss: /atom.xml
 
 # Build settings
 theme: minima
-minima:
-  skin: auto
 plugins:
   - jekyll-feed
   - jekyll-paginate
@@ -37,6 +35,14 @@ plugins:
 
 paginate: 3          # Posts per page on the blog index
 paginate_path: "/blog/:num/"
+
+minima:
+  skin: auto
+  social_links:
+    - { platform: github, user_url: "https://github.com/presidentbeef" }
+    - { platform: mastodon, user_url: "https://ruby.social/@presidentbeef" }
+    - { platform: devto, user_url: "https://dev.to/presidentbeef/" }
+    - { platform: linkedin, user_url: "https://www.linkedin.com/in/justinscollins/" }
 
 # Exclude from processing.
 # The following items will not be processed, by default.
@@ -46,14 +52,5 @@ paginate_path: "/blog/:num/"
 # Excluded items can be processed by explicitly listing the directories or
 # their entries' file path in the `include:` list.
 #
-# exclude:
-#   - .sass-cache/
-#   - .jekyll-cache/
-#   - gemfiles/
-#   - Gemfile
-#   - Gemfile.lock
-#   - node_modules/
-#   - vendor/bundle/
-#   - vendor/cache/
-#   - vendor/gems/
-#   - vendor/ruby/
+exclude:
+  - README.md
