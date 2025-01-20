@@ -82,7 +82,7 @@
 
 <p>The easiest way to get <code class="language-plaintext highlighter-rouge">apksigner</code> is probably to install <a href="https://developer.android.com/studio/">Android Studio</a> and go from there. However, I prefer doing things the hard way (and not installing a whole IDE to get one binary…)</p>
 
-<p>First, go to https://developer.android.com/studio/ and scroll <em>allll</em> the way to the bottom to “Command line tools only”. Grab the .zip file from there.</p>
+<p>First, go to <a href="https://developer.android.com/studio/">https://developer.android.com/studio</a> and scroll <em>allll</em> the way to the bottom to “Command line tools only”. Grab the .zip file from there.</p>
 
 <p>Unzip it and find the <code class="language-plaintext highlighter-rouge">sdkmanager</code> binary, likely in <code class="language-plaintext highlighter-rouge">latest/bin</code>.</p>
 
@@ -107,9 +107,11 @@
 
 <p>On your Android device setup developer options, enable <a href="https://developer.android.com/studio/debug/dev-options">USB debug mode</a>, and plug your device into your computer.</p>
 
+<p>On Linux, you may need to figure out permissions. <a href="https://www.janosgyerik.com/adding-udev-rules-for-usb-debugging-android-devices/">Here’s a post with instructions</a> that worked for me.</p>
+
 <h3 id="getting-adb">Getting adb</h3>
 
-<p>The <code class="language-plaintext highlighter-rouge">adb</code> tool can be downloaded as part of the SDK Platform tools here: https://developer.android.com/tools/releases/platform-tools#downloads.html</p>
+<p>The <code class="language-plaintext highlighter-rouge">adb</code> tool can be downloaded as part of the <a href="https://developer.android.com/tools/releases/platform-tools#downloads.html">SDK Platform tools here.</a></p>
 
 <h3 id="install-the-apk">Install the APK</h3>
 

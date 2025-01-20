@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="https://blog.presidentbeef.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.presidentbeef.com/" rel="alternate" type="text/html" /><updated>2025-01-12T22:43:04-07:00</updated><id>https://blog.presidentbeef.com/feed.xml</id><title type="html">Justin’s Blurgh</title><subtitle></subtitle><entry><title type="html">Brakeman LSP Support</title><link href="https://blog.presidentbeef.com/blog/2025/01/10/brakeman-lsp-support/" rel="alternate" type="text/html" title="Brakeman LSP Support" /><published>2025-01-10T09:23:00-07:00</published><updated>2025-01-10T09:23:00-07:00</updated><id>https://blog.presidentbeef.com/blog/2025/01/10/brakeman-lsp-support</id><content type="html" xml:base="https://blog.presidentbeef.com/blog/2025/01/10/brakeman-lsp-support/"><![CDATA[<p>Announcing the <a href="https://github.com/presidentbeef/ruby-lsp-brakeman">ruby-lsp-brakeman</a> project!</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="https://blog.presidentbeef.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.presidentbeef.com/" rel="alternate" type="text/html" /><updated>2025-01-20T12:45:55-07:00</updated><id>https://blog.presidentbeef.com/feed.xml</id><title type="html">Justin’s Blurgh</title><subtitle></subtitle><entry><title type="html">Brakeman LSP Support</title><link href="https://blog.presidentbeef.com/blog/2025/01/10/brakeman-lsp-support/" rel="alternate" type="text/html" title="Brakeman LSP Support" /><published>2025-01-10T09:23:00-07:00</published><updated>2025-01-10T09:23:00-07:00</updated><id>https://blog.presidentbeef.com/blog/2025/01/10/brakeman-lsp-support</id><content type="html" xml:base="https://blog.presidentbeef.com/blog/2025/01/10/brakeman-lsp-support/"><![CDATA[<p>Announcing the <a href="https://github.com/presidentbeef/ruby-lsp-brakeman">ruby-lsp-brakeman</a> project!</p>
 
 <p>This new gem allows Brakeman scans to be integrated into code editors via <a href="https://shopify.github.io/ruby-lsp/">ruby-lsp</a>. Scans will run asynchronously in the background and warnings will can be shown inline in the editor.</p>
 
@@ -266,7 +266,7 @@
 
 <p>The easiest way to get <code class="language-plaintext highlighter-rouge">apksigner</code> is probably to install <a href="https://developer.android.com/studio/">Android Studio</a> and go from there. However, I prefer doing things the hard way (and not installing a whole IDE to get one binary…)</p>
 
-<p>First, go to https://developer.android.com/studio/ and scroll <em>allll</em> the way to the bottom to “Command line tools only”. Grab the .zip file from there.</p>
+<p>First, go to <a href="https://developer.android.com/studio/">https://developer.android.com/studio</a> and scroll <em>allll</em> the way to the bottom to “Command line tools only”. Grab the .zip file from there.</p>
 
 <p>Unzip it and find the <code class="language-plaintext highlighter-rouge">sdkmanager</code> binary, likely in <code class="language-plaintext highlighter-rouge">latest/bin</code>.</p>
 
@@ -291,9 +291,11 @@
 
 <p>On your Android device setup developer options, enable <a href="https://developer.android.com/studio/debug/dev-options">USB debug mode</a>, and plug your device into your computer.</p>
 
+<p>On Linux, you may need to figure out permissions. <a href="https://www.janosgyerik.com/adding-udev-rules-for-usb-debugging-android-devices/">Here’s a post with instructions</a> that worked for me.</p>
+
 <h3 id="getting-adb">Getting adb</h3>
 
-<p>The <code class="language-plaintext highlighter-rouge">adb</code> tool can be downloaded as part of the SDK Platform tools here: https://developer.android.com/tools/releases/platform-tools#downloads.html</p>
+<p>The <code class="language-plaintext highlighter-rouge">adb</code> tool can be downloaded as part of the <a href="https://developer.android.com/tools/releases/platform-tools#downloads.html">SDK Platform tools here.</a></p>
 
 <h3 id="install-the-apk">Install the APK</h3>
 
