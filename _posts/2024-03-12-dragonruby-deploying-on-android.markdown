@@ -42,7 +42,7 @@ To install the package on your Android device, you'll need to sign the `.apk` bu
 
 The easiest way to get `apksigner` is probably to install [Android Studio](https://developer.android.com/studio/) and go from there. However, I prefer doing things the hard way (and not installing a whole IDE to get one binary...)
 
-First, go to https://developer.android.com/studio/ and scroll _allll_ the way to the bottom to "Command line tools only". Grab the .zip file from there.
+First, go to [https://developer.android.com/studio](https://developer.android.com/studio/) and scroll _allll_ the way to the bottom to "Command line tools only". Grab the .zip file from there.
 
 Unzip it and find the `sdkmanager` binary, likely in `latest/bin`.
 
@@ -68,9 +68,11 @@ See the [official docs](https://docs.dragonruby.org/#/guides/deploying-to-mobile
 
 On your Android device setup developer options, enable [USB debug mode](https://developer.android.com/studio/debug/dev-options), and plug your device into your computer.
 
+On Linux, you may need to figure out permissions. [Here's a post with instructions](https://www.janosgyerik.com/adding-udev-rules-for-usb-debugging-android-devices/) that worked for me.
+
 ### Getting adb
 
-The `adb` tool can be downloaded as part of the SDK Platform tools here: https://developer.android.com/tools/releases/platform-tools#downloads.html
+The `adb` tool can be downloaded as part of the [SDK Platform tools here.](https://developer.android.com/tools/releases/platform-tools#downloads.html)
 
 ### Install the APK
 
